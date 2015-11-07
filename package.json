@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/marco-c/autowebcompat/issues"
   },
-  "homepage": "https://github.com/marco-c/autowebcompat#readme"
+  "homepage": "https://github.com/marco-c/autowebcompat#readme",
+  "dependencies": {
+    "node-firefox": "^0.1.0"
+  }
 }
