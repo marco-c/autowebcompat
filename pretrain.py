@@ -9,7 +9,10 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
 from PIL import Image
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 import itertools
 
 import utils
