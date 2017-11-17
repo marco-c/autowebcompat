@@ -1,3 +1,4 @@
+from functools import lru_cache
 import json
 import os
 import numpy as np
@@ -24,6 +25,7 @@ with open('issue_parser/webcompatdata-bzlike.json', 'r') as f:
 
 
 utils.prepare_images()
+all_images = utils.get_all_images()
 
 
 bugs_to_website = {}
@@ -31,6 +33,7 @@ for bug in bugs:
     bugs_to_website[bug['id']] = urlparse(bug['url']).netloc
 
 
+@lru_cache(max_size=len(all_images))
 def site_for_image(image):
     bug = image[:image.index('_')]
     return bugs_to_website[int(bug)]
@@ -40,7 +43,6 @@ def are_same_site(image1, image2):
     return site_for_image(image1) == site_for_image(image2)
 
 
-all_images = utils.get_all_images()
 '''images_train = random.sample(all_images, int(len(all_images) * 0.9))
 images_test = [i for i in all_images if i not in set(images_train)]'''
 print(len(all_images))
