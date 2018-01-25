@@ -1,4 +1,4 @@
-# AutoWebCompat - Project to automatically detect web compatibility issues
+# AutoWebCompat - Automatically detect web compatibility issues
 
 The aim of this project is creating a tool to automatically detect web compatibility issues without human intervention.
 
