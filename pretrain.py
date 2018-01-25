@@ -20,6 +20,7 @@ all_images = utils.get_all_images()[:3000] # 3000
 image = utils.load_image(all_images[0])
 input_shape = image.shape
 BATCH_SIZE = 32
+EPOCHS = 50
 
 
 bugs_to_website = {}
@@ -95,7 +96,7 @@ network.compile(model)
 
 model.save('pretrain.h5')
 
-model.fit_generator(train_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, epochs=50)
+model.fit_generator(train_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, epochs=EPOCHS)
 
 model.save('pretrain.h5')
 
