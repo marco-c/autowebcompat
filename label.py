@@ -38,16 +38,19 @@ def get_new_image():
     panel2.image = img
 
 
+# The images are the same.
 def callback_y(e):
     labels[current_image] = 'y'
     get_new_image()
 
 
+# The image are basically the same, except for advertisement or content.
 def callback_d(e):
     labels[current_image] = 'd'
     get_new_image()
 
 
+# The images are not the same.
 def callback_n(e):
     labels[current_image] = 'n'
     get_new_image()
