@@ -1,21 +1,13 @@
 from functools import lru_cache
 import json
-import os
-import numpy as np
 import random
-import keras
-from keras.models import Sequential, Model
-from keras.layers import Input, Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras.optimizers import SGD
-from keras.preprocessing.image import ImageDataGenerator
-from PIL import Image
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
 import itertools
 
+import network
 import utils
 
 
@@ -23,9 +15,11 @@ import utils
 with open('issue_parser/webcompatdata-bzlike.json', 'r') as f:
     bugs = json.load(f)['bugs']
 
-
 utils.prepare_images()
-all_images = utils.get_all_images()
+all_images = utils.get_all_images()[:3000] # 3000
+image = utils.load_image(all_images[0])
+input_shape = image.shape
+BATCH_SIZE = 32
 
 
 bugs_to_website = {}
@@ -33,7 +27,7 @@ for bug in bugs:
     bugs_to_website[bug['id']] = urlparse(bug['url']).netloc
 
 
-@lru_cache(max_size=len(all_images))
+@lru_cache(maxsize=len(all_images))
 def site_for_image(image):
     bug = image[:image.index('_')]
     return bugs_to_website[int(bug)]
@@ -43,57 +37,73 @@ def are_same_site(image1, image2):
     return site_for_image(image1) == site_for_image(image2)
 
 
-'''images_train = random.sample(all_images, int(len(all_images) * 0.9))
-images_test = [i for i in all_images if i not in set(images_train)]'''
-print(len(all_images))
-possible_combinations = list(itertools.combinations_with_replacement(all_images, 2))
-print(len(possible_combinations))
-images_train = random.sample(possible_combinations, len(possible_combinations) - 10)
-labels_train = np.array([1 if are_same_site(i1, i2) else 0 for i1, i2 in images_train])
-images_train_set = set(images_train)
-images_test = [i for i in possible_combinations if i not in images_train_set]
-labels_test = np.array([1 if are_same_site(i1, i2) else 0 for i1, i2 in images_test])
+images_train = random.sample(all_images, int(len(all_images) * 0.9))
+images_test = [i for i in all_images if i not in set(images_train)]
 
-data_gen = ImageDataGenerator()
-train_iterator = utils.CouplesIterator(images_train, labels_train, data_gen)
-test_iterator = utils.CouplesIterator(images_test, labels_test, data_gen)
+def couples_generator(images):
+    #for image_couple in itertools.combinations_with_replacement(images, 2):
+    for image_couple in itertools.combinations(images, 2):
+        yield image_couple, 1 if are_same_site(image_couple[0], image_couple[1]) else 0
 
-input_shape = (192, 256, 3)
+def balanced_couples_generator(images):
+    last_label = None
+    queue_1 = []
+    queue_0 = []
+    for e in couples_generator(images):
+        l = e[1]
+        if l != last_label:
+            last_label = l
+            yield e
+        else:
+            if l == 1:
+                queue_1.append(e)
+            else:
+                queue_0.append(e)
 
-network = Sequential()
-# input: 192x256 images with 3 channels -> (192, 256, 3) tensors.
-# this applies 32 convolution filters of size 3x3 each.
-network.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
-network.add(Conv2D(32, (3, 3), activation='relu'))
-network.add(MaxPooling2D(pool_size=(2, 2)))
-network.add(Dropout(0.25))
+            while True:
+                if last_label == 1:
+                    if len(queue_0) == 0:
+                        break
+                    e = queue_0.pop()
+                else:
+                    if len(queue_1) == 0:
+                        break
+                    e = queue_1.pop()
 
-network.add(Conv2D(64, (3, 3), activation='relu'))
-network.add(Conv2D(64, (3, 3), activation='relu'))
-network.add(MaxPooling2D(pool_size=(2, 2)))
-network.add(Dropout(0.25))
+                last_label = e[1]
+                yield e
 
-network.add(Flatten())
-network.add(Dense(256, activation='relu'))
-network.add(Dropout(0.5))
-network.add(Dense(2, activation='softmax'))
+def inf_couples_generator(images):
+    while True:
+        random.shuffle(images)
+        for e in balanced_couples_generator(images):
+            yield e
 
+train_couples_len = sum(1 for e in balanced_couples_generator(images_train))
+test_couples_len = sum(1 for e in balanced_couples_generator(images_test))
 
-input_a = Input(shape=(192, 256, 3), batch_size=32)
-input_b = Input(shape=(192, 256, 3), batch_size=32)
-processed_a = network(input_a)
-processed_b = network(input_b)
+print('Training with %d couples.' % train_couples_len)
+print('Testing with %d couples.' % test_couples_len)
+print(input_shape)
 
-concatenated = keras.layers.concatenate([processed_a, processed_b])
-out = Dense(1, activation='sigmoid')(concatenated)
+data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
+train_iterator = utils.CouplesIterator(inf_couples_generator(images_train), input_shape, data_gen, BATCH_SIZE)
+test_iterator = utils.CouplesIterator(inf_couples_generator(images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = Model([input_a, input_b], out)
+model = network.create(input_shape)
+network.compile(model)
 
+model.save('pretrain.h5')
 
+model.fit_generator(train_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, epochs=50)
 
-sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+model.save('pretrain.h5')
 
+score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
+print(score)
 
-model.fit_generator(train_iterator, steps_per_epoch=len(images_train) / 32, epochs=10)
-score = model.evaluate_generator(test_iterator, steps=len(images_test))
+asd = utils.CouplesIterator(inf_couples_generator(images_test[:100]), input_shape, data_gen)
+predict_couples_len = sum(1 for e in balanced_couples_generator(images_test))
+predictions = model.predict_generator(asd, steps=predict_couples_len / BATCH_SIZE)
+print(predictions)
+print([a[1] for a in balanced_couples_generator(images_test[:100])])
