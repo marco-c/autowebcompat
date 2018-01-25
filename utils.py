@@ -1,8 +1,9 @@
 import os
+import threading
 import numpy as np
 from PIL import Image
 import keras
-from keras.preprocessing.image import Iterator
+from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array
 
 
 def get_all_images():
@@ -15,7 +16,7 @@ def get_images():
         'chrome': [],
     }
 
-    for file_name in os.listdir('data/'):
+    for file_name in get_all_images():
         assert 'firefox.png' in file_name or 'chrome.png' in file_name
 
         browser = 'firefox' if 'firefox.png' in file_name else 'chrome'
@@ -58,60 +59,63 @@ def load_image(fname):
     if fname in images:
         return images[fname]
 
-    img = Image.open(os.path.join('data_resized', fname))
-    # Numpy array x has format (height, width, channel)
-    # or (channel, height, width)
-    # but original PIL image has format (width, height, channel)
-    data_format = keras.backend.image_data_format()
-    x = np.asarray(img, dtype=keras.backend.floatx())
-    if len(x.shape) == 3:
-        if data_format == 'channels_first':
-            x = x.transpose(2, 0, 1)
-    elif len(x.shape) == 2:
-        if data_format == 'channels_first':
-            x = x.reshape((1, x.shape[0], x.shape[1]))
-        else:
-            x = x.reshape((x.shape[0], x.shape[1], 1))
-    else:
-        raise ValueError('Unsupported image shape: ', x.shape)
+    img = load_img(os.path.join('data_resized', fname), target_size=(32,24))
+    x = img_to_array(img, data_format=keras.backend.image_data_format())
 
     images[fname] = x
 
     return x
 
 
-class CouplesIterator(Iterator):
-    def __init__(self, image_couples, labels, image_data_generator, batch_size=32, shuffle=False, seed=None):
-        self.image_couples = image_couples
-        image = load_image(self.image_couples[0][0])
-        self.labels = labels
-        self.image_shape = image.shape
+def get_ImageDataGenerator(images, image_shape):
+    data_gen = ImageDataGenerator(rescale=1./255)
+
+    x = np.zeros((len(images),) + image_shape, dtype=keras.backend.floatx())
+
+    for i, image in enumerate(images):
+        x[i] = load_image(image)
+
+    data_gen.fit(x)
+
+    return data_gen
+
+
+class CouplesIterator():
+    def __init__(self, image_couples_generator, image_shape, image_data_generator, batch_size=32):
+        self.image_couples_generator = image_couples_generator
+        self.image_shape = image_shape
         self.image_data_generator = image_data_generator
-        super(CouplesIterator, self).__init__(len(image_couples), batch_size, shuffle, seed)
+        self.batch_size = batch_size
+        self.lock = threading.Lock()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
 
     def next(self):
-        # Keeps under lock only the mechanism which advances
-        # the indexing of each batch.
-        with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
-
         x_batch = [
-            np.zeros((current_batch_size,) + self.image_shape, dtype=keras.backend.floatx()),
-            np.zeros((current_batch_size,) + self.image_shape, dtype=keras.backend.floatx()),
+            np.zeros((self.batch_size,) + self.image_shape, dtype=keras.backend.floatx()),
+            np.zeros((self.batch_size,) + self.image_shape, dtype=keras.backend.floatx()),
         ]
+        image_couples = [None] * self.batch_size
+        y_batch = np.zeros(self.batch_size)
 
-        for i, j in enumerate(index_array):
-            i1, i2 = self.image_couples[j]
+        with self.lock:
+            for i in range(self.batch_size):
+                image_couple, label = next(self.image_couples_generator)
+                image_couples[i] = image_couple
+                y_batch[i] = label
 
+        for i, (i1, i2) in enumerate(image_couples):
             x1 = load_image(i1)
-            x1 = self.image_data_generator.random_transform(x1)
+            x1 = self.image_data_generator.random_transform(x1.astype(keras.backend.floatx()))
             x1 = self.image_data_generator.standardize(x1)
             x2 = load_image(i2)
-            x2 = self.image_data_generator.random_transform(x2)
+            x2 = self.image_data_generator.random_transform(x2.astype(keras.backend.floatx()))
             x2 = self.image_data_generator.standardize(x2)
             x_batch[0][i] = x1
             x_batch[1][i] = x2
-
-        y_batch = self.labels[index_array]
 
         return x_batch, y_batch
