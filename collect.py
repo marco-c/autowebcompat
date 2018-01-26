@@ -2,6 +2,7 @@ import os
 import time
 import json
 import random
+import sys
 import traceback
 from PIL import Image
 from selenium import webdriver
@@ -191,6 +192,7 @@ def run_tests(firefox_driver, chrome_driver):
     chrome_driver.quit()
 
 
+os.environ['PATH'] += ':' + os.path.abspath('tools')
 os.environ['MOZ_HEADLESS'] = '1'
 os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'

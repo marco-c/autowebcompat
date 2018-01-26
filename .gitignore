@@ -1,5 +1,5 @@
 *.pyc
 tools/chrome-linux/*
 tools/nightly/*
-geckodriver
-chromedriver
+tools/geckodriver
+tools/chromedriver
