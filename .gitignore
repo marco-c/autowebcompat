@@ -1,6 +1,11 @@
 *.pyc
+
+data/
+data_resized/
+
 tools/chrome-linux/*
 tools/nightly/*
 tools/geckodriver
 tools/chromedriver
+
 geckodriver.log
