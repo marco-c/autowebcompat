@@ -10,3 +10,10 @@ The aim of this project is creating a tool to automatically detect web compatibi
 - The **network.py** script contains the neural network definition, along with the loss and accuracy;
 - The **pretrain.py** script trains a neural network on the website screenshots for a slightly different problem (for which we know the solution), so that we can reuse the network weights for the training on the actual problem;
 - The **train.py** script trains the neural network on the website screenshots to detect compat issues.
+
+## Setup
+
+**Python 3** is required.
+
+- Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
+- Run the **get_dependencies.py** script.
