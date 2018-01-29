@@ -1,5 +1,4 @@
 from functools import lru_cache
-import json
 import random
 try:
     from urllib.parse import urlparse
@@ -11,9 +10,7 @@ import network
 import utils
 
 
-# TODO: Get data from webcompat using issue_parser if the file doesn't exist.
-with open('issue_parser/webcompatdata-bzlike.json', 'r') as f:
-    bugs = json.load(f)['bugs']
+bugs = utils.get_bugs()
 
 utils.prepare_images()
 all_images = utils.get_all_images()[:3000] # 3000

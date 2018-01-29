@@ -1,17 +1,14 @@
 import os
 import time
-import json
 import random
-import sys
 import traceback
+import utils
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-# TODO: Get data from webcompat using issue_parser if the file doesn't exist.
-with open('issue_parser/webcompatdata-bzlike.json', 'r') as f:
-    bugs = json.load(f)['bugs']
 
+bugs = utils.get_bugs()
 print(len(bugs))
 
 

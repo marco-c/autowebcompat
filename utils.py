@@ -1,9 +1,16 @@
+import json
 import os
 import threading
 import numpy as np
 from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array
+
+
+def get_bugs():
+    # TODO: Get data from webcompat using issue_parser (https://github.com/webcompat/issue_parser) if the file doesn't exist.
+    with open('webcompatdata-bzlike.json', 'r') as f:
+        return json.load(f)['bugs']
 
 
 def get_all_images():
