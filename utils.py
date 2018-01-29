@@ -126,3 +126,32 @@ class CouplesIterator():
             x_batch[1][i] = x2
 
         return x_batch, y_batch
+
+
+def balance(it):
+    last_label = None
+    queue_1 = []
+    queue_0 = []
+    for e in it:
+        l = e[1]
+        if l != last_label:
+            last_label = l
+            yield e
+        else:
+            if l == 1:
+                queue_1.append(e)
+            else:
+                queue_0.append(e)
+
+            while True:
+                if last_label == 1:
+                    if len(queue_0) == 0:
+                        break
+                    e = queue_0.pop()
+                else:
+                    if len(queue_1) == 0:
+                        break
+                    e = queue_1.pop()
+
+                last_label = e[1]
+                yield e

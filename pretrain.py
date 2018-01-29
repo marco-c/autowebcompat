@@ -43,42 +43,14 @@ def couples_generator(images):
     for image_couple in itertools.combinations(images, 2):
         yield image_couple, 1 if are_same_site(image_couple[0], image_couple[1]) else 0
 
-def balanced_couples_generator(images):
-    last_label = None
-    queue_1 = []
-    queue_0 = []
-    for e in couples_generator(images):
-        l = e[1]
-        if l != last_label:
-            last_label = l
-            yield e
-        else:
-            if l == 1:
-                queue_1.append(e)
-            else:
-                queue_0.append(e)
-
-            while True:
-                if last_label == 1:
-                    if len(queue_0) == 0:
-                        break
-                    e = queue_0.pop()
-                else:
-                    if len(queue_1) == 0:
-                        break
-                    e = queue_1.pop()
-
-                last_label = e[1]
-                yield e
-
 def inf_couples_generator(images):
     while True:
         random.shuffle(images)
-        for e in balanced_couples_generator(images):
+        for e in utils.balance(couples_generator(images)):
             yield e
 
-train_couples_len = sum(1 for e in balanced_couples_generator(images_train))
-test_couples_len = sum(1 for e in balanced_couples_generator(images_test))
+train_couples_len = sum(1 for e in utils.balance(couples_generator(images_train)))
+test_couples_len = sum(1 for e in utils.balance(couples_generator(images_test)))
 
 print('Training with %d couples.' % train_couples_len)
 print('Testing with %d couples.' % test_couples_len)
@@ -101,7 +73,7 @@ score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_S
 print(score)
 
 asd = utils.CouplesIterator(inf_couples_generator(images_test[:100]), input_shape, data_gen)
-predict_couples_len = sum(1 for e in balanced_couples_generator(images_test))
+predict_couples_len = sum(1 for e in utils.balance(couples_generator(images_test)))
 predictions = model.predict_generator(asd, steps=predict_couples_len / BATCH_SIZE)
 print(predictions)
-print([a[1] for a in balanced_couples_generator(images_test[:100])])
+print([a[1] for a in utils.balance(couples_generator(images_test[:100]))])
