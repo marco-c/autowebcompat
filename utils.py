@@ -4,7 +4,7 @@ import threading
 import numpy as np
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array  # , Iterator
+from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 
 
 def get_bugs():
