@@ -8,7 +8,7 @@ import utils
 try:
     with open('labels.json', 'r') as f:
         labels = json.load(f)
-except:
+except FileNotFoundError:
     labels = {}
 
 

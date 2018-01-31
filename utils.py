@@ -36,7 +36,7 @@ def get_images():
 def prepare_images():
     try:
         os.mkdir('data_resized')
-    except:
+    except OSError:
         pass
 
     for f in os.listdir('data/'):
