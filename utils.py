@@ -3,7 +3,7 @@ import threading
 import numpy as np
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array
+from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 
 
 def get_all_images():
