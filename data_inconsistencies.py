@@ -1,5 +1,4 @@
 import os
-import json
 import csv
 
 
@@ -9,7 +8,7 @@ def get_inconsistencies():
     parsed = {}
     for file in files:
         parts = os.path.splitext(file)[0].split('_')
-        
+
         ID = parts[0]
         if ID not in parsed:
             parsed[ID] = {}
@@ -40,5 +39,5 @@ def main():
     print('Done!')
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
