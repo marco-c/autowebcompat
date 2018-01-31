@@ -1,4 +1,3 @@
-import os
 import json
 from PIL import ImageTk, Image
 from Tkinter import Tk, Label
@@ -9,7 +8,7 @@ import utils
 try:
     with open('labels.json', 'r') as f:
         labels = json.load(f)
-except:
+except FileNotFoundError:
     labels = {}
 
 

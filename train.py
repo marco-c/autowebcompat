@@ -25,18 +25,20 @@ def load_pair(fname):
     return [f, c]
 
 
-
 images_train = random.sample(all_images, int(len(all_images) * 0.9))
 images_test = [i for i in all_images if i not in set(images_train)]
+
 
 def couples_generator(images):
     for i in images:
         yield load_pair(i), labels[i]
 
+
 def inf_couples_generator(images):
     while True:
         for e in couples_generator(images):
             yield e
+
 
 train_couples_len = sum(1 for e in couples_generator(images_train))
 test_couples_len = sum(1 for e in couples_generator(images_test))

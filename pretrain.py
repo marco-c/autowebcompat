@@ -13,7 +13,7 @@ import utils
 bugs = utils.get_bugs()
 
 utils.prepare_images()
-all_images = utils.get_all_images()[:3000] # 3000
+all_images = utils.get_all_images()[:3000]  # 3000
 image = utils.load_image(all_images[0])
 input_shape = image.shape
 BATCH_SIZE = 32
@@ -38,16 +38,19 @@ def are_same_site(image1, image2):
 images_train = random.sample(all_images, int(len(all_images) * 0.9))
 images_test = [i for i in all_images if i not in set(images_train)]
 
+
 def couples_generator(images):
-    #for image_couple in itertools.combinations_with_replacement(images, 2):
+    # for image_couple in itertools.combinations_with_replacement(images, 2):
     for image_couple in itertools.combinations(images, 2):
         yield image_couple, 1 if are_same_site(image_couple[0], image_couple[1]) else 0
+
 
 def inf_couples_generator(images):
     while True:
         random.shuffle(images)
         for e in utils.balance(couples_generator(images)):
             yield e
+
 
 train_couples_len = sum(1 for e in utils.balance(couples_generator(images_train)))
 test_couples_len = sum(1 for e in utils.balance(couples_generator(images_test)))
