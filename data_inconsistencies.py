@@ -30,7 +30,7 @@ def get_inconsistencies():
         for (element, sequence), browsers in value.items():
             if len(browsers) < 2:
                 incons.append([key, element, sequence, 'firefox' in browsers, 'chrome' in browsers])
-    
+
     incons.sort(key=lambda x: x[2])
     incons.sort(key=lambda x: x[0])
     return incons
