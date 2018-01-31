@@ -1,0 +1,3 @@
+[submodule "issue_parser"]
+	path = issue_parser
+	url = https://github.com/webcompat/issue_parser.git

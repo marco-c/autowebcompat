@@ -5,10 +5,15 @@ import numpy as np
 from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array
+from issue_parser.extract_id_title_url import get_webcompat_data
 
 
 def get_bugs():
-    # TODO: Get data from webcompat using issue_parser (https://github.com/webcompat/issue_parser) if the file doesn't exist.
+    if not os.path.isfile('webcompatdata-bzlike.json'):
+        results, bzresults = get_webcompat_data()
+        with open('webcompatdata-bzlike.json', 'w') as f:
+            f.write(json.dumps(bzresults, indent=4).encode('utf8'))
+
     with open('webcompatdata-bzlike.json', 'r') as f:
         return json.load(f)['bugs']
 
