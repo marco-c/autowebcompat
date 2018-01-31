@@ -1,4 +1,3 @@
-import os
 import json
 from PIL import ImageTk, Image
 from Tkinter import Tk, Label
