@@ -111,6 +111,10 @@ def do_something(driver, elem_id=None):
             elem.send_keys('prova@email.it')
         elif input_type == 'password':
             elem.send_keys('aMildlyComplexPasswordIn2017')
+        elif input_type == 'checkbox':
+            elem.click()
+        elif input_type == 'number':
+            elem.send_keys('3')
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
