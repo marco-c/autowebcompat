@@ -1,17 +1,14 @@
 import os
 import time
-import json
 import random
-import sys
 import traceback
+import utils
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-# TODO: Get data from webcompat using issue_parser if the file doesn't exist.
-with open('issue_parser/webcompatdata-bzlike.json', 'r') as f:
-    bugs = json.load(f)['bugs']
 
+bugs = utils.get_bugs()
 print(len(bugs))
 
 
@@ -114,6 +111,10 @@ def do_something(driver, elem_id=None):
             elem.send_keys('prova@email.it')
         elif input_type == 'password':
             elem.send_keys('aMildlyComplexPasswordIn2017')
+        elif input_type == 'checkbox':
+            elem.click()
+        elif input_type == 'number':
+            elem.send_keys('3')
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
