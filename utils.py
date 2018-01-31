@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
+import requests
+import sys
 
 
 def get_bugs():
@@ -157,3 +159,22 @@ def balance(it):
 
                 last_label = e[1]
                 yield e
+
+
+def download(url, filename, block='█'):
+    with open(filename, 'wb') as file:
+            response = requests.get(url, stream=True)
+            total = response.headers.get('content-length')
+
+            if total is None:
+                file.write(response.content)
+            else:
+                downloaded = 0
+                total = int(total)
+                for data in response.iter_content(chunk_size=int(total / 1000)):
+                    downloaded += len(data)
+                    file.write(data)
+                    done = int(50 * downloaded / total)
+                    sys.stdout.write('\r[{}{}]'.format(block * done, '.' * (50 - done)))
+                    sys.stdout.flush()
+    sys.stdout.write('\n')
