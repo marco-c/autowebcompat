@@ -28,7 +28,7 @@ def wait_loaded(driver):
             done();
           }
         """)
-    except:
+    except:  # noqa: E722
         traceback.print_exc()
         print('Continuing...')
 
@@ -41,7 +41,7 @@ def wait_loaded(driver):
             timeout: 60000
           });
         """)
-    except:
+    except:  # noqa: E722
         traceback.print_exc()
         print('Continuing...')
 
@@ -111,6 +111,10 @@ def do_something(driver, elem_id=None):
             elem.send_keys('prova@email.it')
         elif input_type == 'password':
             elem.send_keys('aMildlyComplexPasswordIn2017')
+        elif input_type == 'checkbox':
+            elem.click()
+        elif input_type == 'number':
+            elem.send_keys('3')
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
@@ -180,7 +184,7 @@ def run_tests(firefox_driver, chrome_driver):
                not os.path.exists('data/%d_chrome.png' % bug['id']):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
-        except:
+        except:  # noqa: E722
             traceback.print_exc()
             close_all_windows_except_first(firefox_driver)
             close_all_windows_except_first(chrome_driver)
