@@ -1,13 +1,10 @@
-import json
 import random
 
 import network
 import utils
 
 
-with open('labels.json', 'r') as f:
-    labels = json.load(f)
-
+labels = utils.read_labels()
 
 utils.prepare_images()
 all_images = utils.get_images()

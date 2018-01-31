@@ -1,16 +1,11 @@
-import json
+import csv
 from PIL import ImageTk, Image
 from tkinter import Tk, Label
 
 import utils
 
 
-try:
-    with open('labels.json', 'r') as f:
-        labels = json.load(f)
-except FileNotFoundError:
-    labels = {}
-
+labels = utils.read_labels()
 
 images_to_show = [i for i in utils.get_images() if i not in labels]
 current_image = None
@@ -71,7 +66,9 @@ root.bind("<Return>", callback_skip)
 root.bind("<Escape>", close)
 root.mainloop()
 
-
 # Store results.
-with open('labels.json', 'w') as f:
-    json.dump(labels, f)
+with open('labels.csv', 'w') as f:
+    writer = csv.writer(f, delimiter=',')
+    writer.writerow(["Image Name", "Label"])
+    for key, value in labels.items():
+        writer.writerow([key, value])
