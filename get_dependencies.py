@@ -1,8 +1,8 @@
-import requests
 import sys
 import os
 import tarfile
 from zipfile import ZipFile
+import requests
 
 
 def download(url, filename):
