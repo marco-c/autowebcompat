@@ -4,7 +4,8 @@ import threading
 import numpy as np
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array
+from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
+import csv
 
 
 def get_bugs():
@@ -36,7 +37,7 @@ def get_images():
 def prepare_images():
     try:
         os.mkdir('data_resized')
-    except:
+    except OSError:
         pass
 
     for f in os.listdir('data/'):
@@ -60,13 +61,15 @@ def prepare_images():
 
 
 images = {}
+
+
 def load_image(fname):
     global images
 
     if fname in images:
         return images[fname]
 
-    img = load_img(os.path.join('data_resized', fname), target_size=(32,24))
+    img = load_img(os.path.join('data_resized', fname), target_size=(32, 24))
     x = img_to_array(img, data_format=keras.backend.image_data_format())
 
     images[fname] = x
@@ -75,7 +78,7 @@ def load_image(fname):
 
 
 def get_ImageDataGenerator(images, image_shape):
-    data_gen = ImageDataGenerator(rescale=1./255)
+    data_gen = ImageDataGenerator(rescale=1. / 255)
 
     x = np.zeros((len(images),) + image_shape, dtype=keras.backend.floatx())
 
@@ -133,12 +136,12 @@ def balance(it):
     queue_1 = []
     queue_0 = []
     for e in it:
-        l = e[1]
-        if l != last_label:
-            last_label = l
+        label = e[1]
+        if label != last_label:
+            last_label = label
             yield e
         else:
-            if l == 1:
+            if label == 1:
                 queue_1.append(e)
             else:
                 queue_0.append(e)
@@ -155,3 +158,14 @@ def balance(it):
 
                 last_label = e[1]
                 yield e
+
+
+def read_labels():
+    try:
+        with open('labels.csv', 'r') as f:
+            next(f)
+            reader = csv.reader(f)
+            labels = {row[0]: row[1] for row in reader}
+    except FileNotFoundError:
+        labels = {}
+    return labels
