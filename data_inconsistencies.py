@@ -6,24 +6,23 @@ def get_inconsistencies():
     files = os.listdir('./data/')
 
     parsed = {}
-    for file in files:
-        parts = os.path.splitext(file)[0].split('_')
+    for f in files:
+        parts = os.path.splitext(f)[0].split('_')
 
-        ID = int(parts[0])
-        if ID not in parsed:
-            parsed[ID] = {}
+        webcompatID = int(parts[0])
+        if webcompatID not in parsed:
+            parsed[webcompatID] = {}
         element = '_'.join(parts[1:-1])
-        if element:
-            spl = element.split('_')
-            sequence = int(spl[-1])
-            element = '_'.join(spl[:-1])
+        if len(parts) > 2:
+            sequence = int(parts[-2])
+            element = '_'.join(parts[1:-2])
         else:
             element = None
             sequence = 0
 
-        if (element, sequence) not in parsed[ID]:
-            parsed[ID][(element, sequence)] = []
-        parsed[ID][(element, sequence)].append(parts[-1])
+        if (element, sequence) not in parsed[webcompatID]:
+            parsed[webcompatID][(element, sequence)] = []
+        parsed[webcompatID][(element, sequence)].append(parts[-1])
 
     incons = []
     for key, value in parsed.items():
@@ -31,8 +30,7 @@ def get_inconsistencies():
             if len(browsers) < 2:
                 incons.append([key, element, sequence, 'firefox' in browsers, 'chrome' in browsers])
 
-    incons.sort(key=lambda x: x[2])
-    incons.sort(key=lambda x: x[0])
+    incons.sort(key=lambda x: (x[2], x[0]))
     return incons
 
 
@@ -40,7 +38,6 @@ def main():
     print('[*] Getting inconsistencies in screenshots...')
     incons = get_inconsistencies()
     print('[*] {} inconsistencies found.'.format(len(incons)))
-
     print('[*] Writing to inconsistencies.csv... ', end='')
     with open('inconsistencies.csv', 'w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
