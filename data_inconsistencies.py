@@ -12,7 +12,7 @@ def get_inconsistencies():
         webcompatID = int(parts[0])
         if webcompatID not in parsed:
             parsed[webcompatID] = {}
-        element = '_'.join(parts[1:-1])
+
         if len(parts) > 2:
             sequence = int(parts[-2])
             element = '_'.join(parts[1:-2])
@@ -40,10 +40,10 @@ def main():
     print('[*] {} inconsistencies found.'.format(len(incons)))
     print('[*] Writing to inconsistencies.csv... ', end='')
     with open('inconsistencies.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
-            writer.writerow(['WEBCOMPAT-ID', 'ELEMENT-ID', 'SEQUENCE-NO', 'FIREFOX', 'CHROME'])
-            for line in incons:
-                writer.writerow(line)
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(['WEBCOMPAT-ID', 'ELEMENT-ID', 'SEQUENCE-NO', 'FIREFOX', 'CHROME'])
+        for line in incons:
+            writer.writerow(line)
     print('Done!')
 
 
