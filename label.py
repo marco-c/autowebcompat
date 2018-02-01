@@ -1,6 +1,6 @@
+import argparse
 from PIL import ImageTk, Image
 from tkinter import Tk, Label
-import argparse
 
 
 import utils
