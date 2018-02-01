@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
+import csv
 
 
 def get_bugs():
@@ -157,3 +158,14 @@ def balance(it):
 
                 last_label = e[1]
                 yield e
+
+
+def read_labels():
+    try:
+        with open('labels.csv', 'r') as f:
+            next(f)
+            reader = csv.reader(f)
+            labels = {row[0]: row[1] for row in reader}
+    except FileNotFoundError:
+        labels = {}
+    return labels
