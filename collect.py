@@ -1,5 +1,7 @@
 import os
 import time
+import sys
+import platform
 import random
 import traceback
 import utils
@@ -7,10 +9,16 @@ from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
+from sys import platform as _platform
+if _platform == "linux" or _platform == "linux2": # linux
+    chromebin="tools/chrome-linux/chrome"
+    nightybin='tools/nightly/firefox-bin'
+elif _platform == "darwin":# MAC OS X
+    chromebin="tools/chrome.app/Contents/MacOS/chrome"
+    nightybin='tools/Nightly.app/Contents/MacOS/firefox'
 
 bugs = utils.get_bugs()
 print(len(bugs))
-
 
 def set_timeouts(driver):
     driver.set_script_timeout(30)
@@ -199,10 +207,9 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
-firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary='tools/nightly/firefox-bin')
-
+firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightybin)
 chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = "tools/chrome-linux/chrome"
+chrome_options.binary_location = chromebin
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=412,732")
