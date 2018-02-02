@@ -6,6 +6,8 @@ from zipfile import ZipFile
 import requests
 from sys import platform as _platform
 
+
+
 def download(url, filename):
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
@@ -35,13 +37,14 @@ if osys=="linux":
     download('https://www.dropbox.com/s/3mosdy9tsf7pilh/linux.zip?dl=1','linux.zip')
     print('[*] Extracting linux.zip...')
     with ZipFile('linux.zip', 'r') as z:
-        z.extractall()
+        z.extractall("linux")
     print('[*] Extracting webdriver archives...')
     for f in ['geckodriver', 'nightly', 'chromedriver', 'chrome-linux']:
         tar = tarfile.open('linux/%s.tar.xz' % f, 'r:xz')
         tar.extractall(path='tools/')
         tar.close()
     os.remove('linux.zip')
+    os.system("rm -rf linux ")
 
 elif osys=="mac":
     print('mac os detected !')

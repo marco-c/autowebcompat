@@ -17,6 +17,9 @@ elif _platform == "darwin":# MAC OS X
     chromebin="tools/chrome.app/Contents/MacOS/chrome"
     nightybin='tools/Nightly.app/Contents/MacOS/firefox'
 
+if not os.path.exists('data'):
+    os.makedirs('data')
+
 bugs = utils.get_bugs()
 print(len(bugs))
 
