@@ -39,7 +39,7 @@ if osys == "linux":
         z.extractall("linux")
     print('[*] Extracting webdriver archives...')
     for f in ['geckodriver', 'nightly', 'chromedriver', 'chrome-linux']:
-        tar = tarfile.open('linux/%s.tar.xz'%f, 'r:xz')
+        tar = tarfile.open('linux/%s.tar.xz' %f, 'r:xz')
         tar.extractall(path='tools/')
         tar.close()
     os.remove('linux.zip')
