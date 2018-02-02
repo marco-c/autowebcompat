@@ -8,12 +8,12 @@ from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
 from sys import platform as _platform
-if _platform == "linux" or _platform == "linux2":   #linux
+if _platform == "linux" or _platform == "linux2":  # linux
     chromebin = "tools/chrome-linux/chrome"
     nightybin = 'tools/nightly/firefox-bin'
 
 
-elif _platform == "darwin":    #MAC OS X
+elif _platform == "darwin":    # MAC OS X
     chromebin = "tools/chrome.app/Contents/MacOS/chrome"
     nightybin = 'tools/Nightly.app/Contents/MacOS/firefox'
 

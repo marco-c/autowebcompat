@@ -33,13 +33,13 @@ elif _platform == "darwin":    # MAC OS X
 if osys == "linux":
     print('linux os detected !')
     print('[*] Downloading support files for linux ~ 108 mb')
-    download('https://www.dropbox.com/s/3mosdy9tsf7pilh/linux.zip?dl=1' , 'linux.zip')
+    download('https://www.dropbox.com/s/3mosdy9tsf7pilh/linux.zip?dl=1', 'linux.zip')
     print('[*] Extracting linux.zip...')
-    with ZipFile('linux.zip' , 'r') as z:
+    with ZipFile('linux.zip', 'r') as z:
         z.extractall("linux")
     print('[*] Extracting webdriver archives...')
     for f in ['geckodriver', 'nightly', 'chromedriver', 'chrome-linux']:
-        tar = tarfile.open('linux/%s.tar.xz' % f, 'r:xz')
+        tar = tarfile.open('linux/%s.tar.xz' %f, 'r:xz')
         tar.extractall(path ='tools/')
         tar.close()
     os.remove('linux.zip')
@@ -48,7 +48,7 @@ if osys == "linux":
 elif osys == "mac":
     print('mac os detected !')
     print('[*] Downloading support files for mac ~ 150 mb')
-    download('https://www.dropbox.com/s/k1szymmktj0e1pf/mac.zip?dl=1' , 'mac.zip')
+    download('https://www.dropbox.com/s/k1szymmktj0e1pf/mac.zip?dl=1', 'mac.zip')
     print('[*] Extracting mac.zip...')
     os.system("unzip mac.zip -d tools")
     os.system("cp tools/geckodriver" + " /usr/local/bin/ ")
