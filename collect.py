@@ -1,7 +1,5 @@
 import os
 import time
-import sys
-import platform
 import random
 import traceback
 import utils
@@ -10,18 +8,21 @@ from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
 from sys import platform as _platform
-if _platform == "linux" or _platform == "linux2": # linux
-    chromebin="tools/chrome-linux/chrome"
-    nightybin='tools/nightly/firefox-bin'
-elif _platform == "darwin":# MAC OS X
-    chromebin="tools/chrome.app/Contents/MacOS/chrome"
-    nightybin='tools/Nightly.app/Contents/MacOS/firefox'
+if _platform == "linux" or _platform == "linux2":   #linux
+    chromebin = "tools/chrome-linux/chrome"
+    nightybin = 'tools/nightly/firefox-bin'
+
+
+elif _platform == "darwin":    #MAC OS X
+    chromebin = "tools/chrome.app/Contents/MacOS/chrome"
+    nightybin = 'tools/Nightly.app/Contents/MacOS/firefox'
 
 if not os.path.exists('data'):
     os.makedirs('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
+
 
 def set_timeouts(driver):
     driver.set_script_timeout(30)
