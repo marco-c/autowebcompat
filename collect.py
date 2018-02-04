@@ -128,11 +128,10 @@ def do_something(driver, elem_id=None):
         elif input_type == 'number':
             elem.send_keys('3')
         elif input_type == 'search':
-            try :
+            try:
                 elem.send_keys('marco search')
                 elem.submit()
-            except :
-                try:
+                except:
                     element = driver.find_element_by_name('search')
                     element.send_keys('marco search')
                     element.submit()
