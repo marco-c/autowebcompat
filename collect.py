@@ -132,11 +132,13 @@ def do_something(driver, elem_id=None):
                 elem.send_keys('marco search')
                 elem.submit()
             except:
+                pass
                 try:
                     element = driver.find_element_by_name('search')
                     element.send_keys('marco search')
                     element.submit()
                 except:
+                    pass
                     try:
                         element = driver.find_element_by_name('q')
                         element.send_keys('marco search')
