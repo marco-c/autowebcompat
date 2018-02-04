@@ -127,6 +127,25 @@ def do_something(driver, elem_id=None):
             elem.click()
         elif input_type == 'number':
             elem.send_keys('3')
+        elif input_type == 'search':
+            try :
+                elem.send_keys('marco search')
+                elem.submit()
+            except :
+                try:
+                    element = driver.find_element_by_name('search')
+                    element.send_keys('marco search')
+                    element.submit()
+                except:
+                    try:
+                        element = driver.find_element_by_name('q')
+                        element.send_keys('marco search')
+                        element.submit()
+                    except:
+                        element = driver.find_element_by_name('search_query')
+                        element.send_keys('marco search')
+                        element.submit()
+
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
