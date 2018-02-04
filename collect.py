@@ -131,22 +131,23 @@ def do_something(driver, elem_id=None):
             try:
                 elem.send_keys('marco search')
                 elem.submit()
-            except:
+            except BaseException:
                 pass
                 try:
                     element = driver.find_element_by_name('search')
                     element.send_keys('marco search')
                     element.submit()
-                except:
+                except BaseException:
                     pass
                     try:
                         element = driver.find_element_by_name('q')
                         element.send_keys('marco search')
                         element.submit()
-                    except:
+                    except BaseException:
                         element = driver.find_element_by_name('search_query')
                         element.send_keys('marco search')
                         element.submit()
+
 
         else:
             raise Exception('Unsupported input type: %s' % input_type)
