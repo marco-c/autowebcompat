@@ -147,8 +147,6 @@ def do_something(driver, elem_id=None):
                         element = driver.find_element_by_name('search_query')
                         element.send_keys('marco search')
                         element.submit()
-
-
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
