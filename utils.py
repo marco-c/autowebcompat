@@ -160,12 +160,20 @@ def balance(it):
                 yield e
 
 
-def read_labels():
+def read_labels(file_name='labels.csv'):
     try:
-        with open('labels.csv', 'r') as f:
+        with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
             labels = {row[0]: row[1] for row in reader}
     except FileNotFoundError:
         labels = {}
     return labels
+
+
+def write_labels(labels, file_name='labels.csv'):
+    with open(file_name, 'w') as f:
+        writer = csv.writer(f, delimiter=',')
+        writer.writerow(["Image Name", "Label"])
+        for key, values in labels.items():
+            writer.writerow([key, values])
