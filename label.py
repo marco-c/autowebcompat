@@ -1,11 +1,17 @@
-import csv
+import argparse
 from PIL import ImageTk, Image
 from tkinter import Tk, Label
 
+
 import utils
 
+labels_directory = "label_persons/"
 
-labels = utils.read_labels()
+parser = argparse.ArgumentParser()
+parser.add_argument("file_name", action="store")
+args = parser.parse_args()
+
+labels = utils.read_labels(labels_directory + args.file_name)
 
 images_to_show = [i for i in utils.get_images() if i not in labels]
 current_image = None
@@ -67,8 +73,4 @@ root.bind("<Escape>", close)
 root.mainloop()
 
 # Store results.
-with open('labels.csv', 'w') as f:
-    writer = csv.writer(f, delimiter=',')
-    writer.writerow(["Image Name", "Label"])
-    for key, value in labels.items():
-        writer.writerow([key, value])
+utils.write_labels(labels, labels_directory + args.file_name)
