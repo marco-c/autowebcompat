@@ -45,7 +45,6 @@ elif sys.platform == "darwin":
     os.remove('mac.zip')
 
 elif sys.platform == "win32":
-    print("windows")
     print('[*] Downloading support files for windows ~ 250 MB')
     download('https://www.dropbox.com/s/wh3ti31geg40h12/win32.zip?dl=1','win32.zip')
     print('[*] Extracting win32.zip...')
