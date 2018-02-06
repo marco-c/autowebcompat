@@ -1,6 +1,7 @@
 import os
 import sys
 import tarfile
+import shutil
 from zipfile import ZipFile
 import requests
 
