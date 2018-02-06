@@ -9,3 +9,4 @@ tools/geckodriver
 tools/chromedriver
 
 geckodriver.log
+.DS_Store
