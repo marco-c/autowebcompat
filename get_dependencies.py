@@ -46,9 +46,8 @@ elif sys.platform == "darwin":
 
 elif sys.platform == "win32":
     print('[*] Downloading support files for windows ~ 250 MB')
-    download('https://www.dropbox.com/s/wh3ti31geg40h12/win32.zip?dl=1','win32.zip')
+    download('https://www.dropbox.com/s/wh3ti31geg40h12/win32.zip?dl=1', 'win32.zip')
     print('[*] Extracting win32.zip...')
-    
     with ZipFile('win32.zip', 'r') as z:
         z.extractall("tools/")
     os.remove('win32.zip')
