@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import random
 import traceback
@@ -7,18 +8,26 @@ from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-from sys import platform as _platform
-if _platform == "linux" or _platform == "linux2":  # linux
-    chromebin = "tools/chrome-linux/chrome"
-    nightybin = 'tools/nightly/firefox-bin'
+if sys.platform == "linux" or sys.platform == "linux2":  # linux
+    chrome_bin = "tools/chrome-linux/chrome"
+    nightly_bin = 'tools/nightly/firefox-bin'
+
+elif sys.platform == "darwin":    # MAC OS X
+    chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
+    nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
+
+elif sys.platform == "win32":
+    path=os.getcwd()
+    chrome_bin = path+ '\\tools\\Google\\Chrome\\Application\\chrome.exe'
+    nightly_bin = path+ '\\tools\\Nightly\\firefox.exe'
+    try:
+        with open('C:\\Windows\\chromedriver.exe') as f:
+            pass
+    except IOError as e:
+        print(" copy files chromedriver and geckodriver from \\tools to C:\\Windows ")
 
 
-elif _platform == "darwin":    # MAC OS X
-    chromebin = "tools/chrome.app/Contents/MacOS/chrome"
-    nightybin = 'tools/Nightly.app/Contents/MacOS/firefox'
-
-if not os.path.exists('data'):
-    os.makedirs('data')
+utils.mk_dir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
@@ -229,9 +238,9 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
-firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightybin)
+firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
 chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = chromebin
+chrome_options.binary_location = chrome_bin
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=412,732")

@@ -3,13 +3,12 @@ import sys
 import tarfile
 from zipfile import ZipFile
 import requests
-from sys import platform as _platform
-
 
 def download(url, filename):
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
+
         if total is None:
             f.write(response.content)
         else:
@@ -23,16 +22,8 @@ def download(url, filename):
                 sys.stdout.flush()
     sys.stdout.write('\n')
 
-
-if _platform == "linux" or _platform == "linux2":  # linux
-    osys = "linux"
-elif _platform == "darwin":    # MAC OS X
-    osys = "mac"
-
-
-if osys == "linux":
-    print('linux os detected !')
-    print('[*] Downloading support files for linux ~ 108 mb')
+if sys.platform == "linux":
+    print('[*] Downloading support files for linux ~ 108 MB')
     download('https://www.dropbox.com/s/3mosdy9tsf7pilh/linux.zip?dl=1', 'linux.zip')
     print('[*] Extracting linux.zip...')
     with ZipFile('linux.zip', 'r') as z:
@@ -43,18 +34,24 @@ if osys == "linux":
         tar.extractall(path='tools/')
         tar.close()
     os.remove('linux.zip')
-    os.system("rm -rf linux ")
+    shutil.rmtree('linux')
 
-elif osys == "mac":
-    print('mac os detected !')
-    print('[*] Downloading support files for mac ~ 150 mb')
+elif sys.platform == "darwin":
+    print('[*] Downloading support files for mac ~ 150 MB')
     download('https://www.dropbox.com/s/k1szymmktj0e1pf/mac.zip?dl=1', 'mac.zip')
     print('[*] Extracting mac.zip...')
     os.system("unzip mac.zip -d tools")
-    os.system("cp tools/geckodriver" + " /usr/local/bin/ ")
-    os.system("cp tools/chromedriver" + " /usr/local/bin/ ")
     os.remove('mac.zip')
 
+elif sys.platform == "win32":
+    print("windows")
+    print('[*] Downloading support files for windows ~ 250 MB')
+    download('https://www.dropbox.com/s/wh3ti31geg40h12/win32.zip?dl=1','win32.zip')
+    print('[*] Extracting win32.zip...')
+    
+    with ZipFile('win32.zip', 'r') as z:
+        z.extractall("tools/")
+    os.remove('win32.zip')
 print('[*] Support file Downloaded!')
 
 print('[*] Downloading data.zip...')
