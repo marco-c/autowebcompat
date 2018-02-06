@@ -51,9 +51,11 @@ elif sys.platform == "win32":
     with ZipFile('win32.zip', 'r') as z:
         z.extractall("tools/")
     os.remove('win32.zip')
-print('[*] Support file Downloaded!')
+print('[*] Support files Downloaded!')
 
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1', 'data.zip')
-
+with ZipFile('data.zip', 'r') as z:
+    z.extractall()
+os.remove('data.zip')
 print('[*] Completed!')
