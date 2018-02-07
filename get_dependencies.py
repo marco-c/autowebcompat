@@ -25,17 +25,17 @@ def download(url, filename):
 
 
 if sys.platform.startswith('linux'):
-    url = 'https://www.dropbox.com/s/cbg8mpg03vd8cph/linux.tar.xz?dl=1'
+    url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
     name = 'linux.tar.xz'
 elif sys.platform.startswith('darwin'):
-    url = 'https://www.dropbox.com/s/x5625gvbwaaxpnf/mac.tar.xz?dl=1'
+    url = 'https://www.dropbox.com/s/k4yifantsypy9xv/mac.tar.xz?dl=1'
     name = 'mac.tar.xz'
 
 print('[*] Downloading support files...')
 download(url, name)
 
 print('[*] Extracting files...')
-f = tarfile.open(name)
+f = tarfile.open(name,'r:xz')
 f.extractall('.')
 f.close()
 

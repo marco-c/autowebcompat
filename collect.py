@@ -8,10 +8,9 @@ from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-if sys.platform.startswith("linux") or sys.platform.startswith("linux2"):  # linux
+if sys.platform.startswith("linux"):  # linux
     chrome_bin = "tools/chrome-linux/chrome"
     nightly_bin = 'tools/nightly/firefox-bin'
-
 elif sys.platform.startswith("darwin"):    # MAC OS X
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
