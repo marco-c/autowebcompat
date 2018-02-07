@@ -1,7 +1,7 @@
 from keras import backend as K
 from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
 from keras.models import Model
-from keras.optimizers import RMSprop
+from keras.optimizers import RMSprop, Adam, Nadam, SGD
 
 
 def euclidean_distance(vects):
@@ -95,7 +95,7 @@ def create(input_shape, network='vgglike', weights=None):
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
 
-    # Loading pretrained weights corresponsing to the network used
+    # Loading pretrained weights corresponding to the network used
     if weights:
         base_network.load_weights(weights)
 
@@ -127,12 +127,14 @@ def accuracy(y_true, y_pred):
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 
 
-def compile(model):
-    opt = RMSprop()
-    '''
-    # opt = SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True)
-    # opt = Nadam()
-    Binary CrossEntropy
-    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=[accuracy])
-    '''
-    model.compile(loss=contrastive_loss, optimizer=opt, metrics=[accuracy])
+def compile(model, optimizer=None, loss_func=False):
+
+    allOptimizers = {'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
+        'adam': Adam(), 'nadam': Nadam(), 'rms': RMSprop()}
+
+    if optimizer in allOptimizers:
+        opt = allOptimizers[optimizer]
+
+    loss_func = contrastive_loss if loss_func == False else 'binary_crossentropy'
+
+    model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
