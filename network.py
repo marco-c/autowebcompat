@@ -130,11 +130,11 @@ def accuracy(y_true, y_pred):
 def compile(model, optimizer=None, loss_func=False):
 
     allOptimizers = {'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
-        'adam': Adam(), 'nadam': Nadam(), 'rms': RMSprop()}
+                    'adam': Adam(), 'nadam': Nadam(), 'rms': RMSprop()}
 
     if optimizer in allOptimizers:
         opt = allOptimizers[optimizer]
 
-    loss_func = contrastive_loss if loss_func == False else 'binary_crossentropy'
+    loss_func = contrastive_loss if not loss_func else 'binary_crossentropy'
 
     model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
