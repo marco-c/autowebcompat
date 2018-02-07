@@ -1,8 +1,8 @@
 import os
 import sys
 import tarfile
-import shutil
 from zipfile import ZipFile
+
 import requests
 
 def download(url, filename):
@@ -23,39 +23,32 @@ def download(url, filename):
                 sys.stdout.flush()
     sys.stdout.write('\n')
 
-if sys.platform == "linux":
-    print('[*] Downloading support files for linux ~ 108 MB')
-    download('https://www.dropbox.com/s/3mosdy9tsf7pilh/linux.zip?dl=1', 'linux.zip')
-    print('[*] Extracting linux.zip...')
-    with ZipFile('linux.zip', 'r') as z:
-        z.extractall("linux")
-    print('[*] Extracting webdriver archives...')
-    for f in ['geckodriver', 'nightly', 'chromedriver', 'chrome-linux']:
-        tar = tarfile.open('linux/%s.tar.xz' % f, 'r:xz')
-        tar.extractall(path='tools/')
-        tar.close()
-    os.remove('linux.zip')
-    shutil.rmtree('linux')
 
-elif sys.platform == "darwin":
-    print('[*] Downloading support files for mac ~ 150 MB')
-    download('https://www.dropbox.com/s/k1szymmktj0e1pf/mac.zip?dl=1', 'mac.zip')
-    print('[*] Extracting mac.zip...')
-    os.system("unzip mac.zip -d tools")
-    os.remove('mac.zip')
+if sys.platform.startswith('linux'):
+    url = 'https://www.dropbox.com/s/cbg8mpg03vd8cph/linux.tar.xz?dl=1'
+    name = 'linux.tar.xz'
+elif sys.platform.startswith('darwin'):
+    url = 'https://www.dropbox.com/s/x5625gvbwaaxpnf/mac.tar.xz?dl=1'
+    name = 'mac.tar.xz'
+elif sys.platform.startswith('win32'):
+    url = 'https://www.dropbox.com/s/scmgetma3d8jtl6/win32.tar.xz?dl=1'
+    name = 'win32.tar.xz'
 
-elif sys.platform == "win32":
-    print('[*] Downloading support files for windows ~ 250 MB')
-    download('https://www.dropbox.com/s/wh3ti31geg40h12/win32.zip?dl=1', 'win32.zip')
-    print('[*] Extracting win32.zip...')
-    with ZipFile('win32.zip', 'r') as z:
-        z.extractall("tools/")
-    os.remove('win32.zip')
-print('[*] Support files Downloaded!')
+print('[*] Downloading support files')
+download(url, name)
+print('[*] Extracting files')
+with tarfile.open(name) as f:
+    f.extractall('.')
+    f.close()
+print('[*] Support File Download Completed !')
+os.remove(name)
 
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1', 'data.zip')
+
+print('[*] Extracting data.zip...')
 with ZipFile('data.zip', 'r') as z:
     z.extractall()
+
 os.remove('data.zip')
 print('[*] Completed!')

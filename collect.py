@@ -8,26 +8,16 @@ from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-if sys.platform == "linux" or sys.platform == "linux2":  # linux
+if sys.platform.startswith("linux") or sys.platform.startswith("linux2"):  # linux
     chrome_bin = "tools/chrome-linux/chrome"
     nightly_bin = 'tools/nightly/firefox-bin'
 
-elif sys.platform == "darwin":    # MAC OS X
+elif sys.platform.startswith("darwin"):    # MAC OS X
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
 
-elif sys.platform == "win32":
-    path=os.getcwd()
-    chrome_bin = path+ '\\tools\\Google\\Chrome\\Application\\chrome.exe'
-    nightly_bin = path+ '\\tools\\Nightly\\firefox.exe'
-    try:
-        with open('C:\\Windows\\chromedriver.exe') as f:
-            pass
-    except IOError as e:
-        print(" copy files chromedriver and geckodriver from \\tools to C:\\Windows ")
 
-
-utils.mk_dir('data')
+utils.mkdir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))

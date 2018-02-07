@@ -13,7 +13,7 @@ def get_bugs():
     with open('webcompatdata-bzlike.json', 'r') as f:
         return json.load(f)['bugs']
 
-def mk_dir(dir_name):
+def mkdir(dir_name):
     try:
         os.mkdir(dir_name)
     except OSError:
