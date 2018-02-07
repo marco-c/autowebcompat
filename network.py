@@ -134,6 +134,7 @@ def compile(model, optimizer=None, loss_func=contrastive_loss):
         'nadam': Nadam(),
         'rms': RMSprop()
     }
+    assert optimizer in allOptimizers, '%s is an invalid optimizer' % optimizer
 
     if optimizer in allOptimizers:
         opt = allOptimizers[optimizer]
