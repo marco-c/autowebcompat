@@ -1,7 +1,7 @@
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
-from keras.models import Model
-from keras.optimizers import RMSprop  # , SGD, Nadam
+from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, Activation
+from keras.models import Model, Sequential
+from keras.optimizers import SGD, RMSprop, Nadam, Adam
 
 
 def euclidean_distance(vects):
@@ -25,6 +25,45 @@ def create_mlp(input_shape):
     return Model(input, x)
 
 
+def vgg_16(input_shape):
+    input = Input(shape=input_shape)
+
+    # Block 1
+    x = Conv2D(64, (3, 3), padding='same', activation='relu')(input)
+    x = Conv2D(64, (3, 3), padding='same', activation='relu')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 2
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
+    MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 3
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 4
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 5
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    x = Flatten()(x)
+    x = Dense(4096, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(4096, activation='relu')(x)
+    # Softmax layer Not Necessary
+    return Model(input, x)
+
+
 def create_vgglike_network(input_shape):
     input = Input(shape=input_shape)
 
@@ -43,7 +82,7 @@ def create_vgglike_network(input_shape):
     x = Flatten()(x)
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.5)(x)
-    # x = Dense(2, activation='softmax')(x)
+    #x = Dense(2, activation='softmax')(x)
     x = Dense(128, activation='relu')(x)
 
     return Model(input, x)
@@ -87,4 +126,8 @@ def compile(model):
     opt = RMSprop()
     # opt = SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True)
     # opt = Nadam()
+    '''
+    Binary CrossEntropy
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=[accuracy])
+    '''
     model.compile(loss=contrastive_loss, optimizer=opt, metrics=[accuracy])
