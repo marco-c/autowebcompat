@@ -1,7 +1,7 @@
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, Activation
-from keras.models import Model, Sequential
-from keras.optimizers import SGD, RMSprop, Nadam, Adam
+from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
+from keras.models import Model
+from keras.optimizers import SGD, RMSprop, Nadam
 
 
 def euclidean_distance(vects):
@@ -25,7 +25,7 @@ def create_mlp(input_shape):
     return Model(input, x)
 
 
-def vgg_16(input_shape):
+def create_vgg16_network(input_shape):
     input = Input(shape=input_shape)
 
     # Block 1
@@ -82,17 +82,22 @@ def create_vgglike_network(input_shape):
     x = Flatten()(x)
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.5)(x)
-    #x = Dense(2, activation='softmax')(x)
+    # x = Dense(2, activation='softmax')(x)
     x = Dense(128, activation='relu')(x)
 
     return Model(input, x)
 
 
-def create(input_shape):
-    base_network = create_vgglike_network(input_shape)
+def create(input_shape, network='vgglike', weights = None):
+    network_func = globals()['create_%s_network' % network]
+    base_network = network_func(input_shape)
 
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
+
+    # Loading pretrained weights corresponsing to the network used
+    if weights:
+        base_network.load_weights(weights)
 
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
@@ -124,9 +129,9 @@ def accuracy(y_true, y_pred):
 
 def compile(model):
     opt = RMSprop()
+    '''
     # opt = SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True)
     # opt = Nadam()
-    '''
     Binary CrossEntropy
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=[accuracy])
     '''
