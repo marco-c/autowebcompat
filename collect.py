@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import time
@@ -73,10 +74,10 @@ def close_all_windows_except_first(driver):
     driver.switch_to_window(windows[0])
 
 
-def do_something(driver, elem_id=None):
+def do_something(driver, elem_attributes=None):
     elem = None
 
-    if elem_id is None:
+    if elem_attributes is None or 'id' not in elem_attributes.keys():
         body = driver.find_elements_by_tag_name('body')
         assert len(body) == 1
         body = body[0]
@@ -89,21 +90,20 @@ def do_something(driver, elem_id=None):
         random.shuffle(children)
 
         for child in children:
-            elem_id = child.get_attribute('id')
 
-            # We need to store the ID in order to replicate what we are doing, so we
-            # have to skip elements with no ID.
-            if elem_id == '':
-                continue
+            # Get all the attributes of the child.
+            child_attributes = driver.execute_script('var elem_attribute = {}; for (i = 0; i < arguments[0].attributes.length; i++) { elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value }; return elem_attribute;', child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            elem = child
-            break
+            if elem_attributes is None or elem_attributes == child_attributes:
+                elem = child
+                break
     else:
+        elem_id = elem_attributes['id']
         elem = driver.find_element_by_id(elem_id)
 
     if elem is None:
@@ -130,7 +130,7 @@ def do_something(driver, elem_id=None):
 
     close_all_windows_except_first(driver)
 
-    return elem_id
+    return child_attributes
 
 
 def screenshot(driver, file_path):
@@ -158,18 +158,34 @@ def run_test(bug, browser, driver, op_sequence=None):
         max_iter = 7 if op_sequence is None else len(op_sequence)
         for i in range(0, max_iter):
             if op_sequence is None:
-                elem_id = do_something(driver)
-                if elem_id is None:
+                elem_attributes = do_something(driver)
+                if elem_attributes is None:
                     print('Can\'t find any element to interact with on %s for bug %d' % (bug['url'], bug['id']))
                     break
-                saved_sequence.append(elem_id)
+                saved_sequence.append(elem_attributes)
             else:
-                elem_id = op_sequence[i]
-                do_something(driver, elem_id)
+                elem_attributes = op_sequence[i]
+                do_something(driver, elem_attributes)
 
-            print('  - Using %s' % elem_id)
+            print('  - Using %s' % elem_attributes)
 
-            screenshot(driver, 'data/%d_%s_%d_%s.png' % (bug['id'], elem_id, i, browser))
+            if 'id' in elem_attributes:
+                elem_id = elem_attributes['id']
+                image_file = str(bug['id']) + '_' + str(elem_id) + '_' + str(i) + '_' + browser
+                screenshot(driver, 'data/%s.png' % (image_file))
+                attributes_to_file = {image_file: elem_attributes}
+            else:
+                image_file = str(bug['id']) + '_' + str(i) + '_' + browser
+                screenshot(driver, 'data/%s.png' % (image_file))
+                attributes_to_file = {image_file: elem_attributes}
+
+            #  Saves a dictionary of image_name mapped to its attributes
+            with open("image_info.txt", 'r+') as f:
+                all_image_info = json.load(f)
+                all_image_info.update(attributes_to_file)
+                f.seek(0)
+                f.write(json.dumps(all_image_info))
+
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
