@@ -1,7 +1,7 @@
 from keras import backend as K
 from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
 from keras.models import Model
-from keras.optimizers import SGD, RMSprop, Nadam
+from keras.optimizers import RMSprop
 
 
 def euclidean_distance(vects):
@@ -88,7 +88,7 @@ def create_vgglike_network(input_shape):
     return Model(input, x)
 
 
-def create(input_shape, network='vgglike', weights = None):
+def create(input_shape, network='vgglike', weights=None):
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
