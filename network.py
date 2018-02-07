@@ -135,8 +135,6 @@ def compile(model, optimizer=None, loss_func=contrastive_loss):
         'rms': RMSprop()
     }
     assert optimizer in allOptimizers, '%s is an invalid optimizer' % optimizer
-
-    if optimizer in allOptimizers:
-        opt = allOptimizers[optimizer]
+    opt = allOptimizers[optimizer]
 
     model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
