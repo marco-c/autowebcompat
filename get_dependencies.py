@@ -5,6 +5,7 @@ from zipfile import ZipFile
 
 import requests
 
+
 def download(url, filename):
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
