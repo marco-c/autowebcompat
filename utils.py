@@ -14,6 +14,13 @@ def get_bugs():
         return json.load(f)['bugs']
 
 
+def mkdir(dir_name):
+    try:
+        os.mkdir(dir_name)
+    except OSError:
+        pass
+
+
 def get_all_images():
     return os.listdir('data/')
 

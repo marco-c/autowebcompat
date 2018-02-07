@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import random
 import traceback
@@ -7,6 +8,15 @@ from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
+if sys.platform.startswith("linux"):  # linux
+    chrome_bin = "tools/chrome-linux/chrome"
+    nightly_bin = 'tools/nightly/firefox-bin'
+elif sys.platform.startswith("darwin"):    # MAC OS X
+    chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
+    nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
+
+
+utils.mkdir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
@@ -199,10 +209,9 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
-firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary='tools/nightly/firefox-bin')
-
+firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
 chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = "tools/chrome-linux/chrome"
+chrome_options.binary_location = chrome_bin
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=412,732")

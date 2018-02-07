@@ -24,11 +24,22 @@ def download(url, filename):
     sys.stdout.write('\n')
 
 
-print('[*] Extracting webdriver archives...')
-for f in ['geckodriver', 'nightly', 'chromedriver', 'chrome-linux']:
-    tar = tarfile.open('tools/%s.tar.xz' % f, 'r:xz')
-    tar.extractall(path='tools/')
-    tar.close()
+if sys.platform.startswith('linux'):
+    url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
+    name = 'linux.tar.xz'
+elif sys.platform.startswith('darwin'):
+    url = 'https://www.dropbox.com/s/k4yifantsypy9xv/mac.tar.xz?dl=1'
+    name = 'mac.tar.xz'
+
+print('[*] Downloading support files...')
+download(url, name)
+
+print('[*] Extracting files...')
+f = tarfile.open(name, 'r:xz')
+f.extractall('.')
+f.close()
+
+os.remove(name)
 
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1', 'data.zip')
