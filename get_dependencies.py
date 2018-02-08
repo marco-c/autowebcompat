@@ -30,9 +30,8 @@ if sys.platform.startswith('linux'):
 elif sys.platform.startswith('darwin'):
     url = 'https://www.dropbox.com/s/k4yifantsypy9xv/mac.tar.xz?dl=1'
     name = 'mac.tar.xz'
-
 elif sys.platform.startswith('win32'):
-    url = 'https://www.dropbox.com/s/scmgetma3d8jtl6/win32.tar.xz?dl=1'
+    url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
     name = 'win32.tar.xz'
 
 

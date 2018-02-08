@@ -14,7 +14,6 @@ if sys.platform.startswith("linux"):  # linux
 elif sys.platform.startswith("darwin"):    # MAC OS X
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
-
 elif sys.platform.startswith("win32"):
     path = os.getcwd()
     chrome_bin = path + '\\tools\\Google\\Chrome\\Application\\chrome.exe'
