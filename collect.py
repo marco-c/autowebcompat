@@ -17,8 +17,8 @@ elif sys.platform.startswith("darwin"):    # MAC OS X
 
 elif sys.platform.startswith("win32"):
     path = os.getcwd()
-    chrome_bin = path+ '\\tools\\Google\\Chrome\\Application\\chrome.exe'
-    nightly_bin = path+ '\\tools\\Nightly\\firefox.exe'
+    chrome_bin = path + '\\tools\\Google\\Chrome\\Application\\chrome.exe'
+    nightly_bin = path + '\\tools\\Nightly\\firefox.exe'
 
 
 utils.mkdir('data')
