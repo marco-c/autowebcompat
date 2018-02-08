@@ -168,23 +168,8 @@ def run_test(bug, browser, driver, op_sequence=None):
                 do_something(driver, elem_attributes)
 
             print('  - Using %s' % elem_attributes)
-
-            if 'id' in elem_attributes:
-                elem_id = elem_attributes['id']
-                image_file = str(bug['id']) + '_' + str(elem_id) + '_' + str(i) + '_' + browser
-                screenshot(driver, 'data/%s.png' % (image_file))
-                attributes_to_file = {image_file: elem_attributes}
-            else:
-                image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-                screenshot(driver, 'data/%s.png' % (image_file))
-                attributes_to_file = {image_file: elem_attributes}
-
-            #  Saves a dictionary of image_name mapped to its attributes
-            with open("image_info.txt", 'r+') as f:
-                all_image_info = json.load(f)
-                all_image_info.update(attributes_to_file)
-                f.seek(0)
-                f.write(json.dumps(all_image_info))
+            image_file = str(bug['id']) + '_' + str(i) + '_' + browser
+            screenshot(driver, 'data/%s.png' % (image_file))
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
@@ -210,6 +195,10 @@ def run_tests(firefox_driver, chrome_driver):
                not os.path.exists('data/%d_chrome.png' % bug['id']):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
+
+                with open("data/" + str(bug['id']) + ".txt", 'w') as f:
+                    f.write(json.dumps(sequence))
+
         except:  # noqa: E722
             traceback.print_exc()
             close_all_windows_except_first(firefox_driver)
