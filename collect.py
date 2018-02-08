@@ -77,7 +77,7 @@ def close_all_windows_except_first(driver):
 def do_something(driver, elem_attributes=None):
     elem = None
 
-    if elem_attributes is None or 'id' not in elem_attributes.keys():
+    if elem_attributes is None:
         body = driver.find_elements_by_tag_name('body')
         assert len(body) == 1
         body = body[0]
@@ -98,13 +98,35 @@ def do_something(driver, elem_attributes=None):
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
-
-            if elem_attributes is None or elem_attributes == child_attributes:
-                elem = child
-                break
+            elem = child
+            break
     else:
-        elem_id = elem_attributes['id']
-        elem = driver.find_element_by_id(elem_id)
+        if 'id' not in elem_attributes.keys():
+            body = driver.find_elements_by_tag_name('body')
+            assert len(body) == 1
+            body = body[0]
+
+            buttons = body.find_elements_by_tag_name('button')
+            links = body.find_elements_by_tag_name('a')
+            inputs = body.find_elements_by_tag_name('input')
+            children = buttons + links + inputs
+
+            for child in children:
+
+                # Get all the attributes of the child.
+                child_attributes = driver.execute_script('var elem_attribute = {}; for (i = 0; i < arguments[0].attributes.length; i++) { elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value }; return elem_attribute;', child)
+
+                # If the element is not displayed or is disabled, the user can't interact with it. Skip
+                # non-displayed/disabled elements, since we're trying to mimic a real user.
+                if not child.is_displayed() or not child.is_enabled():
+                    continue
+
+                if elem_attributes == child_attributes:
+                    elem = child
+                    break
+        else:
+            elem_id = elem_attributes['id']
+            elem = driver.find_element_by_id(elem_id)
 
     if elem is None:
         return None
