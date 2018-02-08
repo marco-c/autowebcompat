@@ -34,7 +34,6 @@ elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
     name = 'win32.tar.xz'
 
-
 print('[*] Downloading support files...')
 download(url, name)
 
