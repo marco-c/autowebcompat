@@ -14,6 +14,9 @@ if sys.platform.startswith("linux"):  # linux
 elif sys.platform.startswith("darwin"):    # MAC OS X
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
+elif sys.platform.startswith("win32"):
+    chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
+    nightly_bin = 'tools\\Nightly\\firefox.exe'
 
 
 utils.mkdir('data')
@@ -203,7 +206,7 @@ def run_tests(firefox_driver, chrome_driver):
     chrome_driver.quit()
 
 
-os.environ['PATH'] += ':' + os.path.abspath('tools')
+os.environ['PATH'] += os.pathsep + os.path.abspath('tools')
 os.environ['MOZ_HEADLESS'] = '1'
 os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
