@@ -77,6 +77,20 @@ def close_all_windows_except_first(driver):
     driver.switch_to_window(windows[0])
 
 
+def get_all_attributes(driver, child):
+    child_attributes = driver.execute_script("""
+        var elem_attribute = {};
+
+        for (i = 0; i < arguments[0].attributes.length; i++) {
+          elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+          }
+
+        return elem_attribute;
+        """, child)
+
+    return child_attributes
+
+
 def do_something(driver, elem_attributes=None):
     elem = None
 
@@ -95,12 +109,13 @@ def do_something(driver, elem_attributes=None):
         for child in children:
 
             # Get all the attributes of the child.
-            child_attributes = driver.execute_script('var elem_attribute = {}; for (i = 0; i < arguments[0].attributes.length; i++) { elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value }; return elem_attribute;', child)
+            child_attributes = get_all_attributes(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
+
             elem = child
             break
     else:
@@ -117,7 +132,7 @@ def do_something(driver, elem_attributes=None):
             for child in children:
 
                 # Get all the attributes of the child.
-                child_attributes = driver.execute_script('var elem_attribute = {}; for (i = 0; i < arguments[0].attributes.length; i++) { elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value }; return elem_attribute;', child)
+                child_attributes = get_all_attributes(driver, child)
 
                 # If the element is not displayed or is disabled, the user can't interact with it. Skip
                 # non-displayed/disabled elements, since we're trying to mimic a real user.
@@ -222,7 +237,8 @@ def run_tests(firefox_driver, chrome_driver):
                 run_test(bug, 'chrome', chrome_driver, sequence)
 
                 with open("data/" + str(bug['id']) + ".txt", 'w') as f:
-                    f.write(json.dumps(sequence))
+                    for element in sequence:
+                        f.write(json.dumps(element) + '\n')
 
         except:  # noqa: E722
             traceback.print_exc()
