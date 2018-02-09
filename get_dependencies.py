@@ -36,7 +36,7 @@ print('[*] Downloading support files...')
 download(url)
 name = url[url.rfind("/")+1:url.find("?")]
 print('[*] Extracting files...')
-f = tarfile.open(name, 'r:xz') #check it
+f = tarfile.open(name, 'r:xz')
 f.extractall('.')
 f.close()
 
