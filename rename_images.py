@@ -1,19 +1,20 @@
-from os import listdir, rename
+import os
 
-for f in listdir("data"):
-    start = 0
-    end = 0
-    for i in range(len(f)):
-        if(f[i] == '_'):
-            start = i
-            break
+files = os.listdir('./data/')
 
-    cnt = 0
-    for i in range(len(f) - 1, 0, -1):
-        if(f[i] == '_'):
-            end = i
-            cnt += 1
-        if cnt == 2:
-            break
-    new_name = f[:start] + f[end:]
-    rename("data/" + f, "data/" + new_name)
+image_info = {}
+for f in files:
+    parts = os.path.splitext(f)[0].split('_')
+    if len(parts) <= 2:
+        continue
+    if parts[0] not in image_info.keys():
+        image_info[parts[0]] = {}
+    image_info[parts[0]][parts[-2]] = parts[1:-2]
+    new_name = "%s_%s_%s.png" % (parts[0], parts[-2], parts[-1])
+    os.rename("data/" + f, "data/" + new_name)
+
+for key, attributes in image_info.items():
+    with open("./data/%s.txt" % key, "w") as text_file:
+        attributes = sorted(attributes.items())
+        for value in attributes:
+            text_file.write("%s %s\n" % (value[0], value[1][0]))

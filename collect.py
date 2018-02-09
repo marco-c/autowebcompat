@@ -79,9 +79,9 @@ def close_all_windows_except_first(driver):
 
 def get_all_attributes(driver, child):
     child_attributes = driver.execute_script("""
-        var elem_attribute = {};
+        let elem_attribute = {};
 
-        for (i = 0; i < arguments[0].attributes.length; i++) {
+        for (let i = 0; i < arguments[0].attributes.length; i++) {
           elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
           }
 
@@ -105,7 +105,6 @@ def do_something(driver, elem_attributes=None):
         children = buttons + links + inputs
 
         random.shuffle(children)
-
         for child in children:
 
             # Get all the attributes of the child.
@@ -128,7 +127,6 @@ def do_something(driver, elem_attributes=None):
             links = body.find_elements_by_tag_name('a')
             inputs = body.find_elements_by_tag_name('input')
             children = buttons + links + inputs
-
             for child in children:
 
                 # Get all the attributes of the child.
@@ -236,7 +234,7 @@ def run_tests(firefox_driver, chrome_driver):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
 
-                with open("data/" + str(bug['id']) + ".txt", 'w') as f:
+                with open("data/%d.txt" % bug['id'], 'w') as f:
                     for element in sequence:
                         f.write(json.dumps(element) + '\n')
 
