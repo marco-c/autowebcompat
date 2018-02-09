@@ -5,7 +5,8 @@ from zipfile import ZipFile
 import requests
 
 
-def download(url, filename):
+def download(url):
+    filename = url[url.rfind("/")+1:url.find("?")]
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
@@ -26,26 +27,23 @@ def download(url, filename):
 
 if sys.platform.startswith('linux'):
     url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
-    name = 'linux.tar.xz'
 elif sys.platform.startswith('darwin'):
     url = 'https://www.dropbox.com/s/k4yifantsypy9xv/mac.tar.xz?dl=1'
-    name = 'mac.tar.xz'
 elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
-    name = 'win32.tar.xz'
 
 print('[*] Downloading support files...')
-download(url, name)
-
+download(url)
+name = url[url.rfind("/")+1:url.find("?")]
 print('[*] Extracting files...')
-f = tarfile.open(name, 'r:xz')
+f = tarfile.open(name, 'r:xz') #check it
 f.extractall('.')
 f.close()
 
 os.remove(name)
 
 print('[*] Downloading data.zip...')
-download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1', 'data.zip')
+download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1')
 
 print('[*] Extracting data.zip...')
 with ZipFile('data.zip', 'r') as z:
