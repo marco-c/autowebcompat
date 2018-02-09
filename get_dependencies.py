@@ -6,7 +6,7 @@ import requests
 
 
 def download(url):
-    filename = url[url.rfind("/")+1:url.find("?")]
+    filename = url[url.rfind("/") + 1:url.find("?")]
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
@@ -34,7 +34,7 @@ elif sys.platform.startswith('win32'):
 
 print('[*] Downloading support files...')
 download(url)
-name = url[url.rfind("/")+1:url.find("?")]
+name = url[url.rfind("/") + 1:url.find("?")]
 print('[*] Extracting files...')
 f = tarfile.open(name, 'r:xz')
 f.extractall('.')
