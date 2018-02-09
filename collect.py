@@ -93,7 +93,6 @@ def get_all_attributes(driver, child):
 
 def do_something(driver, elem_attributes=None):
     elem = None
-
     if elem_attributes is None:
         body = driver.find_elements_by_tag_name('body')
         assert len(body) == 1
@@ -128,15 +127,8 @@ def do_something(driver, elem_attributes=None):
             inputs = body.find_elements_by_tag_name('input')
             children = buttons + links + inputs
             for child in children:
-
                 # Get all the attributes of the child.
                 child_attributes = get_all_attributes(driver, child)
-
-                # If the element is not displayed or is disabled, the user can't interact with it. Skip
-                # non-displayed/disabled elements, since we're trying to mimic a real user.
-                if not child.is_displayed() or not child.is_enabled():
-                    continue
-
                 if elem_attributes == child_attributes:
                     elem = child
                     break
