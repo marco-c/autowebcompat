@@ -17,3 +17,7 @@ The aim of this project is creating a tool to automatically detect web compatibi
 
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Run the **get_dependencies.py** script.
+
+## Communication
+
+Real-time communication for this project happens on [Mozilla's IRC network](https://wiki.mozilla.org/IRC), irc.mozilla.org, in the #webcompat channel.
