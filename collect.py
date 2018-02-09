@@ -9,10 +9,10 @@ from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-if sys.platform.startswith("linux"):  # linux
+if sys.platform.startswith("linux"):
     chrome_bin = "tools/chrome-linux/chrome"
     nightly_bin = 'tools/nightly/firefox-bin'
-elif sys.platform.startswith("darwin"):    # MAC OS X
+elif sys.platform.startswith("darwin"):
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
 elif sys.platform.startswith("win32"):
@@ -79,14 +79,13 @@ def close_all_windows_except_first(driver):
 
 def get_all_attributes(driver, child):
     child_attributes = driver.execute_script("""
-        let elem_attribute = {};
+      let elem_attribute = {};
 
-        for (let i = 0; i < arguments[0].attributes.length; i++) {
-          elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
-          }
-
-        return elem_attribute;
-        """, child)
+      for (let i = 0; i < arguments[0].attributes.length; i++) {
+        elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+      }
+      return elem_attribute;
+    """, child)
 
     return child_attributes
 
@@ -104,6 +103,7 @@ def do_something(driver, elem_attributes=None):
         children = buttons + links + inputs
 
         random.shuffle(children)
+
         for child in children:
 
             # Get all the attributes of the child.
@@ -126,7 +126,9 @@ def do_something(driver, elem_attributes=None):
             links = body.find_elements_by_tag_name('a')
             inputs = body.find_elements_by_tag_name('input')
             children = buttons + links + inputs
+
             for child in children:
+
                 # Get all the attributes of the child.
                 child_attributes = get_all_attributes(driver, child)
                 if elem_attributes == child_attributes:
