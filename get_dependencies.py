@@ -38,10 +38,9 @@ print('[*] Downloading support files...')
 download(url, name)
 
 print('[*] Extracting files...')
-f = tarfile.open(name, 'r:xz')
-f.extractall('.')
-f.close()
-
+with tarfile.open(name, 'r:xz') as f:
+    f.extractall('.')
+    f.close()
 os.remove(name)
 
 print('[*] Downloading data.zip...')
