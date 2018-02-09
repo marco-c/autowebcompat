@@ -40,7 +40,6 @@ download(url, name)
 print('[*] Extracting files...')
 with tarfile.open(name, 'r:xz') as f:
     f.extractall('.')
-    f.close()
 os.remove(name)
 
 print('[*] Downloading data.zip...')
