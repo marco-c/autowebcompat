@@ -3,13 +3,18 @@ import os
 import tarfile
 from zipfile import ZipFile
 import requests
+import cgi
 
 
-def download(url, filename):
-    with open(filename, 'wb') as f:
-        response = requests.get(url, stream=True)
-        total = response.headers.get('content-length')
-
+def download(url):
+    response = requests.get(url, stream=True)
+    total = response.headers.get('content-length')
+    try:
+            type,file=cgi.parse_header(response.headers["content-disposition"])
+            filename=file["filename"]
+    except KeyError:
+             print("File Not Found")
+    with open(filename, 'wb') as f: 
         if total is None:
             f.write(response.content)
         else:
@@ -22,8 +27,6 @@ def download(url, filename):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
-
-
 if sys.platform.startswith('linux'):
     url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
     name = 'linux.tar.xz'
@@ -35,7 +38,7 @@ elif sys.platform.startswith('win32'):
     name = 'win32.tar.xz'
 
 print('[*] Downloading support files...')
-download(url, name)
+download(url)
 
 print('[*] Extracting files...')
 with tarfile.open(name, 'r:xz') as f:
@@ -43,7 +46,7 @@ with tarfile.open(name, 'r:xz') as f:
 os.remove(name)
 
 print('[*] Downloading data.zip...')
-download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1', 'data.zip')
+download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1')
 
 print('[*] Extracting data.zip...')
 with ZipFile('data.zip', 'r') as z:
