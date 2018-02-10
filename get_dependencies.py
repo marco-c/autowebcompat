@@ -7,7 +7,6 @@ import cgi
 
 
 def download(url):
-    print(filename)
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
@@ -16,6 +15,7 @@ def download(url):
             filename=file["filename"]
         except KeyError:
              print("File Not Found")
+        print(filename)
         if total is None:
             f.write(response.content)
         else:
@@ -28,12 +28,6 @@ def download(url):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
-def get_file(url):
-    index1=url[::-1].find("?")+1
-    index2=url[::-1].find("/")
-    return url[::-1][index1:index2][::-1]
-
-
 if sys.platform.startswith('linux'):
     url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
     name = 'linux.tar.xz'
