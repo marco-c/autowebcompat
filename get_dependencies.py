@@ -3,15 +3,19 @@ import os
 import tarfile
 from zipfile import ZipFile
 import requests
+import cgi
 
 
 def download(url):
-    filename = get_file(url)
     print(filename)
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
-
+        try:
+            type,file=cgi.parse(response.headers["content-disposition"])
+            filename=file["filename"]
+        except KeyError:
+             print("File Not Found")
         if total is None:
             f.write(response.content)
         else:
