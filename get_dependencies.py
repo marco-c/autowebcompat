@@ -5,7 +5,9 @@ from zipfile import ZipFile
 import requests
 
 
-def download(url, filename):
+def download(url):
+    filename = get_file(url)
+    print(filename)
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
@@ -22,6 +24,10 @@ def download(url, filename):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
+def get_file(url):
+    index1=url[::-1].find("?")+1
+    index2=url[::-1].find("/")
+    return url[::-1][index1:index2][::-1]
 
 
 if sys.platform.startswith('linux'):
