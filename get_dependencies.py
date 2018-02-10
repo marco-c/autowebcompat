@@ -6,9 +6,10 @@ import requests
 
 
 def download(url):
-    filename = url[url.rfind("/") + 1:url.find("?")]
-    with open(filename, 'wb') as f:
-        response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True)
+    filename = response.headers.get('content-disposition')
+    filename = filename[filename.find("\"")+1: filename.rfind("\"")]
+    with open(filename , 'wb') as f:
         total = response.headers.get('content-length')
 
         if total is None:
@@ -23,6 +24,7 @@ def download(url):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
+    return filename
 
 
 if sys.platform.startswith('linux'):
@@ -33,13 +35,10 @@ elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
 
 print('[*] Downloading support files...')
-download(url)
-name = url[url.rfind("/") + 1:url.find("?")]
+name = download(url)
 print('[*] Extracting files...')
-f = tarfile.open(name, 'r:xz')
-f.extractall('.')
-f.close()
-
+with tarfile.open(name, 'r:xz') as f:
+    f.extractall('.')
 os.remove(name)
 
 print('[*] Downloading data.zip...')
