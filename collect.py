@@ -105,7 +105,6 @@ def do_something(driver, elem_attributes=None):
         random.shuffle(children)
 
         for child in children:
-
             # Get all the attributes of the child.
             child_attributes = get_all_attributes(driver, child)
 
@@ -128,7 +127,6 @@ def do_something(driver, elem_attributes=None):
             children = buttons + links + inputs
 
             for child in children:
-
                 # Get all the attributes of the child.
                 child_attributes = get_all_attributes(driver, child)
                 if elem_attributes == child_attributes:

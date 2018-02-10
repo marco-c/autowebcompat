@@ -23,4 +23,4 @@ for webcompat_id, seq_no_and_elem_id in image_info.items():
         for value in seq_no_and_elem_id:
             sequence_no = value[0]
             elem_id = value[1]
-            text_file.write("%s %s\n" % (sequence_no, elem_id))
+            text_file.write("{\"id\" : \"%s\"}\n" % (elem_id))
