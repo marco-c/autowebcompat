@@ -8,7 +8,7 @@ import requests
 def download(url):
     response = requests.get(url, stream=True)
     filename = response.headers.get('content-disposition')
-    filename = filename[filename.find("\"") + 1 : filename.rfind("\"")]
+    filename = filename[filename.find("\"") + 1: filename.rfind("\"")]
     with open(filename, 'wb') as f:
         total = response.headers.get('content-length')
 
