@@ -8,11 +8,11 @@ import cgi
 
 def download(url):
     response = requests.get(url, stream=True)
-        total = response.headers.get('content-length')
-        try:
-            type,file=cgi.parse(response.headers["content-disposition"])
+    total = response.headers.get('content-length')
+    try:
+            type,file=cgi.parse_header(response.headers["content-disposition"])
             filename=file["filename"]
-        except KeyError:
+    except KeyError:
              print("File Not Found")
     with open(filename, 'wb') as f: 
         if total is None:
