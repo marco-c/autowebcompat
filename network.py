@@ -127,7 +127,7 @@ def accuracy(y_true, y_pred):
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 
 
-def compile(model, optimizer=None, loss_func=contrastive_loss):
+def compile(model, optimizer='sgd', loss_func=contrastive_loss):
     allOptimizers = {
         'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
         'adam': Adam(),
