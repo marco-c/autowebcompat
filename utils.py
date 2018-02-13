@@ -47,7 +47,7 @@ def prepare_images():
     except OSError:
         pass
 
-    for f in os.listdir('data/'):
+    for f in get_all_images():
         if os.path.exists(os.path.join('data_resized', f)):
             continue
 
