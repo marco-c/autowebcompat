@@ -22,7 +22,7 @@ def mkdir(dir_name):
 
 
 def get_all_images():
-    return os.listdir('data/')
+    return [f for f in os.listdir('data/') if f.endswith('.png')]
 
 
 def get_images():
