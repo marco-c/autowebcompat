@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import time
@@ -76,10 +77,22 @@ def close_all_windows_except_first(driver):
     driver.switch_to_window(windows[0])
 
 
-def do_something(driver, elem_id=None):
-    elem = None
+def get_all_attributes(driver, child):
+    child_attributes = driver.execute_script("""
+      let elem_attribute = {};
 
-    if elem_id is None:
+      for (let i = 0; i < arguments[0].attributes.length; i++) {
+        elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+      }
+      return elem_attribute;
+    """, child)
+
+    return child_attributes
+
+
+def do_something(driver, elem_attributes=None):
+    elem = None
+    if elem_attributes is None:
         body = driver.find_elements_by_tag_name('body')
         assert len(body) == 1
         body = body[0]
@@ -92,12 +105,8 @@ def do_something(driver, elem_id=None):
         random.shuffle(children)
 
         for child in children:
-            elem_id = child.get_attribute('id')
-
-            # We need to store the ID in order to replicate what we are doing, so we
-            # have to skip elements with no ID.
-            if elem_id == '':
-                continue
+            # Get all the attributes of the child.
+            child_attributes = get_all_attributes(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
@@ -107,7 +116,25 @@ def do_something(driver, elem_id=None):
             elem = child
             break
     else:
-        elem = driver.find_element_by_id(elem_id)
+        if 'id' not in elem_attributes.keys():
+            body = driver.find_elements_by_tag_name('body')
+            assert len(body) == 1
+            body = body[0]
+
+            buttons = body.find_elements_by_tag_name('button')
+            links = body.find_elements_by_tag_name('a')
+            inputs = body.find_elements_by_tag_name('input')
+            children = buttons + links + inputs
+
+            for child in children:
+                # Get all the attributes of the child.
+                child_attributes = get_all_attributes(driver, child)
+                if elem_attributes == child_attributes:
+                    elem = child
+                    break
+        else:
+            elem_id = elem_attributes['id']
+            elem = driver.find_element_by_id(elem_id)
 
     if elem is None:
         return None
@@ -133,7 +160,7 @@ def do_something(driver, elem_id=None):
 
     close_all_windows_except_first(driver)
 
-    return elem_id
+    return child_attributes
 
 
 def screenshot(driver, file_path):
@@ -161,18 +188,19 @@ def run_test(bug, browser, driver, op_sequence=None):
         max_iter = 7 if op_sequence is None else len(op_sequence)
         for i in range(0, max_iter):
             if op_sequence is None:
-                elem_id = do_something(driver)
-                if elem_id is None:
+                elem_attributes = do_something(driver)
+                if elem_attributes is None:
                     print('Can\'t find any element to interact with on %s for bug %d' % (bug['url'], bug['id']))
                     break
-                saved_sequence.append(elem_id)
+                saved_sequence.append(elem_attributes)
             else:
-                elem_id = op_sequence[i]
-                do_something(driver, elem_id)
+                elem_attributes = op_sequence[i]
+                do_something(driver, elem_attributes)
 
-            print('  - Using %s' % elem_id)
+            print('  - Using %s' % elem_attributes)
+            image_file = str(bug['id']) + '_' + str(i) + '_' + browser
+            screenshot(driver, 'data/%s.png' % (image_file))
 
-            screenshot(driver, 'data/%d_%s_%d_%s.png' % (bug['id'], elem_id, i, browser))
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
@@ -197,6 +225,11 @@ def run_tests(firefox_driver, chrome_driver):
                not os.path.exists('data/%d_chrome.png' % bug['id']):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
+
+                with open("data/%d.txt" % bug['id'], 'w') as f:
+                    for element in sequence:
+                        f.write(json.dumps(element) + '\n')
+
         except:  # noqa: E722
             traceback.print_exc()
             close_all_windows_except_first(firefox_driver)
