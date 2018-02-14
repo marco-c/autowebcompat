@@ -5,6 +5,7 @@ from zipfile import ZipFile
 import requests
 from rfc6266 import parse_requests_response
 
+
 def download(url):
     response = requests.get(url, stream=True)
     total = response.headers.get('content-length')
@@ -16,6 +17,7 @@ def download(url):
     elif filename != None and total is None:
         print("bad url")
         return filename
+
     with open(filename, 'wb') as f:
         if total is None:
             f.write(response.content)
