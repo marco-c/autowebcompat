@@ -7,24 +7,27 @@ import requests
 
 def download(url):
     response = requests.get(url, stream=True)
-    filename = response.headers.get('content-disposition')
-    filename = filename[filename.find("\"") + 1: filename.rfind("\"")]
-    with open(filename, 'wb') as f:
-        total = response.headers.get('content-length')
+    try:
+        filename = response.headers.get('content-disposition')
+        filename = filename[filename.find("\"") + 1: filename.rfind("\"")]
+        with open(filename, 'wb') as f:
+            total = response.headers.get('content-length')
 
-        if total is None:
-            f.write(response.content)
-        else:
-            downloaded = 0
-            total = int(total)
-            for data in response.iter_content(chunk_size=max(int(total / 1000), 1024 * 1024)):
-                downloaded += len(data)
-                f.write(data)
-                done = int(50 * downloaded / total)
-                sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
-                sys.stdout.flush()
-    sys.stdout.write('\n')
-    return filename
+            if total is None:
+                f.write(response.content)
+            else:
+                downloaded = 0
+                total = int(total)
+                for data in response.iter_content(chunk_size=max(int(total / 1000), 1024 * 1024)):
+                    downloaded += len(data)
+                    f.write(data)
+                    done = int(50 * downloaded / total)
+                    sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
+                    sys.stdout.flush()
+        sys.stdout.write('\n')
+        return filename
+    except AttributeError as e:
+        print('Couldn\'t get file name for this URL')
 
 
 if sys.platform.startswith('linux'):
@@ -35,18 +38,24 @@ elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
 
 print('[*] Downloading support files...')
-name = download(url)
-print('[*] Extracting files...')
-with tarfile.open(name, 'r:xz') as f:
-    f.extractall('.')
-os.remove(name)
+try:
+    name = download(url)
+    print('[*] Extracting files...')
+    with tarfile.open(name, 'r:xz') as f:
+        f.extractall('.')
+    os.remove(name)
+except FileNotFoundError as e:
+    print('bad url or file is not downloaded')
 
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1')
 
-print('[*] Extracting data.zip...')
-with ZipFile('data.zip', 'r') as z:
-    z.extractall()
+try:
+    with ZipFile('data.zip', 'r') as z:
+        print('[*] Extracting data.zip...')
+        z.extractall()
+    os.remove('data.zip')
+except FileNotFoundError as e:
+    print('bad url or file is not downloaded ')
 
-os.remove('data.zip')
 print('[*] Completed!')
