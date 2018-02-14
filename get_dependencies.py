@@ -43,7 +43,7 @@ with tarfile.open(name, 'r:xz') as f:
 os.remove(name)
 
 print('[*] Downloading data.zip...')
-download('https://www.dropbox.com/s/7f5uok2alxz9j1r/data.zip?dl=1', 'data.zip')
+download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1', 'data.zip')
 
 print('[*] Extracting data.zip...')
 with ZipFile('data.zip', 'r') as z:
