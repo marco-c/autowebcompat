@@ -10,14 +10,12 @@ def download(url):
     total = response.headers.get('content-length')
     filename = parse_requests_response(response).filename_unsafe
 
-    if filename == "":
-        filename == None
+    if filename == None:
         print('Couldn\'t get filename for this url')
-        return
-    elif filename != "" and total is None:
+        return filename
+    elif filename != None and total is None:
         print("bad url")
-        filename = None
-        return
+        return filename
     with open(filename, 'wb') as f:
         if total is None:
             f.write(response.content)
