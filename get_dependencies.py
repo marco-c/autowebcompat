@@ -12,7 +12,7 @@ def download(url):
     filename = parse_requests_response(response).filename_unsafe
     try:
         filename = parse_requests_response(response).filename_unsafe
-    except:
+    except Exception:
         print("Couldn\'t get file name for this URL")
 
     filename = sanitize(filename)
@@ -45,6 +45,7 @@ def sanitize(filename):
     if not filename:
         filename = default_filename
     return filename
+
 
 if sys.platform.startswith('linux'):
     url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
