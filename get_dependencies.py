@@ -12,7 +12,7 @@ def download(url):
     filename = parse_requests_response(response).filename_unsafe
 
     if filename is None:
-        raise Exception('No filename could be found for this URL'):
+        raise Exception('No filename could be found for this URL')
         return
 
     filename = sanitize(filename)
