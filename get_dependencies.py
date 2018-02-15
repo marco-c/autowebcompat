@@ -10,26 +10,18 @@ import posixpath
 def download(url):
     response = requests.get(url, stream=True)
     filename = parse_requests_response(response).filename_unsafe
+    try:
+        filename = parse_requests_response(response).filename_unsafe
+    except:
+        print("Couldn\'t get file name for this URL")
 
-    default_filename = 'file'
-    if filename is None:
-        filename = default_filename
-    filename = posixpath.basename(filename)
-    filename = os.path.basename(filename)
-    filename = filename.lstrip('.')
-    if not filename:
-        filename = default_filename
-
-    if filename.rfind('.') == -1:
-        print('Couldn\'t get filename for this url')
-        return
+    filename = sanitize(filename)
 
     with open(filename, 'wb') as f:
         total = response.headers.get('content-length')
 
         if total is None:
             f.write(response.content)
-            return
         else:
             downloaded = 0
             total = int(total)
@@ -43,6 +35,17 @@ def download(url):
     return filename
 
 
+def sanitize(filename):
+    default_filename = 'file'
+    if filename is None:
+        filename = default_filename
+    filename = posixpath.basename(filename)
+    filename = os.path.basename(filename)
+    filename = filename.lstrip('.')
+    if not filename:
+        filename = default_filename
+    return filename
+
 if sys.platform.startswith('linux'):
     url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
 elif sys.platform.startswith('darwin'):
@@ -52,24 +55,18 @@ elif sys.platform.startswith('win32'):
 
 print('[*] Downloading support files...')
 
-try:
-    name = download(url)
-    print('[*] Extracting files...')
-    with tarfile.open(name, 'r:xz') as f:
-        f.extractall('.')
-    os.remove(name)
-except ValueError as e:
-    print("No file found, " + e)
+name = download(url)
+print('[*] Extracting files...')
+with tarfile.open(name, 'r:xz') as f:
+    f.extractall('.')
+os.remove(name)
 
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1')
 
-try:
-    with ZipFile('data.zip', 'r') as z:
-        print('[*] Extracting data.zip...')
-        z.extractall()
-    os.remove('data.zip')
-except ValueError as e:
-    print("No file found, " + e)
+with ZipFile('data.zip', 'r') as z:
+    print('[*] Extracting data.zip...')
+    z.extractall()
+os.remove('data.zip')
 
 print('[*] Completed!')
