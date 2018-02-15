@@ -10,10 +10,10 @@ import posixpath
 def download(url):
     response = requests.get(url, stream=True)
     filename = parse_requests_response(response).filename_unsafe
-    try:
-        filename = parse_requests_response(response).filename_unsafe
-    except Exception:
-        print("Couldn\'t get file name for this URL")
+
+    if filename is None:
+        raise Exception('No filename could be found for this URL'):
+        return
 
     filename = sanitize(filename)
 
@@ -36,14 +36,9 @@ def download(url):
 
 
 def sanitize(filename):
-    default_filename = 'file'
-    if filename is None:
-        filename = default_filename
     filename = posixpath.basename(filename)
     filename = os.path.basename(filename)
     filename = filename.lstrip('.')
-    if not filename:
-        filename = default_filename
     return filename
 
 
@@ -55,8 +50,8 @@ elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
 
 print('[*] Downloading support files...')
-
 name = download(url)
+
 print('[*] Extracting files...')
 with tarfile.open(name, 'r:xz') as f:
     f.extractall('.')
@@ -65,9 +60,9 @@ os.remove(name)
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1')
 
+print('[*] Extracting data.zip...')
 with ZipFile('data.zip', 'r') as z:
-    print('[*] Extracting data.zip...')
     z.extractall()
-os.remove('data.zip')
 
+os.remove('data.zip')
 print('[*] Completed!')
