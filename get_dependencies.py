@@ -4,21 +4,28 @@ import tarfile
 from zipfile import ZipFile
 import requests
 from rfc6266 import parse_requests_response
+import posixpath
 
 def download(url):
     response = requests.get(url, stream=True)
-    total = response.headers.get('content-length')
     filename = parse_requests_response(response).filename_unsafe
 
-    if filename == "":
-        filename == None
+    default_filename = 'file'
+    if filename is None:
+        filename = default_filename
+    filename = posixpath.basename(filename)
+    filename = os.path.basename(filename)
+    filename = filename.lstrip('.')
+    if not filename:
+        filename = default_filename
+
+    if filename.rfind('.') == -1:
         print('Couldn\'t get filename for this url')
         return
-    elif filename != "" and total is None:
-        print("bad url")
-        filename = None
-        return
+
     with open(filename, 'wb') as f:
+        total = response.headers.get('content-length')
+
         if total is None:
             f.write(response.content)
             return
@@ -43,6 +50,7 @@ elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
 
 print('[*] Downloading support files...')
+
 try:
     name = download(url)
     print('[*] Extracting files...')
@@ -50,7 +58,8 @@ try:
         f.extractall('.')
     os.remove(name)
 except ValueError as e:
-    print("file not found")
+    print("No file found, "+e)
+
 
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1')
@@ -61,7 +70,7 @@ try:
         print('[*] Extracting data.zip...')
         z.extractall()
     os.remove('data.zip')
-except FileNotFoundError as e:
-    print('bad url or file is not downloaded ')
+except:
+    print('Invalid zip file ')
 
 print('[*] Completed!')
