@@ -3,11 +3,20 @@ import os
 import tarfile
 from zipfile import ZipFile
 import requests
+from rfc6266 import parse_requests_response
+import posixpath
 
 
-def download(url, filename):
+def download(url):
+    response = requests.get(url, stream=True)
+    filename = parse_requests_response(response).filename_unsafe
+
+    if filename is None:
+        raise Exception('No filename could be found for this URL')
+
+    filename = sanitize(filename)
+
     with open(filename, 'wb') as f:
-        response = requests.get(url, stream=True)
         total = response.headers.get('content-length')
 
         if total is None:
@@ -22,20 +31,25 @@ def download(url, filename):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
+    return filename
+
+
+def sanitize(filename):
+    filename = posixpath.basename(filename)
+    filename = os.path.basename(filename)
+    filename = filename.lstrip('.')
+    return filename
 
 
 if sys.platform.startswith('linux'):
     url = 'https://www.dropbox.com/s/ziti4nkdzhgwg1n/linux.tar.xz?dl=1'
-    name = 'linux.tar.xz'
 elif sys.platform.startswith('darwin'):
     url = 'https://www.dropbox.com/s/k4yifantsypy9xv/mac.tar.xz?dl=1'
-    name = 'mac.tar.xz'
 elif sys.platform.startswith('win32'):
     url = 'https://www.dropbox.com/s/xskj9rpn2fjkra8/win32.tar.xz?dl=1'
-    name = 'win32.tar.xz'
 
 print('[*] Downloading support files...')
-download(url, name)
+name = download(url)
 
 print('[*] Extracting files...')
 with tarfile.open(name, 'r:xz') as f:
@@ -43,7 +57,7 @@ with tarfile.open(name, 'r:xz') as f:
 os.remove(name)
 
 print('[*] Downloading data.zip...')
-download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1', 'data.zip')
+download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1')
 
 print('[*] Extracting data.zip...')
 with ZipFile('data.zip', 'r') as z:
