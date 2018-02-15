@@ -61,17 +61,15 @@ try:
 except ValueError as e:
     print("No file found, " + e)
 
-
 print('[*] Downloading data.zip...')
 download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1')
-
 
 try:
     with ZipFile('data.zip', 'r') as z:
         print('[*] Extracting data.zip...')
         z.extractall()
     os.remove('data.zip')
-except:
-    raise BadZipFile("Not a valid zip file")
+except ValueError as e:
+    print("No file found, " + e)
 
 print('[*] Completed!')
