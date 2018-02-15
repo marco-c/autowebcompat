@@ -13,7 +13,6 @@ def download(url):
 
     if filename is None:
         raise Exception('No filename could be found for this URL')
-        return
 
     filename = sanitize(filename)
 
