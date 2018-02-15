@@ -6,6 +6,7 @@ import requests
 from rfc6266 import parse_requests_response
 import posixpath
 
+
 def download(url):
     response = requests.get(url, stream=True)
     filename = parse_requests_response(response).filename_unsafe
@@ -58,7 +59,7 @@ try:
         f.extractall('.')
     os.remove(name)
 except ValueError as e:
-    print("No file found, "+e)
+    print("No file found, " + e)
 
 
 print('[*] Downloading data.zip...')
@@ -71,6 +72,6 @@ try:
         z.extractall()
     os.remove('data.zip')
 except:
-    print('Invalid zip file ')
+    raise BadZipFile("Not a valid zip file")
 
 print('[*] Completed!')
