@@ -211,6 +211,14 @@ def run_test(bug, browser, driver, op_sequence=None):
     return saved_sequence
 
 
+def read_sequence(bug_id):
+    elements = []
+    with open('data/%d.txt' % bug_id) as f:
+        for line in f:
+            elements.append(json.loads(line))
+    return elements
+
+
 def run_tests(firefox_driver, chrome_driver):
     set_timeouts(firefox_driver)
     set_timeouts(chrome_driver)
@@ -219,18 +227,24 @@ def run_tests(firefox_driver, chrome_driver):
 
     for bug in bugs:
         try:
-            # Assume that if we generated the main file, we also generated the one with
-            # the sequence of operations (TODO: don't assume, check!)
-            # TODO: If only Chrome is missing, don't regenerate Firefox too, but read the
-            # sequence of operations from the files.
-            if not os.path.exists('data/%d_firefox.png' % bug['id']) or\
-               not os.path.exists('data/%d_chrome.png' % bug['id']):
+            if not os.path.exists('data/%d.txt' % bug['id']) or \
+                    not os.path.exists('data/%d_firefox.png' % bug['id']):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
-
                 with open("data/%d.txt" % bug['id'], 'w') as f:
                     for element in sequence:
                         f.write(json.dumps(element) + '\n')
+            elif not os.path.exists('data/%d_chrome.png' % bug['id']):
+                sequence = read_sequence(bug['id'])
+                run_test(bug, 'chrome', chrome_driver, sequence)
+            sequence = read_sequence(bug['id'])
+            for element_num in range(0, len(sequence)):
+                if not os.path.exists('data/%d_%d_firefox.png' % (bug['id'], element_num)):
+                    do_something(firefox_driver, sequence[element_num])
+                    screenshot(firefox_driver, 'data/%d_%d_firefox.png' % (bug['id'], element_num))
+                if not os.path.exists('data/%d_%d_chrome.png' % (bug['id'], element_num)):
+                    do_something(chrome_driver, sequence[element_num])
+                    screenshot(chrome_driver, 'data/%d_%d_chrome.png' % (bug['id'], element_num))
 
         except:  # noqa: E722
             traceback.print_exc()
