@@ -1,6 +1,6 @@
 from os import listdir
 
-import utils
+from autowebcompat import utils
 
 
 labels_directory = "label_persons/"
