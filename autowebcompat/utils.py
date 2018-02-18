@@ -22,7 +22,7 @@ def mkdir(dir_name):
 
 
 def get_all_images():
-    return os.listdir('data/')
+    return [f for f in os.listdir('data/') if f.endswith('.png')]
 
 
 def get_images():
@@ -47,7 +47,7 @@ def prepare_images():
     except OSError:
         pass
 
-    for f in os.listdir('data/'):
+    for f in get_all_images():
         if os.path.exists(os.path.join('data_resized', f)):
             continue
 

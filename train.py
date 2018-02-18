@@ -1,7 +1,7 @@
 import random
 
-import network
-import utils
+from autowebcompat import network
+from autowebcompat import utils
 
 
 labels = utils.read_labels()
