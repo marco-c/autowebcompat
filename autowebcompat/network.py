@@ -82,7 +82,7 @@ def create_vgglike_network(input_shape):
     x = Flatten()(x)
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.5)(x)
-    # x = Dense(2, activation='softmax')(x)
+    #x = Dense(2, activation='softmax')(x)
     x = Dense(128, activation='relu')(x)
 
     return Model(input, x)
