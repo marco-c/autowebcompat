@@ -3,7 +3,7 @@ from PIL import ImageTk, Image
 from tkinter import Tk, Label
 
 
-import utils
+from autowebcompat import utils
 
 labels_directory = "label_persons/"
 

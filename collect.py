@@ -4,10 +4,11 @@ import sys
 import time
 import random
 import traceback
-import utils
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
+
+from autowebcompat import utils
 
 if sys.platform.startswith("linux"):
     chrome_bin = "tools/chrome-linux/chrome"
