@@ -158,7 +158,7 @@ def do_something(driver, elem_attributes=None):
             elem.send_keys('3')
         elif input_type == 'radio':
             elem.click()
-        elif input.type == 'submit':
+        elif input_type == 'submit':
             elem.click()
         else:
             raise Exception('Unsupported input type: %s' % input_type)
