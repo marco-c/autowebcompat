@@ -1,6 +1,6 @@
 from keras import backend as K
 from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, BatchNormalization
-from keras.layers import AveragePooling2D, Activation, Concatenate
+from keras.layers import AveragePooling2D, Activation, Concatenate, Add, ZeroPadding2D
 from keras.layers import GlobalAveragePooling2D
 from keras.models import Model
 from keras.optimizers import RMSprop, Adam, Nadam, SGD
@@ -284,7 +284,6 @@ class Network(object):
         x = Activation('relu')(x)
         return x
 
-
     def conv_block(self, input, kernel_size, filters, stage, block, strides=(2, 2)):
         filters1, filters2, filters3 = filters
         if K.image_data_format() == 'channels_last':
@@ -400,7 +399,6 @@ class SiameseModule(object):
         distance = Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
 
         return Model([input_a, input_b], distance)
-
 
     def compile(self, model, optimizer='sgd', loss_func=contrastive_loss):
         allOptimizers = {
