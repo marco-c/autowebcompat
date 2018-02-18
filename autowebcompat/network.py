@@ -1,9 +1,10 @@
 from keras import backend as K
 from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, BatchNormalization
-from keras.layers import AveragePooling2D, Activation
+from keras.layers import AveragePooling2D, Activation, Concatenate
 from keras.layers import GlobalAveragePooling2D
 from keras.models import Model
 from keras.optimizers import RMSprop, Adam, Nadam, SGD
+
 
 class Network(object):
     """
@@ -45,7 +46,6 @@ class Network(object):
 
         return Model(input, x)
 
-
     # VGG 16
     def create_vgg16_network(self, input_shape):
         input = Input(shape=input_shape)
@@ -85,7 +85,6 @@ class Network(object):
         # Softmax layer Not Necessary
         return Model(input, x)
 
-
     # GoogleNet - Inception V3
     def conv2d_bn(self, x, filters, num_row, num_col, padding='same', strides=(1, 1)):
         """
@@ -102,6 +101,10 @@ class Network(object):
 
 
     def create_inceptionv3_network(self, input_shape):
+        if K.image_data_format() == 'channels_first':
+            channel_axis = 1
+        else:
+            channel_axis = 3
         input = Input(shape=input_shape)
 
         x = conv2d_bn(input, 32, 3, 3, strides=(2, 2), padding='valid')
@@ -125,9 +128,8 @@ class Network(object):
 
         branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
         branch_pool = conv2d_bn(branch_pool, 32, 1, 1)
-        x = layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=channel_axis,
-            name='mixed0')
-
+        x = Concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=channel_axis,
+                        name='mixed0')
         # Inception Module
         branch1x1 = conv2d_bn(x, 64, 1, 1)
 
@@ -140,9 +142,8 @@ class Network(object):
 
         branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
         branch_pool = conv2d_bn(branch_pool, 64, 1, 1)
-        x = layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=channel_axis,
-            name='mixed1')
-
+        x = Concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=channel_axis,
+                        name='mixed1')
         # Inception Module
         branch1x1 = conv2d_bn(x, 64, 1, 1)
 
@@ -155,9 +156,8 @@ class Network(object):
 
         branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
         branch_pool = conv2d_bn(branch_pool, 64, 1, 1)
-        x = layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=channel_axis,
-            name='mixed2')
-
+        x = Concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool], axis=channel_axis,
+                        name='mixed2')
 
         branch3x3 = conv2d_bn(x, 384, 3, 3, strides=(2, 2), padding='valid')
 
@@ -166,9 +166,8 @@ class Network(object):
         branch3x3dbl = conv2d_bn(branch3x3dbl, 96, 3, 3, strides=(2, 2), padding='valid')
 
         branch_pool = MaxPooling2D((3, 3), strides=(2, 2))(x)
-        x = layers.concatenate([branch3x3, branch3x3dbl, branch_pool], axis=channel_axis,
-            name='mixed3')
-
+        x = Concatenate([branch3x3, branch3x3dbl, branch_pool], axis=channel_axis,
+                        name='mixed3')
 
         branch1x1 = conv2d_bn(x, 192, 1, 1)
 
@@ -184,9 +183,8 @@ class Network(object):
 
         branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
         branch_pool = conv2d_bn(branch_pool, 192, 1, 1)
-        x = layers.concatenate([branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=channel_axis,
-            name='mixed4')
-
+        x = Concatenate([branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=channel_axis,
+                        name='mixed4')
 
         for i in range(2):
             branch1x1 = conv2d_bn(x, 192, 1, 1)
@@ -203,8 +201,8 @@ class Network(object):
 
             branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
             branch_pool = conv2d_bn(branch_pool, 192, 1, 1)
-            x = layers.concatenate([branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=channel_axis,
-                name='mixed' + str(5 + i))
+            x = Concatenate([branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=channel_axis,
+                            name='mixed' + str(5 + i))
 
         branch1x1 = conv2d_bn(x, 192, 1, 1)
 
@@ -220,8 +218,8 @@ class Network(object):
 
         branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
         branch_pool = conv2d_bn(branch_pool, 192, 1, 1)
-        x = layers.concatenate([branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=channel_axis,
-            name='mixed7')
+        x = Concatenate([branch1x1, branch7x7, branch7x7dbl, branch_pool], axis=channel_axis,
+                        name='mixed7')
 
         branch3x3 = conv2d_bn(x, 192, 1, 1)
         branch3x3 = conv2d_bn(branch3x3, 320, 3, 3, strides=(2, 2), padding='valid')
@@ -232,8 +230,8 @@ class Network(object):
         branch7x7x3 = conv2d_bn(branch7x7x3, 192, 3, 3, strides=(2, 2), padding='valid')
 
         branch_pool = MaxPooling2D((3, 3), strides=(2, 2))(x)
-        x = layers.concatenate([branch3x3, branch7x7x3, branch_pool], axis=channel_axis,
-            name='mixed8')
+        x = Concatenate([branch3x3, branch7x7x3, branch_pool], axis=channel_axis,
+                        name='mixed8')
 
         for i in range(2):
             branch1x1 = conv2d_bn(x, 320, 1, 1)
@@ -241,19 +239,19 @@ class Network(object):
             branch3x3 = conv2d_bn(x, 384, 1, 1)
             branch3x3_1 = conv2d_bn(branch3x3, 384, 1, 3)
             branch3x3_2 = conv2d_bn(branch3x3, 384, 3, 1)
-            branch3x3 = layers.concatenate([branch3x3_1, branch3x3_2], axis=channel_axis,
-                        name='mixed9_' + str(i))
+            branch3x3 = Concatenate([branch3x3_1, branch3x3_2], axis=channel_axis,
+                                    name='mixed9_' + str(i))
 
             branch3x3dbl = conv2d_bn(x, 448, 1, 1)
             branch3x3dbl = conv2d_bn(branch3x3dbl, 384, 3, 3)
             branch3x3dbl_1 = conv2d_bn(branch3x3dbl, 384, 1, 3)
             branch3x3dbl_2 = conv2d_bn(branch3x3dbl, 384, 3, 1)
-            branch3x3dbl = layers.concatenate([branch3x3dbl_1, branch3x3dbl_2], axis=channel_axis)
+            branch3x3dbl = Concatenate([branch3x3dbl_1, branch3x3dbl_2], axis=channel_axis)
 
             branch_pool = AveragePooling2D((3, 3), strides=(1, 1), padding='same')(x)
             branch_pool = conv2d_bn(branch_pool, 192, 1, 1)
-            x = layers.concatenate([branch1x1, branch3x3, branch3x3dbl, branch_pool], axis=channel_axis,
-                name='mixed' + str(9 + i))
+            x = Concatenate([branch1x1, branch3x3, branch3x3dbl, branch_pool], axis=channel_axis,
+                            name='mixed' + str(9 + i))
 
         x = GlobalAveragePooling2D(name='avg_pool')(x)
         x = Flatten()(x)
@@ -282,7 +280,7 @@ class Network(object):
         x = Conv2D(filters3, (1, 1), name=conv_name_base + '2c')(x)
         x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
 
-        x = layers.add([x, input])
+        x = Add([x, input])
         x = Activation('relu')(x)
         return x
 
@@ -310,7 +308,7 @@ class Network(object):
         shortcut = Conv2D(filters3, (1, 1), strides=strides, name=conv_name_base + '1')(input)
         shortcut = BatchNormalization(axis=bn_axis, name=bn_name_base + '1')(shortcut)
 
-        x = layers.add([x, shortcut])
+        x = Add([x, shortcut])
         x = Activation('relu')(x)
         return x
 
@@ -351,7 +349,6 @@ class Network(object):
         x = Flatten()(x)
         x = Dense(4096, activation='relu')(x)
         return Model(input, x, name='resnet50')
-
 
 
 class SiameseModule(object):
@@ -415,4 +412,4 @@ class SiameseModule(object):
         assert optimizer in allOptimizers, '%s is an invalid optimizer' % optimizer
         opt = allOptimizers[optimizer]
 
-        model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
+        model.compile(loss=loss_func, optimizer=opt, metrics=['accuracy'])
