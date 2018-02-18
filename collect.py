@@ -6,7 +6,6 @@ import traceback
 import utils
 from PIL import Image
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
 if sys.platform.startswith("linux"):
@@ -132,7 +131,6 @@ def do_something(driver, elem_id=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
-            elem.send_keys(Keys.RETURN)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
