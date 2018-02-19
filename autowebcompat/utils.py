@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import threading
 import numpy as np
 from PIL import Image
@@ -165,6 +166,12 @@ def balance(it):
 
                 last_label = e[1]
                 yield e
+
+
+def make_infinite(gen_func, elems):
+    while True:
+        random.shuffle(elems)
+        yield from gen_func(elems)
 
 
 def read_labels(file_name='labels.csv'):

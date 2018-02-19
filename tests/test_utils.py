@@ -27,6 +27,20 @@ def test_load_image(tmpdir):
     assert(img.shape == (32, 24, 3))
 
 
+def test_make_infinite():
+    all_elems = list(range(7))
+
+    inf_gen = utils.make_infinite(lambda elems: elems, all_elems)
+
+    for _ in range(42):
+        yielded = set()
+
+        for i in all_elems:
+            yielded.add(next(inf_gen))
+
+        assert(yielded == set(all_elems))
+
+
 def test_read_labels():
     labels = utils.read_labels(file_name='labels.csv')
     assert(isinstance(labels, dict))

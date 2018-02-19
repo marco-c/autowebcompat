@@ -41,24 +41,18 @@ def couples_generator(images):
     for image_couple in itertools.combinations(images, 2):
         yield image_couple, 1 if are_same_site(image_couple[0], image_couple[1]) else 0
 
+gen_func = lambda images: utils.balance(couples_generator(images))
 
-def inf_couples_generator(images):
-    while True:
-        random.shuffle(images)
-        for e in utils.balance(couples_generator(images)):
-            yield e
-
-
-train_couples_len = sum(1 for e in utils.balance(couples_generator(images_train)))
-test_couples_len = sum(1 for e in utils.balance(couples_generator(images_test)))
+train_couples_len = sum(1 for e in gen_func(images_train))
+test_couples_len = sum(1 for e in gen_func(images_test))
 
 print('Training with %d couples.' % train_couples_len)
 print('Testing with %d couples.' % test_couples_len)
 print(input_shape)
 
 data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
-train_iterator = utils.CouplesIterator(inf_couples_generator(images_train), input_shape, data_gen, BATCH_SIZE)
-test_iterator = utils.CouplesIterator(inf_couples_generator(images_test), input_shape, data_gen, BATCH_SIZE)
+train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
+test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
 model = network.create(input_shape)
 network.compile(model)
@@ -72,7 +66,7 @@ model.save('pretrain.h5')
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)
 
-asd = utils.CouplesIterator(inf_couples_generator(images_test[:100]), input_shape, data_gen)
+asd = utils.CouplesIterator(utils.make_infinite(gen_func, images_test[:100]), input_shape, data_gen)
 predict_couples_len = sum(1 for e in utils.balance(couples_generator(images_test)))
 predictions = model.predict_generator(asd, steps=predict_couples_len / BATCH_SIZE)
 print(predictions)
