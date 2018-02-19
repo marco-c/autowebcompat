@@ -158,6 +158,9 @@ def do_something(driver, elem_attributes=None):
             elem.send_keys('3')
         elif input_type == 'radio':
             elem.click()
+        elif input_type == 'search':
+            elem.clear()
+            elem.send_keys('quick search')
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
