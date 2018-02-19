@@ -4,6 +4,7 @@ import sys
 import time
 import random
 import traceback
+import glob
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
@@ -216,11 +217,8 @@ def run_test(bug, browser, driver, op_sequence=None):
 
 
 def read_sequence(bug_id):
-    elements = []
     with open('data/%d.txt' % bug_id) as f:
-        for line in f:
-            elements.append(json.loads(line))
-    return elements
+        return [json.loads(line) for line in f]
 
 
 def run_tests(firefox_driver, chrome_driver):
@@ -232,23 +230,23 @@ def run_tests(firefox_driver, chrome_driver):
     for bug in bugs:
         try:
             if not os.path.exists('data/%d.txt' % bug['id']) or \
-                    not os.path.exists('data/%d_firefox.png' % bug['id']):
+                    not os.path.exists('data/%d_firefox.png' % bug['id']) or \
+                    not os.path.exists('data/%d_chrome.png' % bug['id']):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
                 with open("data/%d.txt" % bug['id'], 'w') as f:
                     for element in sequence:
                         f.write(json.dumps(element) + '\n')
-            elif not os.path.exists('data/%d_chrome.png' % bug['id']):
-                sequence = read_sequence(bug['id'])
-                run_test(bug, 'chrome', chrome_driver, sequence)
             sequence = read_sequence(bug['id'])
-            for element_num in range(0, len(sequence)):
-                if not os.path.exists('data/%d_%d_firefox.png' % (bug['id'], element_num)):
-                    do_something(firefox_driver, sequence[element_num])
-                    screenshot(firefox_driver, 'data/%d_%d_firefox.png' % (bug['id'], element_num))
-                if not os.path.exists('data/%d_%d_chrome.png' % (bug['id'], element_num)):
-                    do_something(chrome_driver, sequence[element_num])
-                    screenshot(chrome_driver, 'data/%d_%d_chrome.png' % (bug['id'], element_num))
+            number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
+            number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
+            if len(sequence) != number_of_ff_scr or \
+                    number_of_ff_scr != number_of_ch_scr:
+                sequence = run_test(bug, 'firefox', firefox_driver)
+                run_test(bug, 'chrome', chrome_driver, sequence)
+                with open("data/%d.txt" % bug['id'], 'w') as f:
+                    for element in sequence:
+                        f.write(json.dumps(element) + '\n')
 
         except:  # noqa: E722
             traceback.print_exc()
