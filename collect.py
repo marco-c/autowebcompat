@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import sys
@@ -9,6 +10,8 @@ from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
 from autowebcompat import utils
+
+MAX_THREADS = 5
 
 if sys.platform.startswith("linux"):
     chrome_bin = "tools/chrome-linux/chrome"
@@ -215,11 +218,9 @@ def run_test(bug, browser, driver, op_sequence=None):
     return saved_sequence
 
 
-def run_tests(firefox_driver, chrome_driver):
+def run_tests(firefox_driver, chrome_driver, bugs):
     set_timeouts(firefox_driver)
     set_timeouts(chrome_driver)
-
-    random.shuffle(bugs)
 
     for bug in bugs:
         try:
@@ -251,13 +252,22 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
-firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=412,732")
 chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36")
-chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
 
-run_tests(firefox_driver, chrome_driver)
+
+def main(bugs):
+    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
+    chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
+    run_tests(firefox_driver, chrome_driver, bugs)
+
+
+if __name__ == '__main__':
+    random.shuffle(bugs)
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        for i in range(MAX_THREADS):
+            executor.submit(main, bugs[i::MAX_THREADS])
