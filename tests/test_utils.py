@@ -1,8 +1,8 @@
 import os
-import numpy as np
 from tempfile import TemporaryDirectory
-from autowebcompat import utils
+import numpy as np
 from PIL import Image
+from autowebcompat import utils
 
 
 def test_get_bugs():
@@ -12,21 +12,18 @@ def test_get_bugs():
 
 def test_mkdir():
     d = TemporaryDirectory()
-    direc_path = os.path.join(d.name + "\\test")
+    direc_path = d.name + "/test"
     utils.mkdir(direc_path)
     assert(os.path.isdir(direc_path))
     utils.mkdir(direc_path)
 
 
-def test_load_image():
-    os.mkdir('data_resized')
-    fake_img = np.random.rand(30, 30, 3) * 255
-    img = Image.fromarray(fake_img.astype('uint8')).convert('RGBA')
-    img.save("./data_resized/Image.jpg")
-    img = utils.load_image("Image.jpg", "./data_resized")
+def test_load_image(tmpdir):
+    d = TemporaryDirectory()
+    img = Image.new("RGB", (30, 30))
+    img.save(d.name + "/Image.jpg")
+    img = utils.load_image("Image.jpg", d.name)
     assert(isinstance(img, np.ndarray))
-    os.remove("./data_resized/Image.jpg")
-    os.rmdir("data_resized")
 
 
 def test_read_labels():
@@ -37,6 +34,6 @@ def test_read_labels():
 def test_write_labels():
     label = {1: 1, 2: 2}
     d = TemporaryDirectory()
-    file_path = os.path.join(d.name + "\\test.csv")
+    file_path = d.name + "/test.csv"
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
