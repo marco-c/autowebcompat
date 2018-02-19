@@ -24,6 +24,7 @@ def test_load_image(tmpdir):
     img.save(d.name + "/Image.jpg")
     img = utils.load_image("Image.jpg", d.name)
     assert(isinstance(img, np.ndarray))
+    assert(img.shape == (32, 24, 3))
 
 
 def test_read_labels():
