@@ -224,7 +224,7 @@ def read_sequence(bug_id):
         return [json.loads(line) for line in f]
 
 
-def regen_all(bug):
+def regen_all(bug, firefox_driver, chrome_driver):
     sequence = run_test(bug, 'firefox', firefox_driver)
     run_test(bug, 'chrome', chrome_driver, sequence)
     with open("data/%d.txt" % bug['id'], 'w') as f:
@@ -241,15 +241,15 @@ def run_tests(firefox_driver, chrome_driver, bugs):
             if not os.path.exists('data/%d.txt' % bug['id']) or \
                     not os.path.exists('data/%d_firefox.png' % bug['id']) or \
                     not os.path.exists('data/%d_chrome.png' % bug['id']):
-                regen_all(bug)
+                regen_all(bug, firefox_driver, chrome_driver)
             sequence = read_sequence(bug['id'])
             if len(sequence) == 0:
-                regen_all(bug)
+                regen_all(bug, firefox_driver, chrome_driver)
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
             if len(sequence) != number_of_ff_scr or \
                     number_of_ff_scr != number_of_ch_scr:
-                regen_all(bug)
+                regen_all(bug, firefox_driver, chrome_driver)
 
         except:  # noqa: E722
             traceback.print_exc()
