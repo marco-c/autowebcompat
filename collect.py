@@ -248,7 +248,7 @@ def run_tests(firefox_driver, chrome_driver, bugs):
                     os.remove(f)
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
-                
+
                 with open("data/%d.txt" % bug['id'], 'w') as f:
                     for element in sequence:
                         f.write(json.dumps(element) + '\n')
