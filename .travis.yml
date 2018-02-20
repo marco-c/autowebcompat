@@ -6,3 +6,4 @@ install:
   - pip install -r test-requirements.txt
 script:
   - flake8 .
+  - pytest ./tests/test_*.py
