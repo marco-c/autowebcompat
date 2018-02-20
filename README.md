@@ -4,10 +4,10 @@ The aim of this project is creating a tool to automatically detect web compatibi
 
 ## Structure of the project
 
-- The **collect.py** script collects screenshots of web pages in different browsers;
+- The **autowebcompat/utils.py** module contains some utility functions;
+- The **autowebcompat/network.py** module contains neural network definition, optimizers definition, along with the loss and accuracy;
+- The **collect.py** script is a crawler that collects screenshots of web pages in different browsers;
 - The **label.py** script is a utility that helps labelling couples of screenshots (are they the same in the two browsers or are there differences?);
-- The **utils.py** script contains some utility functions;
-- The **network.py** script contains the neural network definition, along with the loss and accuracy;
 - The **pretrain.py** script trains a neural network on the website screenshots for a slightly different problem (for which we know the solution), so that we can reuse the network weights for the training on the actual problem;
 - The **train.py** script trains the neural network on the website screenshots to detect compat issues.
 
