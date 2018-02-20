@@ -247,8 +247,7 @@ def run_tests(firefox_driver, chrome_driver, bugs):
                 regen_all(bug, firefox_driver, chrome_driver)
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
-            if len(sequence) != number_of_ff_scr or \
-                    number_of_ff_scr != number_of_ch_scr:
+            if number_of_ff_scr != number_of_ch_scr:
                 regen_all(bug, firefox_driver, chrome_driver)
 
         except:  # noqa: E722
