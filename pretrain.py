@@ -41,7 +41,10 @@ def couples_generator(images):
     for image_couple in itertools.combinations(images, 2):
         yield image_couple, 1 if are_same_site(image_couple[0], image_couple[1]) else 0
 
-gen_func = lambda images: utils.balance(couples_generator(images))
+
+def gen_func(images):
+    return utils.balance(couples_generator(images))
+
 
 train_couples_len = sum(1 for e in gen_func(images_train))
 test_couples_len = sum(1 for e in gen_func(images_test))

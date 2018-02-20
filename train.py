@@ -30,7 +30,10 @@ def couples_generator(images):
     for i in images:
         yield load_pair(i), labels[i]
 
-gen_func = lambda images: couples_generator(images)
+
+def gen_func(images):
+    return couples_generator(images)
+
 
 train_couples_len = sum(1 for e in gen_func(images_train))
 test_couples_len = sum(1 for e in gen_func(images_test))
