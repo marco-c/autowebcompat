@@ -5,6 +5,7 @@ import sys
 import time
 import random
 import traceback
+import glob
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
@@ -218,18 +219,33 @@ def run_test(bug, browser, driver, op_sequence=None):
     return saved_sequence
 
 
+def read_sequence(bug_id):
+    try:
+        with open('data/%d.txt' % bug_id) as f:
+            return [json.loads(line) for line in f]
+    except IOError:
+        return []
+
+
 def run_tests(firefox_driver, chrome_driver, bugs):
     set_timeouts(firefox_driver)
     set_timeouts(chrome_driver)
 
     for bug in bugs:
         try:
-            # Assume that if we generated the main file, we also generated the one with
-            # the sequence of operations (TODO: don't assume, check!)
-            # TODO: If only Chrome is missing, don't regenerate Firefox too, but read the
-            # sequence of operations from the files.
-            if not os.path.exists('data/%d_firefox.png' % bug['id']) or\
-               not os.path.exists('data/%d_chrome.png' % bug['id']):
+            # We attempt to regenerate everything when either
+            # a) we haven't generated the main screenshot for Firefox or Chrome, or
+            # b) we haven't generated any item of the sequence for Firefox, or
+            # c) there are items in the Firefox sequence that we haven't generated for Chrome.
+            sequence = read_sequence(bug['id'])
+            number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
+            number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
+            if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
+               not os.path.exists('data/%d_chrome.png' % bug['id']) or \
+               len(sequence) == 0 or \
+               number_of_ff_scr != number_of_ch_scr:
+                for f in glob.iglob('data/%d_*' % bug['id']):
+                    os.remove(f)
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
 
