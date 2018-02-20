@@ -2,6 +2,7 @@
 
 data/
 data_resized/
+inconsistencies.csv
 
 tools/chrome-linux/*
 tools/nightly/*
