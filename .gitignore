@@ -10,3 +10,4 @@ tools/chromedriver
 
 geckodriver.log
 .DS_Store
+.coverage
