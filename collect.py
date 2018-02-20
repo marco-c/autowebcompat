@@ -241,14 +241,14 @@ def run_tests(firefox_driver, chrome_driver, bugs):
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
             if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
-                    not os.path.exists('data/%d_chrome.png' % bug['id']) or \
-                    len(sequence) == 0 or \
-                    number_of_ff_scr != number_of_ch_scr:
-                files_to_remove = glob.glob('data/%d_*' % bug['id'])
-                for file_to_remove in files_to_remove:
-                    os.remove(file_to_remove)
+               not os.path.exists('data/%d_chrome.png' % bug['id']) or \
+               len(sequence) == 0 or \
+               number_of_ff_scr != number_of_ch_scr:
+                for f in glob.iglob('data/%d_*' % bug['id']):
+                    os.remove(f)
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
+                
                 with open("data/%d.txt" % bug['id'], 'w') as f:
                     for element in sequence:
                         f.write(json.dumps(element) + '\n')
