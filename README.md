@@ -23,6 +23,7 @@ There are three possible labels:
 3. **N** for couples of images which are not compatible.
 
 Here are some examples of the three labels:
+
 **Y**
 <img src="https://user-images.githubusercontent.com/1616846/35619755-4a932132-067f-11e8-8b1c-c2f70a6819f4.png" width=158 /> <img src="https://user-images.githubusercontent.com/1616846/35619749-458ac7b2-067f-11e8-868d-ac6e186dec98.png" width=158 />
 
@@ -55,7 +56,8 @@ For the unsupervised training, we are using a related problem for which we alrea
 - The **collect.py** script is the crawler that collects screenshots of web pages in different browsers;
 - The **label.py** script is a utility that helps labelling couples of screenshots (are they the same in the two browsers or are there differences?);
 - The **pretrain.py** script trains a neural network on the website screenshots for a slightly different problem (for which we know the solution), so that we can reuse the network weights for the training on the actual problem;
-- The **train.py** script trains the neural network on the website screenshots to detect compat issues.
+- The **train.py** script trains the neural network on the website screenshots to detect compat issues;
+- The **data_inconsistencies.py** script checks the generated screenshots and takes note of any data inconsistency (e.g. screenshots that were taken in Firefox but not in Chrome).
 
 ## Setup
 
@@ -64,6 +66,7 @@ For the unsupervised training, we are using a related problem for which we alrea
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
 - Run the **get_dependencies.py** script.
+- Run the **pretrain.py / train.py** script to train the neural network.
 
 ## Communication
 
