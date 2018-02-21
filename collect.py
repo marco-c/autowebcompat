@@ -111,7 +111,7 @@ def do_something(driver, elem_attributes=None):
 
         for child in children:
             # Get all the attributes of the child.
-            child_attributes = get_all_attributes(driver, child)
+            elem_attributes = get_all_attributes(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
@@ -133,8 +133,7 @@ def do_something(driver, elem_attributes=None):
 
             for child in children:
                 # Get all the attributes of the child.
-                child_attributes = get_all_attributes(driver, child)
-                if elem_attributes == child_attributes:
+                if elem_attributes == get_all_attributes(driver, child):
                     elem = child
                     break
         else:
@@ -170,7 +169,7 @@ def do_something(driver, elem_attributes=None):
 
     close_all_windows_except_first(driver)
 
-    return child_attributes
+    return elem_attributes
 
 
 def screenshot(driver, file_path):
