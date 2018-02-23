@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/aarushgupta/autowebcompat.svg?branch=travisbadge)](https://travis-ci.org/aarushgupta/autowebcompat)
+
 # AutoWebCompat - Automatically detect web compatibility issues
 
 The aim of this project is creating a tool to automatically detect [web compatibility issues](https://wiki.mozilla.org/Compatibility#What_is_Web_Compatibility) without human intervention.
