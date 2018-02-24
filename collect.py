@@ -191,19 +191,18 @@ def screenshot(driver, file_path):
     image.save(file_path)
 
 
-def read_sequence(bug_id):
+def lines_written_in_file(bug_id):
     try:
         with open('data/%d.txt' % bug_id) as f:
-            return [json.loads(line) for line in f]
+            return sum(1 for line in f)
     except IOError:
-        return []
+        return 0
 
 
 # We restart from the start and follow the saved sequence
 def jump_back(path_to_follow, firefox_driver, chrome_driver, visited_path, bug):
     firefox_driver.get(bug['url'])
     chrome_driver.get(bug['url'])
-    # print("Going back to level %d" % len(path_to_follow))
     for elem_attributes in path_to_follow:
         do_something(firefox_driver, visited_path, path_to_follow, elem_attributes)
         do_something(chrome_driver, visited_path, path_to_follow, elem_attributes)
@@ -220,7 +219,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         print('Continuing...')
         return
 
-    screenshot(firefox_driver, '%d_%s.png' % (bug['id'], "firefox"))
+    screenshot(firefox_driver, 'data/%d_%s.png' % (bug['id'], "firefox"))
 
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], "chrome"))
 
@@ -232,7 +231,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         print('Continuing...')
         return
 
-    screenshot(chrome_driver, '%d_%s.png' % (bug['id'], "chrome"))
+    screenshot(chrome_driver, 'data/%d_%s.png' % (bug['id'], "chrome"))
 
     visited_path = set()
     path_to_follow = []
@@ -249,8 +248,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
         do_something(chrome_driver, visited_path, path_to_follow, elem_attributes)
         with open("data/%d.txt" % bug['id'], 'a+') as f:
-            line_number = sum(1 for line in open("%d.txt" % bug['id']))
-            # print("Writing in file at line number %d" % line_number)
+            line_number = lines_written_in_file(bug['id'])
+            f.seek(2, 0)
             for element in path_to_follow:
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
@@ -275,14 +274,14 @@ def run_tests(firefox_driver, chrome_driver, bugs):
             # a) we haven't generated the main screenshot for Firefox or Chrome, or
             # b) we haven't generated any item of the sequence for Firefox, or
             # c) there are items in the Firefox sequence that we haven't generated for Chrome.
-            sequence = read_sequence(bug['id'])
+            lines_written = lines_written_in_file(bug['id'])
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
             if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
                not os.path.exists('data/%d_chrome.png' % bug['id']) or \
-               len(sequence) == 0 or \
+               lines_written == 0 or \
                number_of_ff_scr != number_of_ch_scr:
-                for f in glob.iglob('data/%d_*' % bug['id']):
+                for f in glob.iglob('data/%d*' % bug['id']):
                     os.remove(f)
                 run_test_both(bug, firefox_driver, chrome_driver)
 
