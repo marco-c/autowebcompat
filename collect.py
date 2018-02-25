@@ -165,8 +165,8 @@ def do_something(driver, elem_attributes=None):
             elem.clear()
             elem.send_keys('quick search')
         elif input_type == 'color':
-            elem.click()
-            driver.execute_script("arguments[0].setAttribute('value', '#FF0000')", elem)
+            driver.execute_script("arguments[0].scrollIntoView();", elem)
+            driver.execute_script("arguments[0].value = '#ff0000'", elem)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
