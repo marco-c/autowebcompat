@@ -164,6 +164,8 @@ def do_something(driver, elem_attributes=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
+        elif input_type == 'color':
+            driver.execute_script("arguments[0].value = '#ff0000'", elem)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
