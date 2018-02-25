@@ -2,6 +2,7 @@
 
 data/
 data_resized/
+inconsistencies.csv
 
 tools/chrome-linux/*
 tools/nightly/*
@@ -10,3 +11,4 @@ tools/chromedriver
 
 geckodriver.log
 .DS_Store
+.coverage
