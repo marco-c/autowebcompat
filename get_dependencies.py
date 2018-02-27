@@ -56,12 +56,4 @@ with tarfile.open(name, 'r:xz') as f:
     f.extractall('.')
 os.remove(name)
 
-print('[*] Downloading data.zip...')
-download('https://www.dropbox.com/s/nkf7a6jq13gmlnu/data.zip?dl=1')
-
-print('[*] Extracting data.zip...')
-with ZipFile('data.zip', 'r') as z:
-    z.extractall()
-
-os.remove('data.zip')
 print('[*] Completed!')

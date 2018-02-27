@@ -1,0 +1,3 @@
+[submodule "data"]
+	path = data
+	url = https://gitlab.com/marco-c/autowebcompat-data.git
