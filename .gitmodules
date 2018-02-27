@@ -1,3 +1,6 @@
 [submodule "data"]
 	path = data
 	url = https://gitlab.com/marco-c/autowebcompat-data.git
+[submodule "tools"]
+	path = tools
+	url = https://gitlab.com/marco-c/autowebcompat-tools.git
