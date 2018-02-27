@@ -1,6 +1,5 @@
 *.pyc
 
-data/
 data_resized/
 inconsistencies.csv
 
