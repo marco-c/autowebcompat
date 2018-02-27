@@ -1,7 +1,6 @@
 import sys
 import os
 import tarfile
-from zipfile import ZipFile
 import requests
 from rfc6266 import parse_requests_response
 import posixpath
