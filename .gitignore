@@ -1,13 +1,7 @@
 *.pyc
 
-data/
 data_resized/
 inconsistencies.csv
-
-tools/chrome-linux/*
-tools/nightly/*
-tools/geckodriver
-tools/chromedriver
 
 geckodriver.log
 .DS_Store

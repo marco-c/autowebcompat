@@ -154,6 +154,8 @@ def do_something(driver, visited_path, path_to_follow, elem_attributes=None):
     if elem is None:
         return None
 
+    driver.execute_script("arguments[0].scrollIntoView();", elem)
+
     if elem.tag_name in ['button', 'a']:
         elem.click()
     elif elem.tag_name == 'input':
@@ -175,6 +177,8 @@ def do_something(driver, visited_path, path_to_follow, elem_attributes=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
+        elif input_type == 'color':
+            driver.execute_script("arguments[0].value = '#ff0000'", elem)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
 
