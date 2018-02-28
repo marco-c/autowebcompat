@@ -67,7 +67,6 @@ For the unsupervised training, we are using a related problem for which we alrea
 
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
-- Run the **get_dependencies.py** script.
 - Run the **pretrain.py / train.py** script to train the neural network.
 
 ## Communication

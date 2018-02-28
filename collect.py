@@ -143,6 +143,8 @@ def do_something(driver, elem_attributes=None):
     if elem is None:
         return None
 
+    driver.execute_script("arguments[0].scrollIntoView();", elem)
+
     if elem.tag_name in ['button', 'a']:
         elem.click()
     elif elem.tag_name == 'input':
