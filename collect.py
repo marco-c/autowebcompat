@@ -96,7 +96,21 @@ def get_all_attributes(driver, child):
     return child_attributes
 
 
-def do_something(driver, visited_path, path_to_follow, elem_attributes=None):
+def was_visited(current_path, visited_paths, elem_attributes):
+    current_path.append(elem_attributes)
+    if current_path in visited_paths:
+        current_path.pop()
+        return True
+    else:
+        return False
+
+
+def visit(current_path, visited_paths):
+    visited_paths.append(current_path[:])
+    return
+
+
+def do_something(driver, visited_paths, current_path, elem_attributes=None):
     elem = None
     if elem_attributes is None:
         body = driver.find_elements_by_tag_name('body')
@@ -113,23 +127,21 @@ def do_something(driver, visited_path, path_to_follow, elem_attributes=None):
         for child in children:
             # Get all the attributes of the child.
             elem_attributes = get_all_attributes(driver, child)
-            path_to_follow.append(elem_attributes)
 
-            # We check the nodes if previously visited or not
-            if frozenset([frozenset(attributes) for attributes in path_to_follow]) in visited_path:
-                path_to_follow.pop()
+            # we check if the path has been visited previously
+            if was_visited(current_path, visited_paths, elem_attributes):
                 continue
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
-                path_to_follow.pop()
+                current_path.pop()
                 continue
 
             elem = child
 
-            # We mark the nodes visited
-            visited_path.add(frozenset([frozenset(attributes) for attributes in path_to_follow]))
+            # We mark the current path as visited
+            visit(current_path, visited_paths)
             break
     else:
         if 'id' not in elem_attributes.keys():
@@ -195,7 +207,7 @@ def screenshot(driver, file_path):
     image.save(file_path)
 
 
-def lines_written_in_file(bug_id):
+def count_lines(bug_id):
     try:
         with open('data/%d.txt' % bug_id) as f:
             return sum(1 for line in f)
@@ -204,12 +216,12 @@ def lines_written_in_file(bug_id):
 
 
 # We restart from the start and follow the saved sequence
-def jump_back(path_to_follow, firefox_driver, chrome_driver, visited_path, bug):
+def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
     firefox_driver.get(bug['url'])
     chrome_driver.get(bug['url'])
-    for elem_attributes in path_to_follow:
-        do_something(firefox_driver, visited_path, path_to_follow, elem_attributes)
-        do_something(chrome_driver, visited_path, path_to_follow, elem_attributes)
+    for elem_attributes in current_path:
+        do_something(firefox_driver, visited_paths, current_path, elem_attributes)
+        do_something(chrome_driver, visited_paths, current_path, elem_attributes)
 
 
 def run_test_both(bug, firefox_driver, chrome_driver):
@@ -221,10 +233,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
-        return
 
     screenshot(firefox_driver, 'data/%d_%s.png' % (bug['id'], "firefox"))
-
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], "chrome"))
 
     try:
@@ -233,28 +243,27 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
-        return
 
     screenshot(chrome_driver, 'data/%d_%s.png' % (bug['id'], "chrome"))
 
-    visited_path = set()
-    path_to_follow = []
+    visited_paths = []
+    current_path = []
     while True:
-        elem_attributes = do_something(firefox_driver, visited_path, path_to_follow)
+        elem_attributes = do_something(firefox_driver, visited_paths, current_path)
 
         if elem_attributes is None:
-            if not path_to_follow:
+            if not current_path:
                 print("============= Completed (%d) =============" % bug['id'])
                 break
-            path_to_follow.pop()
-            jump_back(path_to_follow, firefox_driver, chrome_driver, visited_path, bug)
+            current_path.pop()
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
             continue
 
-        do_something(chrome_driver, visited_path, path_to_follow, elem_attributes)
+        do_something(chrome_driver, visited_paths, current_path, elem_attributes)
         with open("data/%d.txt" % bug['id'], 'a+') as f:
-            line_number = lines_written_in_file(bug['id'])
+            line_number = count_lines(bug['id'])
             f.seek(2, 0)
-            for element in path_to_follow:
+            for element in current_path:
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
 
@@ -263,9 +272,9 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         image_file = "data/%d_%d_chrome.png" % (bug['id'], line_number)
         screenshot(chrome_driver, '%s' % (image_file))
 
-        if len(path_to_follow) == MAX_INTERACTION_DEPTH:
-            path_to_follow.pop()
-            jump_back(path_to_follow, firefox_driver, chrome_driver, visited_path, bug)
+        if len(current_path) == MAX_INTERACTION_DEPTH:
+            current_path.pop()
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
 
 
 def run_tests(firefox_driver, chrome_driver, bugs):
@@ -278,7 +287,7 @@ def run_tests(firefox_driver, chrome_driver, bugs):
             # a) we haven't generated the main screenshot for Firefox or Chrome, or
             # b) we haven't generated any item of the sequence for Firefox, or
             # c) there are items in the Firefox sequence that we haven't generated for Chrome.
-            lines_written = lines_written_in_file(bug['id'])
+            lines_written = count_lines(bug['id'])
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
             if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
