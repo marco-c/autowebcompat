@@ -52,3 +52,24 @@ def test_write_labels():
     file_path = d.name + "/test.csv"
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
+
+def test_balance():
+    unbalanced_tuples = [
+        ("data", 1),
+        ("data", 1),
+        ("data", 0),
+        ("data", 0),
+        ("data", 0),
+        ("data", 1)]
+
+    balanced_data = utils.balance(unbalanced_tuples)
+
+    try:
+        expected_label = 1
+        while True:
+            element = next(balanced_data)
+            assert(element[1] == expected_label)
+            expected_label = (expected_label + 1) % 2
+    except StopIteration:
+        del(balanced_data)
+        pass
