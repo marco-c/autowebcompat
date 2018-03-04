@@ -64,13 +64,15 @@ def test_balance():
         ("data", 1)]
 
     balanced_data = utils.balance(unbalanced_tuples)
+    num_iterations = 0
 
     try:
         expected_label = 1
         while True:
             element = next(balanced_data)
             assert(element[1] == expected_label)
+            num_iterations += 1
             expected_label = (expected_label + 1) % 2
     except StopIteration:
-        del(balanced_data)
+        assert(num_iterations == 6)
         pass
