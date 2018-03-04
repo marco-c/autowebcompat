@@ -53,6 +53,7 @@ def test_write_labels():
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
 
+
 def test_balance():
     unbalanced_tuples = [
         ("data", 1),
