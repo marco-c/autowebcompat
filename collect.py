@@ -3,28 +3,20 @@ import glob
 import json
 import os
 import random
-import sys
 import time
 import traceback
 
 from PIL import Image
-from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
+from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
+from autowebcompat.crawler import close_all_windows_except_first
+from autowebcompat.driver import Driver
+from autowebcompat.utils import get_browser_bin
 
 MAX_THREADS = 5
 
-if sys.platform.startswith('linux'):
-    chrome_bin = 'tools/chrome-linux/chrome'
-    nightly_bin = 'tools/nightly/firefox-bin'
-elif sys.platform.startswith('darwin'):
-    chrome_bin = 'tools/chrome.app/Contents/MacOS/chrome'
-    nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
-elif sys.platform.startswith('win32'):
-    chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
-    nightly_bin = 'tools\\Nightly\\firefox.exe'
-
+chrome_bin, nightly_bin = get_browser_bin()
 
 utils.mkdir('data')
 
@@ -66,39 +58,26 @@ def wait_loaded(driver):
         print('Continuing...')
 
 
-def close_all_windows_except_first(driver):
-    windows = driver.window_handles
-
-    for window in windows[1:]:
-        driver.switch_to_window(window)
-        driver.close()
-
-    while True:
-        try:
-            alert = driver.switch_to_alert()
-            alert.dismiss()
-        except (NoAlertPresentException, NoSuchWindowException):
-            break
-
-    driver.switch_to_window(windows[0])
-
-
-def get_element_properties(driver, child):
-    child_properties = driver.execute_script("""
-      let elem_properties = {
-        tag: '',
-        attributes: {},
-      };
+def get_all_attributes(driver, child):
+    child_attributes = driver.execute_script("""
+      let elem_attribute = {};
 
       for (let i = 0; i < arguments[0].attributes.length; i++) {
-        elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+        elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
-      elem_properties.tag = arguments[0].tagName;
-
-      return elem_properties;
+      return elem_attribute;
     """, child)
 
-    return child_properties
+    return child_attributes
+
+
+def get_elements_with_attributes(driver, elem_attributes, children):
+    elems_with_same_attributes = []
+    for child in children:
+        child_attributes = get_all_attributes(driver, child)
+        if child_attributes == elem_attributes:
+            elems_with_same_attributes.append(child)
+    return elems_with_same_attributes
 
 
 def get_elements_with_properties(driver, elem_properties, children):
@@ -295,25 +274,9 @@ def run_tests(firefox_driver, chrome_driver, bugs):
     chrome_driver.quit()
 
 
-os.environ['PATH'] += os.pathsep + os.path.abspath('tools')
-os.environ['MOZ_HEADLESS'] = '1'
-os.environ['MOZ_HEADLESS_WIDTH'] = '412'
-os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
-firefox_profile = webdriver.FirefoxProfile()
-firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
-chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = chrome_bin
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--hide-scrollbars')
-chrome_options.add_argument('--window-size=412,732')
-chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
-
-
 def main(bugs):
-    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
-    chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
-    run_tests(firefox_driver, chrome_driver, bugs)
+    driver = Driver()
+    run_tests(driver.firefox, driver.chrome, bugs)
 
 
 if __name__ == '__main__':

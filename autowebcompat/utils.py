@@ -3,7 +3,9 @@ import json
 import os
 import random
 import threading
+import sys
 
+import numpy as np
 from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
@@ -216,6 +218,7 @@ def write_labels(labels, file_name='labels.csv'):
             writer.writerow([key, values])
 
 
+<<<<<<< 47cc8bf9af4689141af5926a801939674c180a5c
 def read_bounding_boxes(file_name):
     try:
         with open(file_name, 'r') as f:
@@ -228,3 +231,19 @@ def read_bounding_boxes(file_name):
 def write_bounding_boxes(bounding_boxes, file_name):
     with open(file_name, 'w') as f:
         print(json.dumps(bounding_boxes), file=f)
+=======
+def get_browser_bin():
+
+    if sys.platform.startswith("linux"):
+        chrome_bin = "tools/chrome-linux/chrome"
+        nightly_bin = 'tools/nightly/firefox-bin'
+    elif sys.platform.startswith("darwin"):
+        chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
+        nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
+    elif sys.platform.startswith("win32"):
+        chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
+        nightly_bin = 'tools\\Nightly\\firefox.exe'
+    else:
+        chrome_bin = nightly_bin = None
+    return chrome_bin, nightly_bin
+>>>>>>> adding crawler functions to testing
