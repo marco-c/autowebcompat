@@ -3,6 +3,7 @@ from tempfile import TemporaryDirectory
 import numpy as np
 from PIL import Image
 from autowebcompat import utils
+import pytest
 
 
 def test_get_bugs():
@@ -56,23 +57,21 @@ def test_write_labels():
 
 def test_balance():
     unbalanced_tuples = [
-        ("data", 1),
-        ("data", 1),
-        ("data", 0),
-        ("data", 0),
-        ("data", 0),
-        ("data", 1)]
+        ("data1", 1),
+        ("data2", 1),
+        ("data3", 0),
+        ("data4", 0),
+        ("data5", 0),
+        ("data6", 1)]
 
     balanced_data = utils.balance(unbalanced_tuples)
-    num_iterations = 0
 
-    try:
-        expected_label = 1
-        while True:
-            element = next(balanced_data)
-            assert(element[1] == expected_label)
-            num_iterations += 1
-            expected_label = (expected_label + 1) % 2
-    except StopIteration:
-        assert(num_iterations == 6)
-        pass
+    assert(('data1', 1) == next(balanced_data))
+    assert(('data3', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
+    assert(('data4', 0) == next(balanced_data))
+    assert(('data6', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+
+    with pytest.raises(StopIteration):
+        next(balanced_data)
