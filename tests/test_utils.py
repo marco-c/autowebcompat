@@ -71,7 +71,6 @@ def test_balance():
     assert(('data2', 1) == next(balanced_data))
     assert(('data4', 0) == next(balanced_data))
     assert(('data6', 1) == next(balanced_data))
-    assert(('data5', 0) == next(balanced_data))
 
     with pytest.raises(StopIteration):
         next(balanced_data)
@@ -89,9 +88,9 @@ def test_balance_unbalanced_data():
 
     assert(('data1', 1) == next(balanced_data))
     assert(('data4', 0) == next(balanced_data))
-    assert(('data2', 1) == next(balanced_data))
-    assert(('data5', 0) == next(balanced_data))
     assert(('data3', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
 
     with pytest.raises(StopIteration):
         next(balanced_data)
