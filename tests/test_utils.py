@@ -75,3 +75,23 @@ def test_balance():
 
     with pytest.raises(StopIteration):
         next(balanced_data)
+
+
+def test_balance_unbalanced_data():
+    unbalanced_tuples = [
+        ("data1", 1),
+        ("data2", 1),
+        ("data3", 1),
+        ("data4", 0),
+        ("data5", 0)]
+
+    balanced_data = utils.balance(unbalanced_tuples)
+
+    assert(('data1', 1) == next(balanced_data))
+    assert(('data4', 0) == next(balanced_data))
+    assert(('data3', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
+
+    with pytest.raises(StopIteration):
+        next(balanced_data)
