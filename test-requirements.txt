@@ -1,5 +1,4 @@
 flake8
-rfc6266==0.0.4
 pytest==3.4.0
 pytest-cov==2.5.1
 codecov
