@@ -35,3 +35,4 @@ def test_accuracy():
     y_pred = np.array([0, 0.4, 0.7, 0.6, 0.5])
     y_true = np.array([0, 1, 0, 0, 1])
     assert (math.floor(K.eval(network.accuracy(y_true, y_pred)) * 100) == 60)
+
