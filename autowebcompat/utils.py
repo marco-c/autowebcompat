@@ -140,9 +140,9 @@ class CouplesIterator():
 
 
 def balance(it):
-    # Initialise last_label to not (label of first element)
-    last_label = it[0][1]
-    last_label = 1 if last_label == 0 else 0
+    # Initialise last_label to None so that cur_label != last_label
+    # is always True for the first element in it.
+    last_label = None
 
     queue = {
         0: [],
