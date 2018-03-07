@@ -1,5 +1,6 @@
 import os
 import csv
+import re
 
 
 def get_inconsistencies():
@@ -17,8 +18,8 @@ def get_inconsistencies():
             sequence = int(parts[-2])
             element = '_'.join(parts[1:-2])
         else:
-            element = None
-            sequence = 0
+            element = -1
+            sequence = -1
 
         if (element, sequence) not in parsed[webcompatID]:
             parsed[webcompatID][(element, sequence)] = []
@@ -27,8 +28,20 @@ def get_inconsistencies():
     incons = []
     for key, value in parsed.items():
         for (element, sequence), browsers in value.items():
-            if len(browsers) < 2:
-                incons.append([key, element, sequence, 'firefox' in browsers, 'chrome' in browsers])
+            if element == -1:
+                element = None
+                if len(browsers) < 2:
+                    incons.append([key, element, sequence, 'firefox' in browsers, 'chrome' in browsers])
+            else :
+                f = open("./data/" + str(key) + ".txt", 'r', encoding='utf-8')
+                d = f.read().split('\n')
+                l = []
+                for i in d:
+                    i = re.sub('[{}""]', '', i)
+                    l.append(i[5:])
+                element = l[sequence]
+                if len(browsers) < 2:
+                    incons.append([key, element, sequence, 'firefox' in browsers, 'chrome' in browsers])
 
     incons.sort(key=lambda x: (x[2], x[0]))
     return incons
@@ -39,7 +52,7 @@ def main():
     incons = get_inconsistencies()
     print('[*] {} inconsistencies found.'.format(len(incons)))
     print('[*] Writing to inconsistencies.csv... ', end='')
-    with open('inconsistencies.csv', 'w') as csvfile:
+    with open('inconsistencies.csv', 'w',encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(['WEBCOMPAT-ID', 'ELEMENT-ID', 'SEQUENCE-NO', 'FIREFOX', 'CHROME'])
         for line in incons:
