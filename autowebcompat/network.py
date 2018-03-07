@@ -1,5 +1,5 @@
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
+from keras.layers import concatenate, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
 from keras.models import Model
 from keras.optimizers import RMSprop, Adam, Nadam, SGD
 
@@ -83,6 +83,34 @@ def create_vgglike_network(input_shape):
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.5)(x)
     # x = Dense(2, activation='softmax')(x)
+    x = Dense(128, activation='relu')(x)
+
+    return Model(input, x)
+
+
+def create_inception_network(input_shape):
+    """
+       Simple architecture with one layer of inception model
+
+       param input_shape: shape of the input image
+    """
+
+    input = Input(shape=input_shape)
+
+    x1 = Conv2D(64, (1, 1), activation='relu', padding='same')(input)
+    x1 = Conv2D(64, (3, 3), activation='relu', padding='same')(x1)
+
+    x2 = Conv2D(64, (1, 1), activation='relu', padding='same')(input)
+    x2 = Conv2D(64, (5, 5), activation='relu', padding='same')(x2)
+
+    x3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(input)
+    x3 = Conv2D(64, (1, 1), activation='relu', padding='same')(x3)
+
+    x = concatenate([x1, x2, x3], axis=3)
+    x = Flatten()(x)
+
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.5)(x)
     x = Dense(128, activation='relu')(x)
 
     return Model(input, x)
