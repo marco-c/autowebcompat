@@ -12,33 +12,26 @@ arr4 = np.array([[3, 2]], dtype=np.float32)
 
 def test_eucledian_distance():
     dist = network.euclidean_distance([arr1, arr2])
-    evaluate = K.eval(dist)
     dist2 = network.euclidean_distance([arr3, arr4])
-    evaluate2 = K.eval(dist2)
-    assert (evaluate == 1)
-    assert (math.floor(evaluate2 * 100) == 360)
+    assert (K.eval(dist) == 1)
+    assert (math.floor(K.eval(dist2) * 100) == 360)
 
 
 def test_eucl_distance_output_shape():
     vect = [arr1.shape, arr2.shape]
-    shape = network.eucl_dist_output_shape(vect)
-    assert (shape == (1, 1))
+    assert (network.eucl_dist_output_shape(vect) == (1, 1))
 
 
 def test_contrastive_loss():
     label = [0, 1]  # possible values for output
-    margin = 1
-    loss_calculated = []
-    close = []
+    euclid_dist = network.euclidean_distance([arr1, arr2])  # it returns 1
+    loss1 = network.contrastive_loss(label[0], euclid_dist)
+    loss2 = network.contrastive_loss(label[1], euclid_dist)
+    assert (K.eval(loss1) == 0)  # since the output and the label are far away
+    assert (K.eval(loss2) == 1)  # since the output and the label are close
 
-    for a in label:
-        euclid_dist = network.euclidean_distance([arr1, arr2])  # it returns 1
-        loss1 = network.contrastive_loss(a, euclid_dist)
-        eval1 = K.eval(loss1)
-        loss = a * np.square(eval1) + (1 - a) * np.square(max(margin - eval1, 0))
-        loss = np.mean(loss)
-        loss_calculated.append(loss)
-        close.append(math.isclose(loss, eval1))
 
-    assert (close[0] != loss_calculated[0])  # 1 and 0 are not similar
-    assert (close[1] == loss_calculated[1])
+def test_accuracy():
+    y_pred = np.array([0, 0.4, 0.7, 0.6, 0.5])
+    y_true = np.array([0, 1, 0, 0, 1])
+    assert (math.floor(K.eval(network.accuracy(y_true, y_pred))*100) == 60)
