@@ -161,10 +161,6 @@ def balance(it):
             yield element
         else:
             queue[cur_label].append(e)
-            other_label = 1 if cur_label == 0 else 0
-            if len(queue[other_label]) == 0:
-                # If other queue is empty, consider next element
-                continue
 
     # After every element has been considered, some queue may still be
     # non-empty. If so, and provided the non-empty queue has label other

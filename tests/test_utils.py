@@ -55,16 +55,19 @@ def test_write_labels():
     assert(os.path.exists(file_path))
 
 
-def test_balance():
-    unbalanced_tuples = [
-        ("data1", 1),
-        ("data2", 1),
-        ("data3", 0),
-        ("data4", 0),
-        ("data5", 0),
-        ("data6", 1)]
+data = [
+    ("data1", 1),
+    ("data2", 1),
+    ("data3", 0),
+    ("data4", 0),
+    ("data5", 0),
+    ("data6", 1)
+]
 
-    balanced_data = utils.balance(unbalanced_tuples)
+
+@pytest.mark.parametrize("unbalanced_data", [data, iter(data)])
+def test_balance(unbalanced_data):
+    balanced_data = utils.balance(unbalanced_data)
 
     assert(('data1', 1) == next(balanced_data))
     assert(('data3', 0) == next(balanced_data))
@@ -92,29 +95,6 @@ def test_balance_unbalanced_data():
     assert(('data2', 1) == next(balanced_data))
     assert(('data5', 0) == next(balanced_data))
     assert(('data3', 1) == next(balanced_data))
-
-    with pytest.raises(StopIteration):
-        next(balanced_data)
-
-
-def test_balance_balanced_iterator():
-    unbalanced_list_iterator = iter([
-        ("data1", 1),
-        ("data2", 1),
-        ("data3", 0),
-        ("data4", 0),
-        ("data5", 0),
-        ("data6", 1)]
-    )
-
-    balanced_data = utils.balance(unbalanced_list_iterator)
-
-    assert(('data1', 1) == next(balanced_data))
-    assert(('data3', 0) == next(balanced_data))
-    assert(('data2', 1) == next(balanced_data))
-    assert(('data4', 0) == next(balanced_data))
-    assert(('data6', 1) == next(balanced_data))
-    assert(('data5', 0) == next(balanced_data))
 
     with pytest.raises(StopIteration):
         next(balanced_data)
