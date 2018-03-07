@@ -55,7 +55,7 @@ def test_write_labels():
     assert(os.path.exists(file_path))
 
 
-data = [
+test_balance_data = [
     ("data1", 1),
     ("data2", 1),
     ("data3", 0),
@@ -65,7 +65,10 @@ data = [
 ]
 
 
-@pytest.mark.parametrize("unbalanced_data", [data, iter(data)])
+@pytest.mark.parametrize("unbalanced_data", [
+    test_balance_data,
+    iter(test_balance_data)
+])
 def test_balance(unbalanced_data):
     balanced_data = utils.balance(unbalanced_data)
 
