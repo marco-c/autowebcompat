@@ -1,3 +1,10 @@
+[run]
+branch = True
+source =
+    autowebcompat/
+    tests/
+    *.py
+
 [report]
 omit =
     data/*
