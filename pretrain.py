@@ -57,7 +57,7 @@ data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = network.create(input_shape)
+model = network.create(input_shape, 'simnet')
 network.compile(model)
 
 model.save('pretrain.h5')

@@ -1,6 +1,6 @@
 import keras
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, Concatenate, ActivityRegularization
+from keras.layers import concatenate, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, ActivityRegularization
 from keras.models import Model
 from keras.optimizers import RMSprop, Adam, Nadam, SGD
 
@@ -94,9 +94,7 @@ def create_simnet_network(input_shape):
     input = Input(shape=input_shape)
 
     # CNN 1
-    vgg16 = keras.applications.VGG16(include_top=False, weights='imagenet', input_shape=input_shape)
-    for layer in vgg16.layers[:17]:
-        layer.trainable = False
+    vgg16 = create_vgg16_network(input_shape)
     cnn_1 = vgg16(input)
 
     # CNN 2
@@ -118,14 +116,42 @@ def create_simnet_network(input_shape):
     cnn_3 = Flatten()(cnn_3)
     cnn_3 = Dense(512, activation='relu')(cnn_3)
 
-    concat_2_3 = Concatenate()([cnn_2, cnn_3])
+    concat_2_3 = concatenate([cnn_2, cnn_3])
     concat_2_3 = Dense(1024, activation='relu')(concat_2_3)
     l2_reg = ActivityRegularization(l2=L2_REGULARIZATION)(concat_2_3)
 
-    concat_1_l2 = Concatenate()([cnn_1, l2_reg])
+    concat_1_l2 = concatenate([cnn_1, l2_reg])
     output = Dense(4096, activation='relu')(concat_1_l2)
 
     return Model(input, output)
+
+def create_inception_network(input_shape):
+    """
+       Simple architecture with one layer of inception model
+
+       param input_shape: shape of the input image
+    """
+
+    input = Input(shape=input_shape)
+
+    x1 = Conv2D(64, (1, 1), activation='relu', padding='same')(input)
+    x1 = Conv2D(64, (3, 3), activation='relu', padding='same')(x1)
+
+    x2 = Conv2D(64, (1, 1), activation='relu', padding='same')(input)
+    x2 = Conv2D(64, (5, 5), activation='relu', padding='same')(x2)
+
+    x3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(input)
+    x3 = Conv2D(64, (1, 1), activation='relu', padding='same')(x3)
+
+    x = concatenate([x1, x2, x3], axis=3)
+    x = Flatten()(x)
+
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(128, activation='relu')(x)
+
+    return Model(input, x)
+
 
 def create(input_shape, network='vgglike', weights=None):
     network_func = globals()['create_%s_network' % network]

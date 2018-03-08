@@ -140,32 +140,36 @@ class CouplesIterator():
 
 
 def balance(it):
+    # Initialise last_label to None so that cur_label != last_label
+    # is always True for the first element in it.
     last_label = None
-    queue_1 = []
-    queue_0 = []
+
+    queue = {
+        0: [],
+        1: []
+    }
+
     for e in it:
-        label = e[1]
-        if label != last_label:
-            last_label = label
-            yield e
+        cur_label = e[1]
+
+        if cur_label != last_label:
+            # Maintain relative order.
+            # Append element and pop from front.
+            queue[cur_label].append(e)
+            element = queue[cur_label].pop(0)
+            last_label = cur_label
+            yield element
         else:
-            if label == 1:
-                queue_1.append(e)
-            else:
-                queue_0.append(e)
+            queue[cur_label].append(e)
 
-            while True:
-                if last_label == 1:
-                    if len(queue_0) == 0:
-                        break
-                    e = queue_0.pop()
-                else:
-                    if len(queue_1) == 0:
-                        break
-                    e = queue_1.pop()
-
-                last_label = e[1]
-                yield e
+    # After every element has been considered, some queue may still be
+    # non-empty. If so, and provided the non-empty queue has label other
+    # than last label, then take elements from there.
+    other_label = 1 if last_label == 0 else 0
+    while len(queue[other_label]) != 0:
+        element = queue[other_label].pop(0)
+        other_label = 1 if other_label == 0 else 0
+        yield element
 
 
 def make_infinite(gen_func, elems):
