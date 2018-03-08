@@ -105,7 +105,8 @@ def do_something(driver, elem_attributes=None):
         buttons = body.find_elements_by_tag_name('button')
         links = body.find_elements_by_tag_name('a')
         inputs = body.find_elements_by_tag_name('input')
-        children = buttons + links + inputs
+        selects = body.find_elements_by_tag_name('select')
+        children = buttons + links + inputs + selects
 
         random.shuffle(children)
 
@@ -129,7 +130,8 @@ def do_something(driver, elem_attributes=None):
             buttons = body.find_elements_by_tag_name('button')
             links = body.find_elements_by_tag_name('a')
             inputs = body.find_elements_by_tag_name('input')
-            children = buttons + links + inputs
+            selects = body.find_elements_by_tag_name('select')
+            children = buttons + links + inputs + selects
 
             for child in children:
                 # Get all the attributes of the child.
@@ -170,6 +172,11 @@ def do_something(driver, elem_attributes=None):
             driver.execute_script("arguments[0].value = '#ff0000'", elem)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
+    elif elem.tag_name == 'select':
+        for option in elem.find_elements_by_tag_name('option'):
+            if option.text != '':
+                option.click()
+                break
 
     close_all_windows_except_first(driver)
 
