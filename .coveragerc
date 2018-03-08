@@ -1,4 +1,5 @@
 [run]
+branch = True
 source =
     autowebcompat/
     tests/
