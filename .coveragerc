@@ -1,3 +1,9 @@
+[run]
+source =
+    autowebcompat/
+    tests/
+    *.py
+
 [report]
 omit =
     data/*
