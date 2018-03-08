@@ -125,6 +125,43 @@ def create_simnet_network(input_shape):
 
     return Model(input, output)
 
+def create_simnetlike_network(input_shape):
+    L2_REGULARIZATION = 0.005
+
+    input = Input(shape=input_shape)
+
+    # CNN 1
+    vgg16 = create_vgglike_network(input_shape)
+    cnn_1 = vgg16(input)
+
+    # CNN 2
+    # Downsample by 4:1
+    cnn_2 = MaxPooling2D(pool_size=(4,4))(input)
+    cnn_2 = Conv2D(32, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(32, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(64, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Dropout(0.5)(cnn_2)
+    cnn_2 = Flatten()(cnn_2)
+    cnn_2 = Dense(64, activation='relu')(cnn_2)
+
+    # CNN 3
+    # Downsample by 8:1
+    cnn_3 = MaxPooling2D(pool_size=(8,8))(input)
+    cnn_3 = Conv2D(16, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Conv2D(16, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Dropout(0.5)(cnn_3)
+    cnn_3 = Flatten()(cnn_3)
+    cnn_3 = Dense(32, activation='relu')(cnn_3)
+
+    concat_2_3 = concatenate([cnn_2, cnn_3])
+    concat_2_3 = Dense(128, activation='relu')(concat_2_3)
+    l2_reg = ActivityRegularization(l2=L2_REGULARIZATION)(concat_2_3)
+
+    concat_1_l2 = concatenate([cnn_1, l2_reg])
+    output = Dense(256, activation='relu')(concat_1_l2)
+
+    return Model(input, output)
+
 def create_inception_network(input_shape):
     """
        Simple architecture with one layer of inception model
