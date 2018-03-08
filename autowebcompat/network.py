@@ -1,5 +1,6 @@
+import keras
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
+from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, Concatenate, ActivityRegularization
 from keras.models import Model
 from keras.optimizers import RMSprop, Adam, Nadam, SGD
 
@@ -93,15 +94,17 @@ def create_simnet_network(input_shape):
     input = Input(shape=input_shape)
 
     # CNN 1
-    vgg16 = create_vgg16_network(input_shape)
+    vgg16 = keras.applications.VGG16(include_top=False, weights='imagenet', input_shape=input_shape)
+    for layer in vgg16.layers[:17]:
+        layer.trainable = False
     cnn_1 = vgg16(input)
 
     # CNN 2
     # Downsample by 4:1
     cnn_2 = MaxPooling2D(pool_size=(4,4))(input)
-    cnn_2 = Conv2D(128, (3, 3), activation='relu')(cnn_2)
-    cnn_2 = Conv2D(256, (3, 3), activation='relu')(cnn_2)
-    cnn_2 = Conv2D(256, (3, 3), activation='relu')(cnn_2)
+    cnn_2 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(256, (3, 3), padding='same', activation='relu')(cnn_2)
     cnn_2 = Dropout(0.5)(cnn_2)
     cnn_2 = Flatten()(cnn_2)
     cnn_2 = Dense(1024, activation='relu')(cnn_2)
@@ -109,8 +112,8 @@ def create_simnet_network(input_shape):
     # CNN 3
     # Downsample by 8:1
     cnn_3 = MaxPooling2D(pool_size=(8,8))(input)
-    cnn_3 = Conv2D(128, (3, 3), activation='relu')(cnn_3)
-    cnn_3 = Conv2D(128, (3, 3), activation='relu')(cnn_3)
+    cnn_3 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_3)
     cnn_3 = Dropout(0.5)(cnn_3)
     cnn_3 = Flatten()(cnn_3)
     cnn_3 = Dense(512, activation='relu')(cnn_3)
