@@ -16,8 +16,6 @@ y_true = np.array([0, 1, 0, 0, 1])
 def test_eucledian_distance():
     dist = network.euclidean_distance([arr1, arr2])
     assert (K.eval(dist) == 1)
-    dist2 = network.euclidean_distance([arr3, arr4])
-    assert(math.floor(K.eval(dist2) * 100) == 360)
 
 
 def test_eucl_distance_output_shape():
