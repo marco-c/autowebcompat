@@ -94,6 +94,35 @@ def get_all_attributes(driver, child):
 
     return child_attributes
 
+def check_attributes(driver,elem_attributes,elem=None):
+    body = driver.find_elements_by_tag_name('body')
+    assert len(body) == 1
+    body = body[0]
+    buttons = body.find_elements_by_tag_name('button')
+    links = body.find_elements_by_tag_name('a')
+    inputs = body.find_elements_by_tag_name('input')
+    children = buttons + links + inputs
+
+    if elem is None:
+        for child in children:
+            child_attributes = get_all_attributes(driver,child)
+            if child_attributes==elem_attributes:
+                if elem is None:
+                    elem = child
+                else:
+                    #found more than one element with the same attributes
+                    return
+        return elem
+    #if elem is not None
+    same_attributes = [elem] #list of elements with the same attributes
+    for child in children:
+        if child==elem:
+            continue
+        child_attributes = get_all_attributes(driver,child)
+        if child_attributes==elem_attributes:
+            same_attributes.append(child)
+    return same_attributes
+
 
 def do_something(driver, elem_attributes=None):
     elem = None
@@ -105,39 +134,50 @@ def do_something(driver, elem_attributes=None):
         buttons = body.find_elements_by_tag_name('button')
         links = body.find_elements_by_tag_name('a')
         inputs = body.find_elements_by_tag_name('input')
-        selects = body.find_elements_by_tag_name('select')
-        children = buttons + links + inputs + selects
+        children = buttons + links + inputs
 
         random.shuffle(children)
 
         for child in children:
             # Get all the attributes of the child.
-            elem_attributes = get_all_attributes(driver, child)
+            child_attributes = get_all_attributes(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            elem = child
-            break
+            res = check_attributes(driver,child_attributes,child) #returns list of elements with attributes = child_attributes
+            if len(res)==1:
+                elem = child
+                break
+            else:
+                #remove all elements with the same attributes
+                print('Found elements with same attributes')
+                #print(res)
+                print()
+                for element in res:
+                    children.remove(element)
     else:
         if 'id' not in elem_attributes.keys():
             body = driver.find_elements_by_tag_name('body')
             assert len(body) == 1
             body = body[0]
-
+            elem = check_attributes(driver,elem_attributes) #returns elem if unique
+            assert elem is not None
+            '''
             buttons = body.find_elements_by_tag_name('button')
             links = body.find_elements_by_tag_name('a')
             inputs = body.find_elements_by_tag_name('input')
-            selects = body.find_elements_by_tag_name('select')
-            children = buttons + links + inputs + selects
+            children = buttons + links + inputs
 
             for child in children:
                 # Get all the attributes of the child.
-                if elem_attributes == get_all_attributes(driver, child):
+                child_attributes = get_all_attributes(driver, child)
+                if elem_attributes == child_attributes:
                     elem = child
                     break
+            '''
         else:
             elem_id = elem_attributes['id']
             elem = driver.find_element_by_id(elem_id)
