@@ -108,20 +108,20 @@ def check_attributes(driver, elem_attributes, elem=None):
     if elem is None:
         for child in children:
             child_attributes = get_all_attributes(driver, child)
-            if child_attributes==elem_attributes:
+            if child_attributes == elem_attributes:
                 if elem is None:
                     elem = child
                 else:
                     # found more than one element with the same attributes
                     return
         return elem
-    #i f elem is not None
+    # if elem is not None
     same_attributes = [elem]  # list of elements with the same attributes
     for child in children:
-        if child==elem:
+        if child == elem:
             continue
         child_attributes = get_all_attributes(driver, child)
-        if child_attributes==elem_attributes:
+        if child_attributes == elem_attributes:
             same_attributes.append(child)
     return same_attributes
 
@@ -167,8 +167,7 @@ def do_something(driver, elem_attributes=None):
             assert len(body) == 1
             body = body[0]
             elem = check_attributes(driver, elem_attributes)  # returns elem if unique
-            assert elem is not None
-            
+            assert elem is not None   
         else:
             elem_id = elem_attributes['id']
             elem = driver.find_element_by_id(elem_id)
