@@ -101,7 +101,8 @@ def check_attributes(driver,elem_attributes,elem=None):
     buttons = body.find_elements_by_tag_name('button')
     links = body.find_elements_by_tag_name('a')
     inputs = body.find_elements_by_tag_name('input')
-    children = buttons + links + inputs
+    selects = body.find_elements_by_tag_name('select')
+    children = buttons + links + inputs + selects
 
     if elem is None:
         for child in children:
@@ -134,7 +135,8 @@ def do_something(driver, elem_attributes=None):
         buttons = body.find_elements_by_tag_name('button')
         links = body.find_elements_by_tag_name('a')
         inputs = body.find_elements_by_tag_name('input')
-        children = buttons + links + inputs
+        selects = body.find_elements_by_tag_name('select')
+        children = buttons + links + inputs + selects
 
         random.shuffle(children)
 
