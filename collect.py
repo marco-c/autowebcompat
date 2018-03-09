@@ -142,14 +142,14 @@ def do_something(driver, elem_attributes=None):
 
         for child in children:
             # Get all the attributes of the child.
-            child_attributes = get_all_attributes(driver, child)
+            elem_attributes = get_all_attributes(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            res = check_attributes(driver,child_attributes,child) #returns list of elements with attributes = child_attributes
+            res = check_attributes(driver,elem_attributes,child) #returns list of elements with attributes = child_attributes
             if len(res)==1:
                 elem = child
                 break
