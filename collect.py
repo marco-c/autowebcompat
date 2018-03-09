@@ -94,7 +94,8 @@ def get_all_attributes(driver, child):
 
     return child_attributes
 
-def check_attributes(driver,elem_attributes,elem=None):
+
+def check_attributes(driver, elem_attributes, elem=None):
     body = driver.find_elements_by_tag_name('body')
     assert len(body) == 1
     body = body[0]
@@ -106,20 +107,20 @@ def check_attributes(driver,elem_attributes,elem=None):
 
     if elem is None:
         for child in children:
-            child_attributes = get_all_attributes(driver,child)
+            child_attributes = get_all_attributes(driver, child)
             if child_attributes==elem_attributes:
                 if elem is None:
                     elem = child
                 else:
-                    #found more than one element with the same attributes
+                    # found more than one element with the same attributes
                     return
         return elem
-    #if elem is not None
-    same_attributes = [elem] #list of elements with the same attributes
+    #i f elem is not None
+    same_attributes = [elem]  # list of elements with the same attributes
     for child in children:
         if child==elem:
             continue
-        child_attributes = get_all_attributes(driver,child)
+        child_attributes = get_all_attributes(driver, child)
         if child_attributes==elem_attributes:
             same_attributes.append(child)
     return same_attributes
@@ -149,14 +150,14 @@ def do_something(driver, elem_attributes=None):
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            res = check_attributes(driver,elem_attributes,child) #returns list of elements with attributes = child_attributes
+            res = check_attributes(driver, elem_attributes, child)  # returns list of elements with attributes = child_attributes
             if len(res)==1:
                 elem = child
                 break
             else:
-                #remove all elements with the same attributes
+                # remove all elements with the same attributes
                 print('Found elements with same attributes')
-                #print(res)
+                # print(res)
                 print()
                 for element in res:
                     children.remove(element)
@@ -165,21 +166,9 @@ def do_something(driver, elem_attributes=None):
             body = driver.find_elements_by_tag_name('body')
             assert len(body) == 1
             body = body[0]
-            elem = check_attributes(driver,elem_attributes) #returns elem if unique
+            elem = check_attributes(driver, elem_attributes)  # returns elem if unique
             assert elem is not None
-            '''
-            buttons = body.find_elements_by_tag_name('button')
-            links = body.find_elements_by_tag_name('a')
-            inputs = body.find_elements_by_tag_name('input')
-            children = buttons + links + inputs
-
-            for child in children:
-                # Get all the attributes of the child.
-                child_attributes = get_all_attributes(driver, child)
-                if elem_attributes == child_attributes:
-                    elem = child
-                    break
-            '''
+            
         else:
             elem_id = elem_attributes['id']
             elem = driver.find_element_by_id(elem_id)
@@ -210,11 +199,8 @@ def do_something(driver, elem_attributes=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
-#<<<<<<< HEAD
-#=======
         elif input_type == 'color':
             driver.execute_script("arguments[0].value = '#ff0000'", elem)
-#>>>>>>> d47dfc4b7504960553e7cf84689a176b6b809f36
         else:
             raise Exception('Unsupported input type: %s' % input_type)
     elif elem.tag_name == 'select':
