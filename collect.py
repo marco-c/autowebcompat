@@ -1,14 +1,18 @@
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import sys
 import time
 import random
 import traceback
+import glob
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
 from autowebcompat import utils
+
+MAX_THREADS = 5
 
 if sys.platform.startswith("linux"):
     chrome_bin = "tools/chrome-linux/chrome"
@@ -101,13 +105,14 @@ def do_something(driver, elem_attributes=None):
         buttons = body.find_elements_by_tag_name('button')
         links = body.find_elements_by_tag_name('a')
         inputs = body.find_elements_by_tag_name('input')
-        children = buttons + links + inputs
+        selects = body.find_elements_by_tag_name('select')
+        children = buttons + links + inputs + selects
 
         random.shuffle(children)
 
         for child in children:
             # Get all the attributes of the child.
-            child_attributes = get_all_attributes(driver, child)
+            elem_attributes = get_all_attributes(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
@@ -125,12 +130,12 @@ def do_something(driver, elem_attributes=None):
             buttons = body.find_elements_by_tag_name('button')
             links = body.find_elements_by_tag_name('a')
             inputs = body.find_elements_by_tag_name('input')
-            children = buttons + links + inputs
+            selects = body.find_elements_by_tag_name('select')
+            children = buttons + links + inputs + selects
 
             for child in children:
                 # Get all the attributes of the child.
-                child_attributes = get_all_attributes(driver, child)
-                if elem_attributes == child_attributes:
+                if elem_attributes == get_all_attributes(driver, child):
                     elem = child
                     break
         else:
@@ -139,6 +144,8 @@ def do_something(driver, elem_attributes=None):
 
     if elem is None:
         return None
+
+    driver.execute_script("arguments[0].scrollIntoView();", elem)
 
     if elem.tag_name in ['button', 'a']:
         elem.click()
@@ -161,12 +168,22 @@ def do_something(driver, elem_attributes=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
+<<<<<<< HEAD
+=======
+        elif input_type == 'color':
+            driver.execute_script("arguments[0].value = '#ff0000'", elem)
+>>>>>>> d47dfc4b7504960553e7cf84689a176b6b809f36
         else:
             raise Exception('Unsupported input type: %s' % input_type)
+    elif elem.tag_name == 'select':
+        for option in elem.find_elements_by_tag_name('option'):
+            if option.text != '':
+                option.click()
+                break
 
     close_all_windows_except_first(driver)
 
-    return child_attributes
+    return elem_attributes
 
 
 def screenshot(driver, file_path):
@@ -215,20 +232,33 @@ def run_test(bug, browser, driver, op_sequence=None):
     return saved_sequence
 
 
-def run_tests(firefox_driver, chrome_driver):
+def read_sequence(bug_id):
+    try:
+        with open('data/%d.txt' % bug_id) as f:
+            return [json.loads(line) for line in f]
+    except IOError:
+        return []
+
+
+def run_tests(firefox_driver, chrome_driver, bugs):
     set_timeouts(firefox_driver)
     set_timeouts(chrome_driver)
 
-    random.shuffle(bugs)
-
     for bug in bugs:
         try:
-            # Assume that if we generated the main file, we also generated the one with
-            # the sequence of operations (TODO: don't assume, check!)
-            # TODO: If only Chrome is missing, don't regenerate Firefox too, but read the
-            # sequence of operations from the files.
-            if not os.path.exists('data/%d_firefox.png' % bug['id']) or\
-               not os.path.exists('data/%d_chrome.png' % bug['id']):
+            # We attempt to regenerate everything when either
+            # a) we haven't generated the main screenshot for Firefox or Chrome, or
+            # b) we haven't generated any item of the sequence for Firefox, or
+            # c) there are items in the Firefox sequence that we haven't generated for Chrome.
+            sequence = read_sequence(bug['id'])
+            number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
+            number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
+            if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
+               not os.path.exists('data/%d_chrome.png' % bug['id']) or \
+               len(sequence) == 0 or \
+               number_of_ff_scr != number_of_ch_scr:
+                for f in glob.iglob('data/%d_*' % bug['id']):
+                    os.remove(f)
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
 
@@ -251,13 +281,22 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
-firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=412,732")
 chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36")
-chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
 
-run_tests(firefox_driver, chrome_driver)
+
+def main(bugs):
+    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
+    chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
+    run_tests(firefox_driver, chrome_driver, bugs)
+
+
+if __name__ == '__main__':
+    random.shuffle(bugs)
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        for i in range(MAX_THREADS):
+            executor.submit(main, bugs[i::MAX_THREADS])

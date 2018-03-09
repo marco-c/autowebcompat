@@ -6,3 +6,6 @@ install:
   - pip install -r test-requirements.txt
 script:
   - flake8 .
+  - pytest ./tests/test_*.py --cov=./
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
