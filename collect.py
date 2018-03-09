@@ -151,7 +151,7 @@ def do_something(driver, elem_attributes=None):
                 continue
 
             res = check_attributes(driver, elem_attributes, child)  # returns list of elements with attributes = child_attributes
-            if len(res)==1:
+            if len(res) == 1:
                 elem = child
                 break
             else:
@@ -167,7 +167,7 @@ def do_something(driver, elem_attributes=None):
             assert len(body) == 1
             body = body[0]
             elem = check_attributes(driver, elem_attributes)  # returns elem if unique
-            assert elem is not None   
+            assert elem is not None
         else:
             elem_id = elem_attributes['id']
             elem = driver.find_element_by_id(elem_id)
