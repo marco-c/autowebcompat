@@ -95,31 +95,10 @@ def get_all_attributes(driver, child):
     return child_attributes
 
 
-def check_attributes(driver, elem_attributes, elem=None):
-    body = driver.find_elements_by_tag_name('body')
-    assert len(body) == 1
-    body = body[0]
-    buttons = body.find_elements_by_tag_name('button')
-    links = body.find_elements_by_tag_name('a')
-    inputs = body.find_elements_by_tag_name('input')
-    selects = body.find_elements_by_tag_name('select')
-    children = buttons + links + inputs + selects
+def get_elements_with_attributes(driver, elem_attributes, children):
 
-    if elem is None:
-        for child in children:
-            child_attributes = get_all_attributes(driver, child)
-            if child_attributes == elem_attributes:
-                if elem is None:
-                    elem = child
-                else:
-                    # found more than one element with the same attributes
-                    return
-        return elem
-    # if elem is not None
-    same_attributes = [elem]  # list of elements with the same attributes
+    same_attributes = []
     for child in children:
-        if child == elem:
-            continue
         child_attributes = get_all_attributes(driver, child)
         if child_attributes == elem_attributes:
             same_attributes.append(child)
@@ -128,20 +107,25 @@ def check_attributes(driver, elem_attributes, elem=None):
 
 def do_something(driver, elem_attributes=None):
     elem = None
-    if elem_attributes is None:
-        body = driver.find_elements_by_tag_name('body')
-        assert len(body) == 1
-        body = body[0]
+    body = driver.find_elements_by_tag_name('body')
+    assert len(body) == 1
+    body = body[0]
 
-        buttons = body.find_elements_by_tag_name('button')
-        links = body.find_elements_by_tag_name('a')
-        inputs = body.find_elements_by_tag_name('input')
-        selects = body.find_elements_by_tag_name('select')
-        children = buttons + links + inputs + selects
+    buttons = body.find_elements_by_tag_name('button')
+    links = body.find_elements_by_tag_name('a')
+    inputs = body.find_elements_by_tag_name('input')
+    selects = body.find_elements_by_tag_name('select')
+    children = buttons + links + inputs + selects
+    
+    if elem_attributes is None:
 
         random.shuffle(children)
+        list_ignore = []  # list of elements with same attributes to ignore
 
         for child in children:
+            if child in list_ignore:
+                continue
+
             # Get all the attributes of the child.
             elem_attributes = get_all_attributes(driver, child)
 
@@ -150,7 +134,7 @@ def do_something(driver, elem_attributes=None):
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            res = check_attributes(driver, elem_attributes, child)  # returns list of elements with attributes = child_attributes
+            res = get_elements_with_attributes(driver, elem_attributes, children)  # returns list of elements with attributes = child_attributes
             if len(res) == 1:
                 elem = child
                 break
@@ -158,16 +142,13 @@ def do_something(driver, elem_attributes=None):
                 # remove all elements with the same attributes
                 print('Found elements with same attributes')
                 # print(res)
-                print()
-                for element in res:
-                    children.remove(element)
+
+                list_ignore.extend(res)  # add elements to list_ignore
     else:
         if 'id' not in elem_attributes.keys():
-            body = driver.find_elements_by_tag_name('body')
-            assert len(body) == 1
-            body = body[0]
-            elem = check_attributes(driver, elem_attributes)  # returns elem if unique
-            assert elem is not None
+            res = get_elements_with_attributes(driver, elem_attributes, children)  # returns elem if unique
+            assert len(res) == 1
+            elem = res[0]
         else:
             elem_id = elem_attributes['id']
             elem = driver.find_element_by_id(elem_id)
