@@ -116,7 +116,6 @@ def do_something(driver, elem_attributes=None):
     inputs = body.find_elements_by_tag_name('input')
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
-    
     if elem_attributes is None:
 
         random.shuffle(children)
