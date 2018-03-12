@@ -1,7 +1,8 @@
 import math
 
-import numpy as np
 from keras import backend as K
+
+import numpy as np
 
 from autowebcompat import network
 

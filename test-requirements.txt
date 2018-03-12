@@ -1,3 +1,4 @@
 flake8
 pytest==3.4.0
 pytest-cov==2.5.1
+flake8-isort==2.4

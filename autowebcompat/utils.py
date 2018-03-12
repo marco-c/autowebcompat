@@ -5,9 +5,10 @@ import random
 import threading
 
 import keras
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img  # NOQA
+
 import numpy as np
-from keras.preprocessing.image import (ImageDataGenerator, img_to_array,
-                                       load_img)
+
 from PIL import Image
 
 
