@@ -1,16 +1,19 @@
-from concurrent.futures import ThreadPoolExecutor
+import glob
 import json
 import os
+import random
 import sys
 import time
-import random
 import traceback
-import glob
+from concurrent.futures import ThreadPoolExecutor
+
 from PIL import Image
-from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
 from autowebcompat import utils
+from selenium import webdriver
+from selenium.common.exceptions import (NoAlertPresentException,
+                                        NoSuchWindowException,
+                                        TimeoutException)
 
 MAX_THREADS = 5
 

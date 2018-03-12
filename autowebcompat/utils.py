@@ -1,12 +1,14 @@
+import csv
 import json
 import os
 import random
 import threading
-import numpy as np
-from PIL import Image
+
 import keras
-from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-import csv
+import numpy as np
+from keras.preprocessing.image import (ImageDataGenerator, img_to_array,
+                                       load_img)
+from PIL import Image
 
 
 def get_bugs():
