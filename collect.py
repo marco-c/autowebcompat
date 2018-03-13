@@ -89,6 +89,8 @@ def get_all_attributes(driver, child):
       for (let i = 0; i < arguments[0].attributes.length; i++) {
         elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
+      elem_attribute["tag"] = arguments[0].tagName;
+      
       return elem_attribute;
     """, child)
 
