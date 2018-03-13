@@ -15,7 +15,7 @@ from autowebcompat import utils
 MAX_THREADS = 5
 
 if sys.platform.startswith("linux"):
-    chrome_bin = "/home/manasvi/Documents/tools/chrome-linux/chrome"
+    chrome_bin = "tools/chrome-linux/chrome"
     nightly_bin = 'tools/nightly/firefox-bin'
 elif sys.platform.startswith("darwin"):
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
