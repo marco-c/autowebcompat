@@ -106,7 +106,7 @@ def get_elements_with_attributes(driver, elem_attributes, children):
 
 def do_something(driver, elem_attributes=None):
     elem = None
-    
+
     body = driver.find_elements_by_tag_name('body')
     assert len(body) == 1
     body = body[0]
@@ -116,7 +116,7 @@ def do_something(driver, elem_attributes=None):
     inputs = body.find_elements_by_tag_name('input')
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
-    
+
     if elem_attributes is None:
 
         random.shuffle(children)
@@ -134,15 +134,15 @@ def do_something(driver, elem_attributes=None):
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            elems = get_elements_with_attributes(driver, elem_attributes, children)  
+            elems = get_elements_with_attributes(driver, elem_attributes, children)
             if len(elems) == 1:
                 elem = child
                 break
             else:
-                children_to_ignore.extend(elems)  
+                children_to_ignore.extend(elems)
     else:
         if 'id' not in elem_attributes.keys():
-            elems = get_elements_with_attributes(driver, elem_attributes, children)  
+            elems = get_elements_with_attributes(driver, elem_attributes, children)
             assert len(elems) == 1
             elem = elems[0]
         else:
@@ -294,14 +294,13 @@ chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nex
 
 
 def main(bugs):
-    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile)#, firefox_binary=nightly_bin)
+    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
     chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
     run_tests(firefox_driver, chrome_driver, bugs)
 
 
 if __name__ == '__main__':
     random.shuffle(bugs)
-    #main(bugs)
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
             executor.submit(main, bugs[i::MAX_THREADS])
