@@ -118,7 +118,6 @@ def do_something(driver, elem_attributes=None):
     children = buttons + links + inputs + selects
 
     if elem_attributes is None:
-
         random.shuffle(children)
         children_to_ignore = []  # list of elements with same attributes to ignore
 
