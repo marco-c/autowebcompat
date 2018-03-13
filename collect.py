@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import random
@@ -5,8 +6,6 @@ import sys
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-
-import glob
 
 from PIL import Image
 
