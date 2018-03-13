@@ -15,7 +15,7 @@ from autowebcompat import utils
 MAX_THREADS = 5
 
 if sys.platform.startswith("linux"):
-    chrome_bin = "tools/chrome-linux/chrome"
+    chrome_bin = "/home/manasvi/Documents/tools/chrome-linux/chrome"
     nightly_bin = 'tools/nightly/firefox-bin'
 elif sys.platform.startswith("darwin"):
     chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
@@ -96,17 +96,17 @@ def get_all_attributes(driver, child):
 
 
 def get_elements_with_attributes(driver, elem_attributes, children):
-
-    same_attributes = []
+    elems_with_same_attributes = []
     for child in children:
         child_attributes = get_all_attributes(driver, child)
         if child_attributes == elem_attributes:
-            same_attributes.append(child)
-    return same_attributes
+            elems_with_same_attributes.append(child)
+    return elems_with_same_attributes
 
 
 def do_something(driver, elem_attributes=None):
     elem = None
+    
     body = driver.find_elements_by_tag_name('body')
     assert len(body) == 1
     body = body[0]
@@ -116,13 +116,14 @@ def do_something(driver, elem_attributes=None):
     inputs = body.find_elements_by_tag_name('input')
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
+    
     if elem_attributes is None:
 
         random.shuffle(children)
-        list_ignore = []  # list of elements with same attributes to ignore
+        children_to_ignore = []  # list of elements with same attributes to ignore
 
         for child in children:
-            if child in list_ignore:
+            if child in children_to_ignore:
                 continue
 
             # Get all the attributes of the child.
@@ -133,21 +134,17 @@ def do_something(driver, elem_attributes=None):
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            res = get_elements_with_attributes(driver, elem_attributes, children)  # returns list of elements with attributes = child_attributes
-            if len(res) == 1:
+            elems = get_elements_with_attributes(driver, elem_attributes, children)  
+            if len(elems) == 1:
                 elem = child
                 break
             else:
-                # remove all elements with the same attributes
-                print('Found elements with same attributes')
-                # print(res)
-
-                list_ignore.extend(res)  # add elements to list_ignore
+                children_to_ignore.extend(elems)  
     else:
         if 'id' not in elem_attributes.keys():
-            res = get_elements_with_attributes(driver, elem_attributes, children)  # returns elem if unique
-            assert len(res) == 1
-            elem = res[0]
+            elems = get_elements_with_attributes(driver, elem_attributes, children)  
+            assert len(elems) == 1
+            elem = elems[0]
         else:
             elem_id = elem_attributes['id']
             elem = driver.find_element_by_id(elem_id)
@@ -297,13 +294,14 @@ chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nex
 
 
 def main(bugs):
-    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
+    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile)#, firefox_binary=nightly_bin)
     chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
     run_tests(firefox_driver, chrome_driver, bugs)
 
 
 if __name__ == '__main__':
     random.shuffle(bugs)
+    #main(bugs)
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
             executor.submit(main, bugs[i::MAX_THREADS])
