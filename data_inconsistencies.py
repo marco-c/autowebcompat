@@ -55,8 +55,7 @@ def print_statistics(file_name, incons):
 def main():
     print('[*] Getting inconsistencies in screenshots...')
     incons = get_inconsistencies()
-    n_incons = len(incons)
-    print('[*] {} inconsistencies found.'.format(n_incons))
+    print('[*] {} inconsistencies found.'.format(len(incons)))
     print('[*] Writing to inconsistencies.csv... ', end='')
     with open('inconsistencies.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
