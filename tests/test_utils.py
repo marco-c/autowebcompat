@@ -1,5 +1,4 @@
 import os
-from tempfile import TemporaryDirectory
 
 from PIL import Image
 import numpy as np
