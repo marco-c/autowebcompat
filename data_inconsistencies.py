@@ -33,7 +33,8 @@ def get_inconsistencies():
     return incons
 
 
-def print_statistics(file_name, incons, n_incons):
+def print_statistics(file_name, incons):
+    n_incons = len(incons)
     f = utils.get_all_images()
     total_img = len(f)
     firefox = []
@@ -47,8 +48,8 @@ def print_statistics(file_name, incons, n_incons):
     print("Number of photos: {} " .format(total_img))
     print("Number of pairs of images: {} " .format(int((total_img - n_incons) / 2)))
     print("Number of pairs of images possible: {} " .format(int((total_img - n_incons) / 2 + n_incons)))
-    print("Percentage of Firefox Inconsistencies: {}  " .format(int(((n_incons - sum(incons_f)) / n_incons) * 100)))
-    print("Percentage of Chrome Inconsistencies: {} " .format(int(((n_incons - sum(incons_c)) / n_incons) * 100)))
+    print("Percentage of Firefox inconsistencies: {}  " .format(int(((n_incons - sum(incons_f)) / n_incons) * 100)))
+    print("Percentage of Chrome inconsistencies: {} " .format(int(((n_incons - sum(incons_c)) / n_incons) * 100)))
 
 
 def main():
@@ -63,7 +64,7 @@ def main():
         for line in incons:
             writer.writerow(line)
     print('Done!')
-    print_statistics('inconsistencies.csv', incons, n_incons)
+    print_statistics('inconsistencies.csv', incons)
 
 
 if __name__ == '__main__':
