@@ -1,8 +1,8 @@
 import argparse
-from PIL import ImageTk, Image
-from tkinter import Tk, Label
 import cv2
 import numpy as np
+from PIL import ImageTk, Image
+from tkinter import Tk, Label
 
 
 from autowebcompat import utils
