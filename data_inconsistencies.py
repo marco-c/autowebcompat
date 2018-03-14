@@ -4,12 +4,11 @@ from autowebcompat import utils
 
 
 def get_inconsistencies():
-    files = os.listdir('./data/')
+    files = utils.get_all_images()
 
     parsed = {}
     for f in files:
         parts = os.path.splitext(f)[0].split('_')
-
         webcompatID = int(parts[0])
         if webcompatID not in parsed:
             parsed[webcompatID] = {}
@@ -33,47 +32,35 @@ def get_inconsistencies():
     return incons
 
 
-def inconsistencies_metric(file_name):
+def print_statistics(file_name, n_incons, firefox, chrome):
     f = utils.get_all_images()
     total_img = len(f)
-    with open(file_name, 'rU') as csvfile:
-        reader = csv.DictReader(csvfile)
-        data = {}
-        for row in reader:
-            for header, value in row.items():
-                try:
-                    data[header].append(value)
-                except KeyError:
-                    data[header] = [value]
-
-    firefox = data['FIREFOX']
-    n_incons = len(firefox)
-    chrome = data['CHROME']
-    incons_f = [int(x == "True") for x in firefox]
-    incons_c = [int(x == "True") for x in chrome]
-    print("Number of Photos: %d " % total_img)
-    print("Number of Pair of images: %d " % int((total_img-n_incons)/2))
-    print("Number of Pair of images possible: %d " % int((total_img-n_incons)/2 + n_incons))
-    print("Percentage of Firefox Inconsistencies:%d  " % int(((n_incons-sum(incons_f))/n_incons)*100))
-    print("Percentage of Chrome Inconsistencies:%d  "% int(((n_incons-sum(incons_c))/n_incons)*100))
-
-
-
-
+    incons_f = [int(x) for x in firefox]
+    incons_c = [int(x) for x in chrome]
+    print("Number of Photos: {} " .format(total_img))
+    print("Number of Pair of images: {} " .format(int((total_img - n_incons) / 2)))
+    print("Number of Pair of images possible: {} " .format(int((total_img - n_incons) / 2 + n_incons)))
+    print("Percentage of Firefox Inconsistencies: {}  " .format(int(((n_incons - sum(incons_f)) / n_incons) * 100)))
+    print("Percentage of Chrome Inconsistencies: {} " .format(int(((n_incons - sum(incons_c)) / n_incons) * 100)))
 
 
 def main():
     print('[*] Getting inconsistencies in screenshots...')
     incons = get_inconsistencies()
-    print('[*] {} inconsistencies found.'.format(len(incons)))
+    n_incons = len(incons)
+    firefox = []
+    chrome = []
+    print('[*] {} inconsistencies found.'.format(n_incons))
     print('[*] Writing to inconsistencies.csv... ', end='')
     with open('inconsistencies.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(['WEBCOMPAT-ID', 'SEQUENCE-NO', 'FIREFOX', 'CHROME'])
         for line in incons:
             writer.writerow(line)
+            firefox.append(line[2])
+            chrome.append(line[3])
     print('Done!')
-    inconsistencies_metric('inconsistencies.csv')
+    print_statistics('inconsistencies.csv', n_incons, firefox, chrome)
 
 
 if __name__ == '__main__':
