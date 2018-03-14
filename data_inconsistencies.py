@@ -4,7 +4,6 @@ import os
 from autowebcompat import utils
 
 
-
 def get_inconsistencies():
     files = utils.get_all_images()
 
