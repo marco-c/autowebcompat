@@ -8,7 +8,7 @@ labels = utils.read_labels()
 
 utils.prepare_images()
 all_images = utils.get_images()
-image = utils.load_image(all_images[0])
+image = utils.load_image(all_images[0] + '_firefox.png')
 input_shape = image.shape
 BATCH_SIZE = 32
 EPOCHS = 50
