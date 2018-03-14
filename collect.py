@@ -11,7 +11,9 @@ from PIL import Image
 
 from autowebcompat import utils
 from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException  # NOQA
+from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import TimeoutException
 
 MAX_THREADS = 5
 
