@@ -66,7 +66,7 @@ For the unsupervised training, we are using a related problem for which we alrea
 **Python 3** is required.
 
 - Install [Git Large File Storage](https://git-lfs.github.com/), either manually or through a package like `git-lfs` if available on your system.
-- Clone the repository with submodules: `git clone --recurse-submodules git@github.com:marco-c/autowebcompat.git`
+- Clone the repository with submodules: `git clone --recurse-submodules REPO_URL`
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
 - Run the **pretrain.py / train.py** script to train the neural network.
