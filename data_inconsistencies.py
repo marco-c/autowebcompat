@@ -1,5 +1,6 @@
 import os
 import csv
+from autowebcompat import utils
 
 
 def get_inconsistencies():
@@ -32,6 +33,25 @@ def get_inconsistencies():
     return incons
 
 
+def print_statistics(file_name, incons):
+    n_incons = len(incons)
+    f = utils.get_all_images()
+    total_img = len(f)
+    firefox = []
+    chrome = []
+    for line in incons:
+        firefox.append(line[2])
+        chrome.append(line[3])
+
+    incons_f = [int(x) for x in firefox]
+    incons_c = [int(x) for x in chrome]
+    print("Number of photos: {} " .format(total_img))
+    print("Number of pairs of images: {} " .format(int((total_img - n_incons) / 2)))
+    print("Number of pairs of images possible: {} " .format(int((total_img - n_incons) / 2 + n_incons)))
+    print("Percentage of Firefox inconsistencies: {}  " .format(int(((n_incons - sum(incons_f)) / n_incons) * 100)))
+    print("Percentage of Chrome inconsistencies: {} " .format(int(((n_incons - sum(incons_c)) / n_incons) * 100)))
+
+
 def main():
     print('[*] Getting inconsistencies in screenshots...')
     incons = get_inconsistencies()
@@ -43,6 +63,7 @@ def main():
         for line in incons:
             writer.writerow(line)
     print('Done!')
+    print_statistics('inconsistencies.csv', incons)
 
 
 if __name__ == '__main__':
