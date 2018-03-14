@@ -1,9 +1,9 @@
 import os
 from tempfile import TemporaryDirectory
 
+from PIL import Image
 import numpy as np
 import pytest
-from PIL import Image
 
 from autowebcompat import utils
 

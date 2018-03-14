@@ -4,10 +4,10 @@ import os
 import random
 import threading
 
-import keras
-import numpy as np
-from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img  # NOQA
 from PIL import Image
+import keras
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img  # NOQA
+import numpy as np
 
 
 def get_bugs():

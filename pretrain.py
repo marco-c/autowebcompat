@@ -1,6 +1,6 @@
+from functools import lru_cache
 import itertools
 import random
-from functools import lru_cache
 from urllib.parse import urlparse
 
 from autowebcompat import network, utils
