@@ -6,7 +6,7 @@ from autowebcompat import utils
 
 
 def get_inconsistencies():
-    files = os.listdir('./data/')
+    files = utils.get_all_images()
 
     parsed = {}
     for f in files:
