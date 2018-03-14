@@ -11,6 +11,8 @@ ydn_map = {'y': 0, 'd': 1, 'n': 2}
 ydn_reverse_map = {0: 'y', 1: 'd', 2: 'n'}
 
 for file_name in all_file_names:
+    if 'boundary_box' in file_name:
+        continue
     labels = utils.read_labels(labels_directory + file_name)
     for key, value in labels.items():
         if key not in labels_voted.keys():
