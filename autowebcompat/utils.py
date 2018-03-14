@@ -6,9 +6,7 @@ import threading
 
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator
-from keras.preprocessing.image import img_to_array
-from keras.preprocessing.image import load_img
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 import numpy as np
 
 

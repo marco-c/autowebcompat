@@ -3,8 +3,7 @@ import itertools
 import random
 from urllib.parse import urlparse
 
-from autowebcompat import network
-from autowebcompat import utils
+from autowebcompat import network, utils
 
 bugs = utils.get_bugs()
 
