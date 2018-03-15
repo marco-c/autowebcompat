@@ -8,7 +8,6 @@ import time
 import traceback
 
 from PIL import Image
-
 from autowebcompat import utils
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
