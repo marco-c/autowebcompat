@@ -82,29 +82,34 @@ def close_all_windows_except_first(driver):
     driver.switch_to_window(windows[0])
 
 
-def get_all_attributes(driver, child):
-    child_attributes = driver.execute_script("""
-      let elem_attribute = {};
+def get_element_properties(driver, child):
+    child_properties = driver.execute_script("""
+      let elem_properties = {
+        tag: "",
+        attributes: {},
+      };
 
       for (let i = 0; i < arguments[0].attributes.length; i++) {
-        elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+        elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
-      return elem_attribute;
+      elem_properties.tag = arguments[0].tagName;
+
+      return elem_properties;
     """, child)
 
-    return child_attributes
+    return child_properties
 
 
-def get_elements_with_attributes(driver, elem_attributes, children):
-    elems_with_same_attributes = []
+def get_elements_with_properties(driver, elem_properties, children):
+    elems_with_same_properties = []
     for child in children:
-        child_attributes = get_all_attributes(driver, child)
-        if child_attributes == elem_attributes:
-            elems_with_same_attributes.append(child)
-    return elems_with_same_attributes
+        child_properties = get_element_properties(driver, child)
+        if child_properties == elem_properties:
+            elems_with_same_properties.append(child)
+    return elems_with_same_properties
 
 
-def do_something(driver, elem_attributes=None):
+def do_something(driver, elem_properties=None):
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -117,35 +122,35 @@ def do_something(driver, elem_attributes=None):
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
 
-    if elem_attributes is None:
+    if elem_properties is None:
         random.shuffle(children)
-        children_to_ignore = []  # list of elements with same attributes to ignore
+        children_to_ignore = []  # list of elements with same properties to ignore
 
         for child in children:
             if child in children_to_ignore:
                 continue
 
-            # Get all the attributes of the child.
-            elem_attributes = get_all_attributes(driver, child)
+            # Get all the properties of the child.
+            elem_properties = get_element_properties(driver, child)
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            elems = get_elements_with_attributes(driver, elem_attributes, children)
+            elems = get_elements_with_properties(driver, elem_properties, children)
             if len(elems) == 1:
                 elem = child
                 break
             else:
                 children_to_ignore.extend(elems)
     else:
-        if 'id' not in elem_attributes.keys():
-            elems = get_elements_with_attributes(driver, elem_attributes, children)
+        if 'id' not in elem_properties['attributes'].keys():
+            elems = get_elements_with_properties(driver, elem_properties, children)
             assert len(elems) == 1
             elem = elems[0]
         else:
-            elem_id = elem_attributes['id']
+            elem_id = elem_properties['attributes']['id']
             elem = driver.find_element_by_id(elem_id)
 
     if elem is None:
@@ -186,7 +191,7 @@ def do_something(driver, elem_attributes=None):
 
     close_all_windows_except_first(driver)
 
-    return elem_attributes
+    return elem_properties
 
 
 def screenshot(driver, file_path):
@@ -214,16 +219,16 @@ def run_test(bug, browser, driver, op_sequence=None):
         max_iter = 7 if op_sequence is None else len(op_sequence)
         for i in range(0, max_iter):
             if op_sequence is None:
-                elem_attributes = do_something(driver)
-                if elem_attributes is None:
+                elem_properties = do_something(driver)
+                if elem_properties is None:
                     print('Can\'t find any element to interact with on %s for bug %d' % (bug['url'], bug['id']))
                     break
-                saved_sequence.append(elem_attributes)
+                saved_sequence.append(elem_properties)
             else:
-                elem_attributes = op_sequence[i]
-                do_something(driver, elem_attributes)
+                elem_properties = op_sequence[i]
+                do_something(driver, elem_properties)
 
-            print('  - Using %s' % elem_attributes)
+            print('  - Using %s' % elem_properties)
             image_file = str(bug['id']) + '_' + str(i) + '_' + browser
             screenshot(driver, 'data/%s.png' % (image_file))
 

@@ -6,3 +6,5 @@ inconsistencies.csv
 geckodriver.log
 .DS_Store
 .coverage
+.pytest_cache
+.idea
