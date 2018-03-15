@@ -93,11 +93,12 @@ def get_element_properties(driver, child):
         elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
       elem_properties.tag = arguments[0].tagName;
-      
+
       return elem_properties;
     """, child)
 
     return child_properties
+
 
 def get_elements_with_properties(driver, elem_properties, children):
     elems_with_same_properties = []
