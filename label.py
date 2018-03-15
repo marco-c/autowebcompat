@@ -22,7 +22,7 @@ panel1.pack(side="left", padx=10)
 panel2 = Label(root)
 panel2.pack(side="left", padx=10)
 panel3 = Label(root)
-panel3.pack(side="left",padx=10)
+panel3.pack(side="left", padx=10)
 
 
 def get_new_image():
@@ -33,20 +33,20 @@ def get_new_image():
     current_image = images_to_show.pop()
     print("data/%s_firefox.png" % current_image)
 
-    img1 = Image.open("data/%s_firefox.png" % current_image)
-    img2 = Image.open("data/%s_chrome.png" % current_image)
-    background = img1.convert("RGBA")
-    overlay = img2.convert("RGBA")
+    img_firefox = Image.open("data/%s_firefox.png" % current_image)
+    img_chrome = Image.open("data/%s_chrome.png" % current_image)
 
-    img3 = Image.blend(background, overlay, 0.5)
-    img = ImageTk.PhotoImage(img3)
+    background = img_firefox.convert("RGBA")
+    overlay = img_chrome.convert("RGBA")
+    img_blended = Image.blend(background, overlay, 0.5)
+
+    img = ImageTk.PhotoImage(img_blended)
     panel3.configure(image=img)
-    panel3.image =img
-
-    img = ImageTk.PhotoImage(img1)
+    panel3.image = img
+    img = ImageTk.PhotoImage(img_firefox)
     panel1.configure(image=img)
     panel1.image = img
-    img = ImageTk.PhotoImage(img2)
+    img = ImageTk.PhotoImage(img_chrome)
     panel2.configure(image=img)
     panel2.image = img
 
