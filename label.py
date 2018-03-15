@@ -36,13 +36,6 @@ def get_new_image():
     img_firefox = Image.open("data/%s_firefox.png" % current_image)
     img_chrome = Image.open("data/%s_chrome.png" % current_image)
 
-    background = img_firefox.convert("RGBA")
-    overlay = img_chrome.convert("RGBA")
-    img_blended = Image.blend(background, overlay, 0.5)
-
-    img = ImageTk.PhotoImage(img_blended)
-    panel3.configure(image=img)
-    panel3.image = img
     img = ImageTk.PhotoImage(img_firefox)
     panel1.configure(image=img)
     panel1.image = img
@@ -50,6 +43,13 @@ def get_new_image():
     panel2.configure(image=img)
     panel2.image = img
 
+    background = img_firefox.convert("RGBA")
+    overlay = img_chrome.convert("RGBA")
+    img_blended = Image.blend(background, overlay, 0.5)
+
+    img = ImageTk.PhotoImage(img_blended)
+    panel3.configure(image=img)
+    panel3.image = img
 
 # The images are the same.
 def callback_y(e):
