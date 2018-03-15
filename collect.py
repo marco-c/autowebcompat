@@ -99,23 +99,36 @@ def get_element_properties(driver, child):
 
     return child_properties
 
+def get_elements_with_properties(driver, elem_properties, children):
+    elems_with_same_properties = []
+    for child in children:
+        child_properties = get_element_properties(driver, child)
+        if child_properties == elem_properties:
+            elems_with_same_properties.append(child)
+    return elems_with_same_properties
+
 
 def do_something(driver, elem_properties=None):
     elem = None
+
+    body = driver.find_elements_by_tag_name('body')
+    assert len(body) == 1
+    body = body[0]
+
+    buttons = body.find_elements_by_tag_name('button')
+    links = body.find_elements_by_tag_name('a')
+    inputs = body.find_elements_by_tag_name('input')
+    selects = body.find_elements_by_tag_name('select')
+    children = buttons + links + inputs + selects
+
     if elem_properties is None:
-        body = driver.find_elements_by_tag_name('body')
-        assert len(body) == 1
-        body = body[0]
-
-        buttons = body.find_elements_by_tag_name('button')
-        links = body.find_elements_by_tag_name('a')
-        inputs = body.find_elements_by_tag_name('input')
-        selects = body.find_elements_by_tag_name('select')
-        children = buttons + links + inputs + selects
-
         random.shuffle(children)
+        children_to_ignore = []  # list of elements with same properties to ignore
 
         for child in children:
+            if child in children_to_ignore:
+                continue
+
             # Get all the properties of the child.
             elem_properties = get_element_properties(driver, child)
 
@@ -124,25 +137,17 @@ def do_something(driver, elem_properties=None):
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            elem = child
-            break
+            elems = get_elements_with_properties(driver, elem_properties, children)
+            if len(elems) == 1:
+                elem = child
+                break
+            else:
+                children_to_ignore.extend(elems)
     else:
         if 'id' not in elem_properties['attributes'].keys():
-            body = driver.find_elements_by_tag_name('body')
-            assert len(body) == 1
-            body = body[0]
-
-            buttons = body.find_elements_by_tag_name('button')
-            links = body.find_elements_by_tag_name('a')
-            inputs = body.find_elements_by_tag_name('input')
-            selects = body.find_elements_by_tag_name('select')
-            children = buttons + links + inputs + selects
-
-            for child in children:
-                # Get all the properties of the child.
-                if elem_properties == get_element_properties(driver, child):
-                    elem = child
-                    break
+            elems = get_elements_with_properties(driver, elem_properties, children)
+            assert len(elems) == 1
+            elem = elems[0]
         else:
             elem_id = elem_properties['attributes']['id']
             elem = driver.find_element_by_id(elem_id)
