@@ -3,6 +3,9 @@ from keras.layers import concatenate, Conv2D, Dense, Dropout, Flatten, Input, La
 from keras.models import Model
 from keras.optimizers import RMSprop, Adam, Nadam, SGD
 
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16']
+SUPPORTED_OPTIMIZERS = ['sgd', 'adam', 'nadam', 'rms']
+
 
 def euclidean_distance(vects):
     x, y = vects
@@ -116,7 +119,7 @@ def create_inception_network(input_shape):
     return Model(input, x)
 
 
-def create(input_shape, network, weights=None):
+def create(input_shape, network='vgglike', weights=None):
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
@@ -155,7 +158,7 @@ def accuracy(y_true, y_pred):
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 
 
-def compile(model, optimizer, loss_func=contrastive_loss):
+def compile(model, optimizer='sgd', loss_func=contrastive_loss):
     allOptimizers = {
         'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
         'adam': Adam(),
@@ -166,13 +169,3 @@ def compile(model, optimizer, loss_func=contrastive_loss):
     opt = allOptimizers[optimizer]
 
     model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
-
-
-def supported_network():
-    supp_net = ['inception', 'vgglike', 'vgg16']
-    return supp_net
-
-
-def supported_optimizer():
-    supp_opt = ['sgd', 'adam', 'nadam', 'rms']
-    return supp_opt

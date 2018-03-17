@@ -3,18 +3,14 @@ import random
 from urllib.parse import urlparse
 import itertools
 
-from autowebcompat import network
+from autowebcompat.network import *
 from autowebcompat import utils
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("network_", type=str, choices=network.supported_network(), help="Select the supported network")
-parser.add_argument("optimizer_", type=str, choices=network.supported_optimizer(), help="select the supported optimizer")
+parser.add_argument("network", type=str, choices=SUPPORTED_NETWORKS, help="Select the network to use for training")
+parser.add_argument("optimizer", type=str, choices=SUPPORTED_OPTIMIZERS, help="Select the optimizer to use for training")
 args = parser.parse_args()
-
-supp_net = args.network_
-supp_opt = args.optimizer_
-
 
 bugs = utils.get_bugs()
 
@@ -66,8 +62,8 @@ data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = network.create(input_shape, supp_net)
-network.compile(model, supp_opt)
+model = network.create(input_shape, args.network)
+network.compile(model, args.optimizer)
 
 model.save('pretrain.h5')
 
