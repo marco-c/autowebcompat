@@ -1,7 +1,7 @@
 import argparse
-from PIL import ImageTk, Image
-from tkinter import Tk, Label
+from tkinter import Label, Tk
 
+from PIL import Image, ImageTk
 
 from autowebcompat import utils
 

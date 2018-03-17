@@ -1,11 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
+import glob
 import json
 import os
+import random
 import sys
 import time
-import random
 import traceback
-import glob
+
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
