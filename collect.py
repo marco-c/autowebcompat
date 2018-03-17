@@ -110,7 +110,6 @@ def get_elements_with_properties(driver, elem_properties, children):
     return elems_with_same_properties
 
 
-
 def do_something(driver, elem_properties=None):
 
     elem = None
@@ -125,26 +124,21 @@ def do_something(driver, elem_properties=None):
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
 
-
     if elem_properties is None:
         random.shuffle(children)
         children_to_ignore = []  # list of elements with same properties to ignore
-
 
         for child in children:
             if child in children_to_ignore:
                 continue
 
-
             # Get all the properties of the child.
             elem_properties = get_element_properties(driver, child)
-
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
                 continue
-
 
             elems = get_elements_with_properties(driver, elem_properties, children)
 
