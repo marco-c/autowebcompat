@@ -1,5 +1,4 @@
 import argparse
-
 from functools import lru_cache
 import itertools
 import random
