@@ -8,8 +8,8 @@ from autowebcompat import utils
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("network_", type = str, choices = network.supported_network(), help = "Select the supported network")
-parser.add_argument("optimizer_", type = str, choices = network.supported_optimizer(), help = "select the supported optimizer")
+parser.add_argument("network_", type=str, choices=network.supported_network(), help="Select the supported network")
+parser.add_argument("optimizer_", type=str, choices=network.supported_optimizer(), help="select the supported optimizer")
 args = parser.parse_args()
 
 supp_net = args.network_
