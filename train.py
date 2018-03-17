@@ -1,8 +1,8 @@
-import random
-
-from autowebcompat import network
-from atuowebcompat import utils
 import argparse
+
+from autowebcompat import network, utils
+
+import random
 
 parser = argparse.ArgumentParser()
 parser.add_argument("network", type=str, choices=network.SUPPORTED_NETWORKS, help="Select the network to use for training")
