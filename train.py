@@ -2,7 +2,15 @@ import random
 
 from autowebcompat import network
 from autowebcompat import utils
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("network_", type = str, choices = network.supported_network(), help = "Select the supported network")
+parser.add_argument("optimizer_", type = str, choices = network.supported_optimizer(), help = "select the supported optimizer")
+args = parser.parse_args()
+
+supp_net = args.network_
+supp_opt = args.optimizer_
 
 labels = utils.read_labels()
 
@@ -42,8 +50,8 @@ data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = network.create(input_shape)
-network.compile(model)
+model = network.create(input_shape, supp_net)
+network.compile(model, supp_opt)
 
 model.fit_generator(train_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, epochs=EPOCHS)
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
