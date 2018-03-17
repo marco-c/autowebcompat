@@ -120,7 +120,7 @@ def create_inception_network(input_shape):
 
 
 def create(input_shape, network='vgglike', weights=None):
-    assert network in SUPPORTED_NETWORKS , '%s is an invalid network' % network
+    assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
