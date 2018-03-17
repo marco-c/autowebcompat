@@ -1,11 +1,11 @@
 import argparse
-from autowebcompat import network
 
 from functools import lru_cache
 import itertools
 import random
 from urllib.parse import urlparse
-from autowebcompat import utils
+
+from autowebcompat import network, utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument("network", type=str, choices=network.SUPPORTED_NETWORKS, help="Select the network to use for training")
