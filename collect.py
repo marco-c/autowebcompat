@@ -111,7 +111,6 @@ def get_elements_with_properties(driver, elem_properties, children):
 
 
 def do_something(driver, elem_properties=None):
-
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -141,17 +140,14 @@ def do_something(driver, elem_properties=None):
                 continue
 
             elems = get_elements_with_properties(driver, elem_properties, children)
-
             if len(elems) == 1:
                 elem = child
                 break
             else:
                 children_to_ignore.extend(elems)
     else:
-
         if 'id' not in elem_properties['attributes'].keys():
             elems = get_elements_with_properties(driver, elem_properties, children)
-
             assert len(elems) == 1
             elem = elems[0]
         else:
