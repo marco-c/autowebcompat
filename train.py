@@ -5,7 +5,7 @@ from autowebcompat import network, utils
 labels = utils.read_labels()
 
 utils.prepare_images()
-all_image_names = utils.get_images()
+all_image_names = [i for i in utils.get_images() if i in labels]
 all_images = sum([[i + '_firefox.png', i + '_chrome.png'] for i in all_image_names], [])
 image = utils.load_image(all_images[0])
 input_shape = image.shape
