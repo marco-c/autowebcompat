@@ -1,6 +1,7 @@
 import random
 
-from autowebcompat import network, utils
+from autowebcompat import network
+from atuowebcompat import utils
 import argparse
 
 parser = argparse.ArgumentParser()
