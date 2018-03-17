@@ -3,6 +3,9 @@ from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPool
 from keras.models import Model
 from keras.optimizers import SGD, Adam, Nadam, RMSprop
 
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16']
+SUPPORTED_OPTIMIZERS = ['sgd', 'adam', 'nadam', 'rms']
+
 
 def euclidean_distance(vects):
     x, y = vects
@@ -117,6 +120,7 @@ def create_inception_network(input_shape):
 
 
 def create(input_shape, network='vgglike', weights=None):
+    assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
