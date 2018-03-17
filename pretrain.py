@@ -62,8 +62,8 @@ data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = network.create(input_shape, args.network)
-network.compile(model, args.optimizer)
+model = create(input_shape,args.network)
+compile(model,args.optimizer)
 
 model.save('pretrain.h5')
 
