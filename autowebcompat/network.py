@@ -1,7 +1,7 @@
 from keras import backend as K
-from keras.layers import concatenate, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
+from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, concatenate
 from keras.models import Model
-from keras.optimizers import RMSprop, Adam, Nadam, SGD
+from keras.optimizers import SGD, Adam, Nadam, RMSprop
 
 SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16']
 SUPPORTED_OPTIMIZERS = ['sgd', 'adam', 'nadam', 'rms']
@@ -39,7 +39,7 @@ def create_vgg16_network(input_shape):
     # Block 2
     x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
-    MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
 
     # Block 3
     x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
