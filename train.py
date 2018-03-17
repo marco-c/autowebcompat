@@ -5,8 +5,9 @@ from autowebcompat import network, utils
 labels = utils.read_labels()
 
 utils.prepare_images()
-all_images = utils.get_images()
-image = utils.load_image(all_images[0] + '_firefox.png')
+all_image_names = utils.get_images()
+all_images = sum([[i + '_firefox.png', i + '_chrome.png'] for i in all_image_names], [])
+image = utils.load_image(all_images[0])
 input_shape = image.shape
 BATCH_SIZE = 32
 EPOCHS = 50
@@ -20,8 +21,8 @@ def load_pair(fname):
     return [f, c]
 
 
-images_train = random.sample(all_images, int(len(all_images) * 0.9))
-images_test = [i for i in all_images if i not in set(images_train)]
+images_train = random.sample(all_image_names, int(len(all_image_names) * 0.9))
+images_test = [i for i in all_image_names if i not in set(images_train)]
 
 
 def couples_generator(images):
