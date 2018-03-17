@@ -1,7 +1,7 @@
 from functools import lru_cache
+import itertools
 import random
 from urllib.parse import urlparse
-import itertools
 
 from autowebcompat import network, utils
 import argparse
