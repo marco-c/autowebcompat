@@ -290,7 +290,7 @@ def get_code(bugsList, firefox_driver, chrome_driver):
         firefox_source = firefox_driver.page_source
         f = open("source_code/%d_firefox.txt" % bug['id'], "w", encoding="utf-8")
         domtree = firefox_driver.find_elements_by_css_selector("*")
-        f.write("source code : "+firefox_source+"\n")
+        f.write("source code : " + firefox_source + "\n")
         arr = []
         for elem in domtree:
             arr.append(elem.tag_name)
@@ -301,7 +301,7 @@ def get_code(bugsList, firefox_driver, chrome_driver):
         chrome_source = chrome_driver.page_source
         f = open("source_code/%d_chrome.txt" % bug['id'], "w", encoding="utf-8")
         domtree = chrome_driver.find_elements_by_css_selector("*")
-        f.write("source code : " + chrome_source+"\n")
+        f.write("source code : " + chrome_source + "\n")
         arr = []
         for elem in domtree:
             arr.append(elem.tag_name)
