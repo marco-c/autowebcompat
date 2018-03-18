@@ -1,7 +1,7 @@
-import csv
 import os
 
 from autowebcompat import utils
+
 
 def test_labels():
     labels = utils.read_labels()
