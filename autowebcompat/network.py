@@ -3,6 +3,14 @@ from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPool
 from keras.models import Model
 from keras.optimizers import SGD, Adam, Nadam, RMSprop
 
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16']
+SUPPORTED_OPTIMIZERS = {
+    'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
+    'adam': Adam(),
+    'nadam': Nadam(),
+    'rms': RMSprop()
+}
+
 
 def euclidean_distance(vects):
     x, y = vects
@@ -117,6 +125,7 @@ def create_inception_network(input_shape):
 
 
 def create(input_shape, network='vgglike', weights=None):
+    assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
@@ -156,13 +165,7 @@ def accuracy(y_true, y_pred):
 
 
 def compile(model, optimizer='sgd', loss_func=contrastive_loss):
-    allOptimizers = {
-        'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
-        'adam': Adam(),
-        'nadam': Nadam(),
-        'rms': RMSprop()
-    }
-    assert optimizer in allOptimizers, '%s is an invalid optimizer' % optimizer
-    opt = allOptimizers[optimizer]
+    assert optimizer in SUPPORTED_OPTIMIZERS, '%s is an invalid optimizer' % optimizer
+    opt = SUPPORTED_OPTIMIZERS[optimizer]
 
     model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
