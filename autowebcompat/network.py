@@ -1,7 +1,15 @@
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
+from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, concatenate
 from keras.models import Model
-from keras.optimizers import RMSprop, Adam, Nadam, SGD
+from keras.optimizers import SGD, Adam, Nadam, RMSprop
+
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16']
+SUPPORTED_OPTIMIZERS = {
+    'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
+    'adam': Adam(),
+    'nadam': Nadam(),
+    'rms': RMSprop()
+}
 
 
 def euclidean_distance(vects):
@@ -36,7 +44,7 @@ def create_vgg16_network(input_shape):
     # Block 2
     x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
-    MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
 
     # Block 3
     x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
@@ -144,7 +152,36 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2,2)):
 
 
 
+def create_inception_network(input_shape):
+    """
+       Simple architecture with one layer of inception model
+
+       param input_shape: shape of the input image
+    """
+
+    input = Input(shape=input_shape)
+
+    x1 = Conv2D(64, (1, 1), activation='relu', padding='same')(input)
+    x1 = Conv2D(64, (3, 3), activation='relu', padding='same')(x1)
+
+    x2 = Conv2D(64, (1, 1), activation='relu', padding='same')(input)
+    x2 = Conv2D(64, (5, 5), activation='relu', padding='same')(x2)
+
+    x3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(input)
+    x3 = Conv2D(64, (1, 1), activation='relu', padding='same')(x3)
+
+    x = concatenate([x1, x2, x3], axis=3)
+    x = Flatten()(x)
+
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(128, activation='relu')(x)
+
+    return Model(input, x)
+
+
 def create(input_shape, network='vgglike', weights=None):
+    assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
@@ -184,13 +221,7 @@ def accuracy(y_true, y_pred):
 
 
 def compile(model, optimizer='sgd', loss_func=contrastive_loss):
-    allOptimizers = {
-        'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
-        'adam': Adam(),
-        'nadam': Nadam(),
-        'rms': RMSprop()
-    }
-    assert optimizer in allOptimizers, '%s is an invalid optimizer' % optimizer
-    opt = allOptimizers[optimizer]
+    assert optimizer in SUPPORTED_OPTIMIZERS, '%s is an invalid optimizer' % optimizer
+    opt = SUPPORTED_OPTIMIZERS[optimizer]
 
     model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])

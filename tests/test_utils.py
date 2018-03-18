@@ -1,7 +1,9 @@
 import os
-from tempfile import TemporaryDirectory
-import numpy as np
+
 from PIL import Image
+import numpy as np
+import pytest
+
 from autowebcompat import utils
 
 
@@ -10,19 +12,18 @@ def test_get_bugs():
     assert(isinstance(bugs, list))
 
 
-def test_mkdir():
-    d = TemporaryDirectory()
-    direc_path = d.name + "/test"
+def test_mkdir(tmpdir):
+    direc_path = tmpdir.strpath + "/test"
     utils.mkdir(direc_path)
     assert(os.path.isdir(direc_path))
     utils.mkdir(direc_path)
 
 
 def test_load_image(tmpdir):
-    d = TemporaryDirectory()
+    file_path = tmpdir.join("Image.jpg")
     img = Image.new("RGB", (30, 30))
-    img.save(d.name + "/Image.jpg")
-    img = utils.load_image("Image.jpg", d.name)
+    img.save(file_path.strpath)
+    img = utils.load_image("Image.jpg", file_path.dirname)
     assert(isinstance(img, np.ndarray))
     assert(img.shape == (32, 24, 3))
 
@@ -46,9 +47,56 @@ def test_read_labels():
     assert(isinstance(labels, dict))
 
 
-def test_write_labels():
+def test_write_labels(tmpdir):
     label = {1: 1, 2: 2}
-    d = TemporaryDirectory()
-    file_path = d.name + "/test.csv"
+    file_path = tmpdir.join("test.csv")
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
+
+
+test_balance_data = [
+    ("data1", 1),
+    ("data2", 1),
+    ("data3", 0),
+    ("data4", 0),
+    ("data5", 0),
+    ("data6", 1)
+]
+
+
+@pytest.mark.parametrize("unbalanced_data", [
+    test_balance_data,
+    iter(test_balance_data)
+])
+def test_balance(unbalanced_data):
+    balanced_data = utils.balance(unbalanced_data)
+
+    assert(('data1', 1) == next(balanced_data))
+    assert(('data3', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
+    assert(('data4', 0) == next(balanced_data))
+    assert(('data6', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+
+    with pytest.raises(StopIteration):
+        next(balanced_data)
+
+
+def test_balance_unbalanced_data():
+    unbalanced_tuples = [
+        ("data1", 1),
+        ("data2", 1),
+        ("data3", 1),
+        ("data4", 0),
+        ("data5", 0)]
+
+    balanced_data = utils.balance(unbalanced_tuples)
+
+    assert(('data1', 1) == next(balanced_data))
+    assert(('data4', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+    assert(('data3', 1) == next(balanced_data))
+
+    with pytest.raises(StopIteration):
+        next(balanced_data)
