@@ -272,6 +272,31 @@ def run_tests(firefox_driver, chrome_driver, bugs):
     chrome_driver.quit()
 
 
+def get_code(bugsList, firefox_driver, chrome_driver):
+    for bug in bugsList:
+        firefox_driver.get(bug['url'])
+        firefox_source = firefox_driver.page_source
+        f = open("source_code/%d_firefox.txt" % bug['id'], "w", encoding="utf-8")
+        domtree = firefox_driver.find_elements_by_css_selector("*")
+        f.write("source code : "+firefox_source+"\n")
+        arr = []
+        for elem in domtree:
+            arr.append(elem.tag_name)
+        f.write("dom tree : " + str(arr))
+        f.close()
+
+        chrome_driver.get(bug['url'])
+        chrome_source = chrome_driver.page_source
+        f = open("source_code/%d_chrome.txt" % bug['id'], "w", encoding="utf-8")
+        domtree = chrome_driver.find_elements_by_css_selector("*")
+        f.write("source code : " + chrome_source+"\n")
+        arr = []
+        for elem in domtree:
+            arr.append(elem.tag_name)
+        f.write("dom tree : " + str(arr))
+        f.close()
+
+
 os.environ['PATH'] += os.pathsep + os.path.abspath('tools')
 os.environ['MOZ_HEADLESS'] = '1'
 os.environ['MOZ_HEADLESS_WIDTH'] = '412'
@@ -289,11 +314,13 @@ chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nex
 def main(bugs):
     firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
     chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
-    run_tests(firefox_driver, chrome_driver, bugs)
+    run_tests(firefox_driver,chrome_driver,bugs)
 
 
 if __name__ == '__main__':
     random.shuffle(bugs)
+    main(bugs)
+
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
-            executor.submit(main, bugs[i::MAX_THREADS])
+            print(bugs[i::MAX_THREADS])
