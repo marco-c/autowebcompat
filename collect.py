@@ -326,7 +326,7 @@ chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nex
 def main(bugs):
     firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
     chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
-    run_tests(firefox_driver,chrome_driver,bugs)
+    run_tests(firefox_driver, chrome_driver, bugs)
 
 
 if __name__ == '__main__':
@@ -335,4 +335,4 @@ if __name__ == '__main__':
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
-            print(bugs[i::MAX_THREADS])
+            executor.submit(main, bugs[i::MAX_THREADS])
