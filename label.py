@@ -12,16 +12,21 @@ parser.add_argument("file_name", action="store")
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name + ".csv")
-boundary_boxes = utils.read_boundary_boxes(labels_directory + args.file_name + "_boundary_box.csv")
+bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + "_bounding_box.json")
 
 images_to_show = [i for i in utils.get_images() if i not in labels]
 drawing = False
 key_map = {"Escape": 27, "r": 114, "Enter": 13, "y": 121, "n": 110, "d": 100}
 cv2.namedWindow('firefox')
 cv2.namedWindow('chrome')
+cv2.namedWindow('firefox_chrome_overlay')
 
 
-def draw_boundary_box(event, mouse_x, mouse_y, flags, param):
+def reset_bounding_boxes(drawing_area_shape_firefox, drawing_area_shape_chrome):
+    return (np.zeros(drawing_area_shape_firefox, np.uint8), np.zeros(drawing_area_shape_chrome, np.uint8))
+
+
+def draw_bounding_box(event, mouse_x, mouse_y, flags, param):
     global start_x, start_y, drawing, end_x, end_y
     [drawing_area, boxes] = param
 
@@ -55,58 +60,57 @@ def draw_boundary_box(event, mouse_x, mouse_y, flags, param):
         boxes.append([min(start_x, end_x), min(start_y, end_y), max(start_x, end_x), max(start_y, end_y)])
 
 
-# The images are not the same and you want to mark the boundary box.
+# The images are not the same and you want to mark the bounding box.
 def get_new_image():
     if len(images_to_show) == 0:
         cv2.destroyAllWindows()
         return
     current_image = images_to_show.pop()
     print("Reading %s" % current_image)
-    firefox_ss = cv2.imread("data/%s_firefox.png" % current_image)
-    chrome_ss = cv2.imread("data/%s_chrome.png" % current_image)
-    drawing_area_firefox = np.zeros((firefox_ss.shape), np.uint8)
-    drawing_area_chrome = np.zeros((chrome_ss.shape), np.uint8)
-    boxes_firefox = []
-    boxes_chrome = []
-    cv2.setMouseCallback('firefox', draw_boundary_box, [drawing_area_firefox, boxes_firefox])
-    cv2.setMouseCallback('chrome', draw_boundary_box, [drawing_area_chrome, boxes_chrome])
-    visiblity = 1
+    firefox_screenshot = cv2.imread("data/%s_firefox.png" % current_image)
+    chrome_screenshot = cv2.imread("data/%s_chrome.png" % current_image)
+    drawing_area_firefox, drawing_area_chrome = reset_bounding_boxes(firefox_screenshot.shape, chrome_screenshot.shape)
+    boxes_firefox, boxes_chrome = [], []
+    cv2.setMouseCallback('firefox', draw_bounding_box, [drawing_area_firefox, boxes_firefox])
+    cv2.setMouseCallback('chrome', draw_bounding_box, [drawing_area_chrome, boxes_chrome])
+    visibility = 1
     while True:
-        firefox_window = cv2.addWeighted(drawing_area_firefox, 1 - visiblity, firefox_ss, visiblity, 0)
-        chrome_window = cv2.addWeighted(drawing_area_chrome, 1 - visiblity, chrome_ss, visiblity, 0)
+        firefox_window = cv2.addWeighted(drawing_area_firefox, 1 - visibility, firefox_screenshot, visibility, 0)
+        chrome_window = cv2.addWeighted(drawing_area_chrome, 1 - visibility, chrome_screenshot, visibility, 0)
+        firefox_chrome_overlay = cv2.addWeighted(firefox_screenshot, 0.5, chrome_screenshot, 0.5, 0)
         cv2.imshow('firefox', firefox_window)
         cv2.imshow('chrome', chrome_window)
+        cv2.imshow('firefox_chrome_overlay', firefox_chrome_overlay)
         cv2.moveWindow('firefox', 20, 0)
         cv2.moveWindow('chrome', 20 + firefox_window.shape[1], 0)
+        cv2.moveWindow('firefox_chrome_overlay', 20 + firefox_window.shape[1] + chrome_window.shape[1], 0)
         k = cv2.waitKey(1) & 0xFF
         # <Escape> quits marking area without saving
         if k == key_map["Escape"]:
             cv2.destroyAllWindows()
             return
-        # 'r' resets the present selection of boundary boxes
+        # 'r' resets the present selection of bounding boxes
         elif k == key_map["r"]:
-            drawing_area_firefox = np.zeros((firefox_ss.shape), np.uint8)
-            drawing_area_chrome = np.zeros((chrome_ss.shape), np.uint8)
-            boxes_chrome = []
-            boxes_firefox = []
-            cv2.setMouseCallback('firefox', draw_boundary_box, [drawing_area_firefox, boxes_firefox])
-            cv2.setMouseCallback('chrome', draw_boundary_box, [drawing_area_chrome, boxes_chrome])
+            drawing_area_firefox, drawing_area_chrome = reset_bounding_boxes(firefox_screenshot.shape, chrome_screenshot.shape)
+            boxes_chrome, boxes_firefox = [], []
+            cv2.setMouseCallback('firefox', draw_bounding_box, [drawing_area_firefox, boxes_firefox])
+            cv2.setMouseCallback('chrome', draw_bounding_box, [drawing_area_chrome, boxes_chrome])
         # <Return> saves the current marking and moves to next image or skips it if no label is assigned
         elif k == key_map["Enter"]:
             if current_image not in labels.keys():
                 break
-            boundary_boxes[current_image + '_firefox'] = boxes_firefox
-            boundary_boxes[current_image + '_chrome'] = boxes_chrome
+            bounding_boxes[current_image + '_firefox'] = boxes_firefox
+            bounding_boxes[current_image + '_chrome'] = boxes_chrome
             break
         elif k == key_map["y"]:
             labels[current_image] = 'y'
             break
         elif k == key_map["n"]:
             labels[current_image] = 'n'
-            visiblity = 0.5
+            visibility = 0.5
         elif k == key_map["d"]:
             labels[current_image] = 'd'
-            visiblity = 0.5
+            visibility = 0.5
 
     get_new_image()
 
@@ -114,5 +118,5 @@ def get_new_image():
 get_new_image()
 
 # Store results.
-utils.write_boundary_boxes(boundary_boxes, labels_directory + args.file_name + "_boundary_box.csv")
+utils.write_bounding_boxes(bounding_boxes, labels_directory + args.file_name + "_bounding_box.json")
 utils.write_labels(labels, labels_directory + args.file_name + ".csv")

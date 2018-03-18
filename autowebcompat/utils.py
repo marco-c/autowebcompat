@@ -198,20 +198,15 @@ def write_labels(labels, file_name='labels.csv'):
             writer.writerow([key, values])
 
 
-def read_boundary_boxes(file_name):
+def read_bounding_boxes(file_name):
     try:
         with open(file_name, 'r') as f:
-            next(f)
-            reader = csv.reader(f)
-            boundary_boxes = {row[0]: ast.literal_eval(row[1]) for row in reader}
+            bounding_boxes = json.load(f)
     except FileNotFoundError:
-        boundary_boxes = {}
-    return boundary_boxes
+        bounding_boxes = {}
+    return bounding_boxes
 
 
-def write_boundary_boxes(boundary_boxes, file_name):
+def write_bounding_boxes(bounding_boxes, file_name):
     with open(file_name, 'w') as f:
-        writer = csv.writer(f, delimiter=',')
-        writer.writerow(["Image Name", "Boundary Boxes (top_left_x,top_left_y,bottom_right_x,bottom_right_y)"])
-        for key, values in boundary_boxes.items():
-            writer.writerow([key, values])
+        print(json.dumps(bounding_boxes), file=f)
