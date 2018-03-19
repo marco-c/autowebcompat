@@ -202,6 +202,7 @@ def screenshot(driver, file_path):
     image = Image.open(file_path)
     image.save(file_path)
 
+    
 def get_code(driver, file_path):
     source = driver.page_source
     f = open(file_path, "w", encoding="utf-8")
@@ -213,6 +214,7 @@ def get_code(driver, file_path):
         f.write("dom tree : " + str(arr))
         f.close()
 
+        
 def run_test(bug, browser, driver, op_sequence=None):
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
 
@@ -224,7 +226,7 @@ def run_test(bug, browser, driver, op_sequence=None):
         print('Continuing...')
 
     screenshot(driver, 'data/%d_%s.png' % (bug['id'], browser))
-    get_code(driver, "source_code/%d_%s.txt" % (bug['id'],browser))
+    get_code(driver, "source_code/%d_%s.txt" % (bug['id'], browser))
 
     saved_sequence = []
     try:
