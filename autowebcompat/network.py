@@ -1,4 +1,3 @@
-import keras
 from keras import backend as K
 from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, ActivityRegularization, concatenate
 from keras.models import Model
@@ -54,7 +53,7 @@ def create_vgg16_network(input_shape):
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
 
     # Block 4
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), flake8activation='relu', padding='same')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
@@ -96,6 +95,7 @@ def create_vgglike_network(input_shape):
 
     return Model(input, x)
 
+
 def create_simnet_network(input_shape):
     L2_REGULARIZATION = 0.001
 
@@ -107,7 +107,7 @@ def create_simnet_network(input_shape):
 
     # CNN 2
     # Downsample by 4:1
-    cnn_2 = MaxPooling2D(pool_size=(4,4))(input)
+    cnn_2 = MaxPooling2D(pool_size=(4, 4))(input)
     cnn_2 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_2)
     cnn_2 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_2)
     cnn_2 = Conv2D(256, (3, 3), padding='same', activation='relu')(cnn_2)
@@ -117,7 +117,7 @@ def create_simnet_network(input_shape):
 
     # CNN 3
     # Downsample by 8:1
-    cnn_3 = MaxPooling2D(pool_size=(8,8))(input)
+    cnn_3 = MaxPooling2D(pool_size=(8, 8))(input)
     cnn_3 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_3)
     cnn_3 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_3)
     cnn_3 = Dropout(0.5)(cnn_3)
@@ -133,6 +133,7 @@ def create_simnet_network(input_shape):
 
     return Model(input, output)
 
+
 def create_simnetlike_network(input_shape):
     L2_REGULARIZATION = 0.005
 
@@ -144,7 +145,7 @@ def create_simnetlike_network(input_shape):
 
     # CNN 2
     # Downsample by 4:1
-    cnn_2 = MaxPooling2D(pool_size=(4,4))(input)
+    cnn_2 = MaxPooling2D(pool_size=(4, 4))(input)
     cnn_2 = Conv2D(32, (3, 3), padding='same', activation='relu')(cnn_2)
     cnn_2 = Conv2D(32, (3, 3), padding='same', activation='relu')(cnn_2)
     cnn_2 = Conv2D(64, (3, 3), padding='same', activation='relu')(cnn_2)
@@ -154,7 +155,7 @@ def create_simnetlike_network(input_shape):
 
     # CNN 3
     # Downsample by 8:1
-    cnn_3 = MaxPooling2D(pool_size=(8,8))(input)
+    cnn_3 = MaxPooling2D(pool_size=(8, 8))(input)
     cnn_3 = Conv2D(16, (3, 3), padding='same', activation='relu')(cnn_3)
     cnn_3 = Conv2D(16, (3, 3), padding='same', activation='relu')(cnn_3)
     cnn_3 = Dropout(0.5)(cnn_3)
@@ -169,6 +170,7 @@ def create_simnetlike_network(input_shape):
     output = Dense(256, activation='relu')(concat_1_l2)
 
     return Model(input, output)
+
 
 def create_inception_network(input_shape):
     """
