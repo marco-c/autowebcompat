@@ -1,7 +1,7 @@
 import argparse
+
 import cv2
 import numpy as np
-
 
 from autowebcompat import utils
 
