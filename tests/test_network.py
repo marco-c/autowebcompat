@@ -1,7 +1,9 @@
-from autowebcompat import network
-from keras import backend as K
 import math
+
+from keras import backend as K
 import numpy as np
+
+from autowebcompat import network
 
 arr1 = np.array([[1, 1]], dtype=np.float32)
 arr2 = np.array([[0, 1]], dtype=np.float32)
