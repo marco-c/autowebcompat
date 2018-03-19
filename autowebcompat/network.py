@@ -1,5 +1,5 @@
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, ActivityRegularization, concatenate
+from keras.layers import ActivityRegularization, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, concatenate
 from keras.models import Model
 from keras.optimizers import SGD, Adam, Nadam, RMSprop
 
