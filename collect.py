@@ -202,6 +202,16 @@ def screenshot(driver, file_path):
     image = Image.open(file_path)
     image.save(file_path)
 
+def get_code(driver, file_path):
+    source = driver.page_source
+    f = open(file_path, "w", encoding="utf-8")
+    domtree = driver.find_elements_by_css_selector("*")
+    f.write("source code : " + source + "\n")
+    arr = []
+    for elem in domtree:
+        arr.append(elem.tag_name)
+        f.write("dom tree : " + str(arr))
+        f.close()
 
 def run_test(bug, browser, driver, op_sequence=None):
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
@@ -214,6 +224,7 @@ def run_test(bug, browser, driver, op_sequence=None):
         print('Continuing...')
 
     screenshot(driver, 'data/%d_%s.png' % (bug['id'], browser))
+    get_code(driver, "source_code/%d_%s.txt" % (bug['id'],browser))
 
     saved_sequence = []
     try:
@@ -232,6 +243,7 @@ def run_test(bug, browser, driver, op_sequence=None):
             print('  - Using %s' % elem_properties)
             image_file = str(bug['id']) + '_' + str(i) + '_' + browser
             screenshot(driver, 'data/%s.png' % (image_file))
+            get_code(driver, "source_code/%s.txt" % (image_file))
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
@@ -282,31 +294,6 @@ def run_tests(firefox_driver, chrome_driver, bugs):
 
     firefox_driver.quit()
     chrome_driver.quit()
-
-
-def get_code(bugsList, firefox_driver, chrome_driver):
-    for bug in bugsList:
-        firefox_driver.get(bug['url'])
-        firefox_source = firefox_driver.page_source
-        f = open("source_code/%d_firefox.txt" % bug['id'], "w", encoding="utf-8")
-        domtree = firefox_driver.find_elements_by_css_selector("*")
-        f.write("source code : " + firefox_source + "\n")
-        arr = []
-        for elem in domtree:
-            arr.append(elem.tag_name)
-        f.write("dom tree : " + str(arr))
-        f.close()
-
-        chrome_driver.get(bug['url'])
-        chrome_source = chrome_driver.page_source
-        f = open("source_code/%d_chrome.txt" % bug['id'], "w", encoding="utf-8")
-        domtree = chrome_driver.find_elements_by_css_selector("*")
-        f.write("source code : " + chrome_source + "\n")
-        arr = []
-        for elem in domtree:
-            arr.append(elem.tag_name)
-        f.write("dom tree : " + str(arr))
-        f.close()
 
 
 os.environ['PATH'] += os.pathsep + os.path.abspath('tools')
