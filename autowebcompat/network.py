@@ -3,7 +3,7 @@ from keras.layers import ActivityRegularization, Conv2D, Dense, Dropout, Flatten
 from keras.models import Model
 from keras.optimizers import SGD, Adam, Nadam, RMSprop
 
-SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16']
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'simnet', 'simnetlike']
 SUPPORTED_OPTIMIZERS = {
     'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
     'adam': Adam(),
