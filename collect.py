@@ -7,10 +7,10 @@ import sys
 import time
 import traceback
 
+from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
 
-from PIL import Image
 from autowebcompat import utils
 
 MAX_THREADS = 5

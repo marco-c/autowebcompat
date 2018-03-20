@@ -2,6 +2,7 @@ import argparse
 from tkinter import Label, Tk
 
 from PIL import Image, ImageTk
+
 from autowebcompat import utils
 
 labels_directory = 'label_persons/'

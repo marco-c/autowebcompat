@@ -1,10 +1,10 @@
 import os
 
+from PIL import Image
+import numpy as np
 import pytest
 
-from PIL import Image
 from autowebcompat import utils
-import numpy as np
 
 
 def test_get_bugs():
