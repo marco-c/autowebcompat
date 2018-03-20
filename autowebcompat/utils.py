@@ -98,24 +98,26 @@ def get_ImageDataGenerator(images, image_shape):
 
     return data_gen
 
+
 def create_labels(classifier):
-    l = read_labels()
+    Rlabels = read_labels()
     labels = {}
-    for Id,label in l.items():
+    for Id, label in Rlabels.items():
         if classifier == "Y vs D + N":
             if label == "Y":
                 labels[Id] = 1
-            else :
+            else:
                 labels[Id] = 0
 
         elif classifier == "Y + D vs N":
             if label == "N":
                 labels[Id] = 0
-            else :
+            else:
                 labels[Id] = 1
 
-        else :
+        else:
             print("This classification is not valid")
+    return labels
 
 
 class CouplesIterator():
