@@ -202,19 +202,19 @@ def screenshot(driver, file_path):
     image = Image.open(file_path)
     image.save(file_path)
 
-    
+
 def get_code(driver, file_path):
     source = driver.page_source
     f = open(file_path, "w", encoding="utf-8")
-    domtree = driver.find_elements_by_css_selector("*")
     f.write("source code : " + source + "\n")
-    arr = []
-    for elem in domtree:
-        arr.append(elem.tag_name)
-        f.write("dom tree : " + str(arr))
-        f.close()
+    f.close()
 
-        
+
+def do_combined_task(driver, location):
+    screenshot(driver, 'data/' + location + '.png')
+    get_code(driver, 'source/' + location + '.txt')
+
+
 def run_test(bug, browser, driver, op_sequence=None):
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
 
@@ -225,9 +225,7 @@ def run_test(bug, browser, driver, op_sequence=None):
         traceback.print_exc()
         print('Continuing...')
 
-    screenshot(driver, 'data/%d_%s.png' % (bug['id'], browser))
-    get_code(driver, "source_code/%d_%s.txt" % (bug['id'], browser))
-
+    do_combined_task(driver, '%d_%s' % (bug['id'], browser))
     saved_sequence = []
     try:
         max_iter = 7 if op_sequence is None else len(op_sequence)
@@ -244,8 +242,7 @@ def run_test(bug, browser, driver, op_sequence=None):
 
             print('  - Using %s' % elem_properties)
             image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-            screenshot(driver, 'data/%s.png' % (image_file))
-            get_code(driver, "source_code/%s.txt" % (image_file))
+            do_combined_task(driver, image_file)
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
@@ -320,8 +317,6 @@ def main(bugs):
 
 if __name__ == '__main__':
     random.shuffle(bugs)
-    main(bugs)
-
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
             executor.submit(main, bugs[i::MAX_THREADS])
