@@ -193,6 +193,6 @@ def read_labels(file_name='labels.csv'):
 def write_labels(labels, file_name='labels.csv'):
     with open(file_name, 'w') as f:
         writer = csv.writer(f, delimiter=',')
-        writer.writerow(["Image Name", "Label"])
+        writer.writerow(['Image Name', 'Label'])
         for key, values in labels.items():
             writer.writerow([key, values])

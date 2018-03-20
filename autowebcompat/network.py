@@ -139,10 +139,10 @@ def create(input_shape, network='vgglike', weights=None):
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
 
-    '''concatenated = keras.layers.concatenate([processed_a, processed_b])
+    """concatenated = keras.layers.concatenate([processed_a, processed_b])
     out = Dense(1, activation='sigmoid')(concatenated)
 
-    model = Model([input_a, input_b], out)'''
+    model = Model([input_a, input_b], out)"""
 
     distance = Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
 
@@ -150,17 +150,17 @@ def create(input_shape, network='vgglike', weights=None):
 
 
 def contrastive_loss(y_true, y_pred):
-    '''Contrastive loss from Hadsell-et-al.'06
+    """Contrastive loss from Hadsell-et-al.'06
     http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-    '''
+    """
     margin = 1
     return K.mean(y_true * K.square(y_pred) +
                   (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
 
 
 def accuracy(y_true, y_pred):
-    '''Compute classification accuracy with a fixed threshold on distances.
-    '''
+    """Compute classification accuracy with a fixed threshold on distances.
+    """
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 
 
