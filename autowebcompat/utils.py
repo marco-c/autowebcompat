@@ -197,14 +197,15 @@ def write_labels(labels, file_name='labels.csv'):
         for key, values in labels.items():
             writer.writerow([key, values])
 
+
 def label_encoder(label, encoder='d+n'):
-    if encoder=='d+n':
-        if label=='y':
+    if encoder == 'd+n':
+        if label == 'y':
             return 0
-        if label=='n' or 'd':
+        if label == 'n' or 'd':
             return 1
-    if encoder=='y+d':
-        if label=='y' or 'd':
+    if encoder == 'y+d':
+        if label == 'y' or 'd':
             return 0
-        if label=='n':
+        if label == 'n':
             return 1
