@@ -4,7 +4,7 @@ from autowebcompat import network
 from autowebcompat import utils
 
 
-labels = utils.read_labels()
+labels = utils.read_labels(encode='d+n')
 
 utils.prepare_images()
 all_images = utils.get_images()
