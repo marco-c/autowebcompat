@@ -1,7 +1,15 @@
 from keras import backend as K
-from keras.layers import concatenate, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D
+from keras.layers import ActivityRegularization, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, concatenate
 from keras.models import Model
-from keras.optimizers import RMSprop, Adam, Nadam, SGD
+from keras.optimizers import SGD, Adam, Nadam, RMSprop
+
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'simnet', 'simnetlike']
+SUPPORTED_OPTIMIZERS = {
+    'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
+    'adam': Adam(),
+    'nadam': Nadam(),
+    'rms': RMSprop()
+}
 
 
 def euclidean_distance(vects):
@@ -36,7 +44,7 @@ def create_vgg16_network(input_shape):
     # Block 2
     x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
-    MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
 
     # Block 3
     x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
@@ -88,6 +96,82 @@ def create_vgglike_network(input_shape):
     return Model(input, x)
 
 
+def create_simnet_network(input_shape):
+    L2_REGULARIZATION = 0.001
+
+    input = Input(shape=input_shape)
+
+    # CNN 1
+    vgg16 = create_vgg16_network(input_shape)
+    cnn_1 = vgg16(input)
+
+    # CNN 2
+    # Downsample by 4:1
+    cnn_2 = MaxPooling2D(pool_size=(4, 4))(input)
+    cnn_2 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(256, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Dropout(0.5)(cnn_2)
+    cnn_2 = Flatten()(cnn_2)
+    cnn_2 = Dense(1024, activation='relu')(cnn_2)
+
+    # CNN 3
+    # Downsample by 8:1
+    cnn_3 = MaxPooling2D(pool_size=(8, 8))(input)
+    cnn_3 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Conv2D(128, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Dropout(0.5)(cnn_3)
+    cnn_3 = Flatten()(cnn_3)
+    cnn_3 = Dense(512, activation='relu')(cnn_3)
+
+    concat_2_3 = concatenate([cnn_2, cnn_3])
+    concat_2_3 = Dense(1024, activation='relu')(concat_2_3)
+    l2_reg = ActivityRegularization(l2=L2_REGULARIZATION)(concat_2_3)
+
+    concat_1_l2 = concatenate([cnn_1, l2_reg])
+    output = Dense(4096, activation='relu')(concat_1_l2)
+
+    return Model(input, output)
+
+
+def create_simnetlike_network(input_shape):
+    L2_REGULARIZATION = 0.005
+
+    input = Input(shape=input_shape)
+
+    # CNN 1
+    vgg16 = create_vgglike_network(input_shape)
+    cnn_1 = vgg16(input)
+
+    # CNN 2
+    # Downsample by 4:1
+    cnn_2 = MaxPooling2D(pool_size=(4, 4))(input)
+    cnn_2 = Conv2D(32, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(32, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Conv2D(64, (3, 3), padding='same', activation='relu')(cnn_2)
+    cnn_2 = Dropout(0.5)(cnn_2)
+    cnn_2 = Flatten()(cnn_2)
+    cnn_2 = Dense(64, activation='relu')(cnn_2)
+
+    # CNN 3
+    # Downsample by 8:1
+    cnn_3 = MaxPooling2D(pool_size=(8, 8))(input)
+    cnn_3 = Conv2D(16, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Conv2D(16, (3, 3), padding='same', activation='relu')(cnn_3)
+    cnn_3 = Dropout(0.5)(cnn_3)
+    cnn_3 = Flatten()(cnn_3)
+    cnn_3 = Dense(32, activation='relu')(cnn_3)
+
+    concat_2_3 = concatenate([cnn_2, cnn_3])
+    concat_2_3 = Dense(128, activation='relu')(concat_2_3)
+    l2_reg = ActivityRegularization(l2=L2_REGULARIZATION)(concat_2_3)
+
+    concat_1_l2 = concatenate([cnn_1, l2_reg])
+    output = Dense(256, activation='relu')(concat_1_l2)
+
+    return Model(input, output)
+
+
 def create_inception_network(input_shape):
     """
        Simple architecture with one layer of inception model
@@ -117,6 +201,7 @@ def create_inception_network(input_shape):
 
 
 def create(input_shape, network='vgglike', weights=None):
+    assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape)
 
@@ -130,10 +215,10 @@ def create(input_shape, network='vgglike', weights=None):
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
 
-    '''concatenated = keras.layers.concatenate([processed_a, processed_b])
+    """concatenated = keras.layers.concatenate([processed_a, processed_b])
     out = Dense(1, activation='sigmoid')(concatenated)
 
-    model = Model([input_a, input_b], out)'''
+    model = Model([input_a, input_b], out)"""
 
     distance = Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
 
@@ -141,28 +226,22 @@ def create(input_shape, network='vgglike', weights=None):
 
 
 def contrastive_loss(y_true, y_pred):
-    '''Contrastive loss from Hadsell-et-al.'06
+    """Contrastive loss from Hadsell-et-al.'06
     http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-    '''
+    """
     margin = 1
     return K.mean(y_true * K.square(y_pred) +
                   (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
 
 
 def accuracy(y_true, y_pred):
-    '''Compute classification accuracy with a fixed threshold on distances.
-    '''
+    """Compute classification accuracy with a fixed threshold on distances.
+    """
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 
 
 def compile(model, optimizer='sgd', loss_func=contrastive_loss):
-    allOptimizers = {
-        'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
-        'adam': Adam(),
-        'nadam': Nadam(),
-        'rms': RMSprop()
-    }
-    assert optimizer in allOptimizers, '%s is an invalid optimizer' % optimizer
-    opt = allOptimizers[optimizer]
+    assert optimizer in SUPPORTED_OPTIMIZERS, '%s is an invalid optimizer' % optimizer
+    opt = SUPPORTED_OPTIMIZERS[optimizer]
 
     model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])

@@ -1,12 +1,13 @@
+import csv
 import json
 import os
 import random
 import threading
-import numpy as np
+
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-import csv
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+import numpy as np
 
 
 def get_bugs():
@@ -192,7 +193,7 @@ def read_labels(file_name='labels.csv', encode='d+n'):
 def write_labels(labels, file_name='labels.csv'):
     with open(file_name, 'w') as f:
         writer = csv.writer(f, delimiter=',')
-        writer.writerow(["Image Name", "Label"])
+        writer.writerow(['Image Name', 'Label'])
         for key, values in labels.items():
             writer.writerow([key, values])
 
