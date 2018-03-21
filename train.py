@@ -4,8 +4,8 @@ import random
 from autowebcompat import network, utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("network", type=str, choices=network.SUPPORTED_NETWORKS, help="Select the network to use for training")
-parser.add_argument("optimizer", type=str, choices=network.SUPPORTED_OPTIMIZERS, help="Select the optimizer to use for training")
+parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
+parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
 args = parser.parse_args()
 
 labels = utils.read_labels()

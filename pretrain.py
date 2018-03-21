@@ -7,8 +7,8 @@ from urllib.parse import urlparse
 from autowebcompat import network, utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("network", type=str, choices=network.SUPPORTED_NETWORKS, help="Select the network to use for training")
-parser.add_argument("optimizer", type=str, choices=network.SUPPORTED_OPTIMIZERS, help="Select the optimizer to use for training")
+parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
+parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
 args = parser.parse_args()
 
 bugs = utils.get_bugs()

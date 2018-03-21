@@ -5,10 +5,10 @@ from PIL import Image, ImageTk
 
 from autowebcompat import utils
 
-labels_directory = "label_persons/"
+labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
-parser.add_argument("file_name", action="store")
+parser.add_argument('file_name', action='store')
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name)
@@ -18,11 +18,11 @@ current_image = None
 
 root = Tk()
 panel1 = Label(root)
-panel1.pack(side="left", padx=10)
+panel1.pack(side='left', padx=10)
 panel2 = Label(root)
-panel2.pack(side="left", padx=10)
+panel2.pack(side='left', padx=10)
 panel3 = Label(root)
-panel3.pack(side="left", padx=10)
+panel3.pack(side='left', padx=10)
 
 
 def get_new_image():
@@ -31,10 +31,10 @@ def get_new_image():
         root.quit()
         return
     current_image = images_to_show.pop()
-    print("data/%s_firefox.png" % current_image)
+    print('data/%s_firefox.png' % current_image)
 
-    img_firefox = Image.open("data/%s_firefox.png" % current_image)
-    img_chrome = Image.open("data/%s_chrome.png" % current_image)
+    img_firefox = Image.open('data/%s_firefox.png' % current_image)
+    img_chrome = Image.open('data/%s_chrome.png' % current_image)
 
     img = ImageTk.PhotoImage(img_firefox)
     panel1.configure(image=img)
@@ -43,8 +43,8 @@ def get_new_image():
     panel2.configure(image=img)
     panel2.image = img
 
-    background = img_firefox.convert("RGBA")
-    overlay = img_chrome.convert("RGBA")
+    background = img_firefox.convert('RGBA')
+    overlay = img_chrome.convert('RGBA')
     img_blended = Image.blend(background, overlay, 0.5)
 
     img = ImageTk.PhotoImage(img_blended)
@@ -79,11 +79,11 @@ def close(e):
 
 
 get_new_image()
-root.bind("y", callback_y)
-root.bind("d", callback_d)
-root.bind("n", callback_n)
-root.bind("<Return>", callback_skip)
-root.bind("<Escape>", close)
+root.bind('y', callback_y)
+root.bind('d', callback_d)
+root.bind('n', callback_n)
+root.bind('<Return>', callback_skip)
+root.bind('<Escape>', close)
 root.mainloop()
 
 # Store results.
