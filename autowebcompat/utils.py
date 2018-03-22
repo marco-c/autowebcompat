@@ -99,6 +99,16 @@ def get_ImageDataGenerator(images, image_shape):
     return data_gen
 
 
+def classifying_labels(labels, classification_type):
+    if classification_type == 'Y vs D + N':
+        labels = {Id: 1 if label == 'y' else 0 for Id, label in labels.items()}
+    elif classification_type == 'Y + D vs N':
+        labels = {Id: 0 if label == 'n' else 1 for Id, label in labels.items()}
+    else:
+        print('This classification is not valid')
+    return labels
+
+
 class CouplesIterator():
     def __init__(self, image_couples_generator, image_shape, image_data_generator, batch_size=32):
         self.image_couples_generator = image_couples_generator
@@ -179,16 +189,12 @@ def make_infinite(gen_func, elems):
         yield from gen_func(elems)
 
 
-def read_labels(encoding, file_name='labels.csv'):
+def read_labels(file_name='labels.csv'):
     try:
         with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
-            if encoding == 'Y vs D + N':
-                labels = {row[0]: 1 if row[1] == 'y' else 0 for row in reader}
-            elif encoding == 'Y + D vs N':
-                labels = {row[0]: 0 if row[1] == 'n' else 1 for row in reader}
-
+            labels = {row[0]: row[1] for row in reader}
     except FileNotFoundError:
         labels = {}
     return labels
