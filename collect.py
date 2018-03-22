@@ -209,7 +209,7 @@ def get_domtree(driver, file_path):
 def get_screenshot_and_domtree(driver, file_name):
     wait_loaded(driver)
     screenshot(driver, 'data/' + file_name + '.png')
-    get_code(driver, 'data/' + 'domtree_' + file_name + '.txt')
+    get_domtree(driver, 'data/' + 'dom_' + file_name + '.txt')
 
 
 def run_test(bug, browser, driver, op_sequence=None):
@@ -223,7 +223,7 @@ def run_test(bug, browser, driver, op_sequence=None):
         print('Continuing...')
 
     get_screenshot_and_domtree(driver, '%d_%s' % (bug['id'], browser))
-    
+
     saved_sequence = []
     try:
         max_iter = 7 if op_sequence is None else len(op_sequence)
