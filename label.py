@@ -19,7 +19,7 @@ drawing = False
 shifting = False
 changing_shape = False
 box_to_change = {}
-all_boxes = []
+all_boxes = {}
 key_map = {"Escape": 27, "r": 114, "Enter": 13, "Space": 32, "y": 121, "n": 110, "d": 100}
 cv2.namedWindow('firefox')
 cv2.namedWindow('chrome')
@@ -256,7 +256,7 @@ def get_new_image():
         elif k == key_map["r"]:
             drawing_area_firefox = reset_bounding_boxes(firefox_screenshot.shape)
             drawing_area_chrome = reset_bounding_boxes(chrome_screenshot.shape)
-            all_boxes, boxes_chrome, boxes_firefox = [], [], []
+            all_boxes, boxes_firefox, boxes_chrome = {'n': [], 'd': []}, {'n': [], 'd': []}, {'n': [], 'd': []}
             cv2.setMouseCallback('firefox', draw_bounding_boxes, [drawing_area_firefox, drawing_area_chrome, boxes_firefox])
             cv2.setMouseCallback('chrome', draw_bounding_boxes, [drawing_area_chrome, drawing_area_firefox, boxes_chrome])
         # <Return> saves the current marking and moves to next image
