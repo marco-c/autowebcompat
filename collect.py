@@ -15,13 +15,13 @@ from autowebcompat import utils
 
 MAX_THREADS = 5
 
-if sys.platform.startswith("linux"):
-    chrome_bin = "tools/chrome-linux/chrome"
+if sys.platform.startswith('linux'):
+    chrome_bin = 'tools/chrome-linux/chrome'
     nightly_bin = 'tools/nightly/firefox-bin'
-elif sys.platform.startswith("darwin"):
-    chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
+elif sys.platform.startswith('darwin'):
+    chrome_bin = 'tools/chrome.app/Contents/MacOS/chrome'
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
-elif sys.platform.startswith("win32"):
+elif sys.platform.startswith('win32'):
     chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
     nightly_bin = 'tools\\Nightly\\firefox.exe'
 
@@ -44,7 +44,7 @@ def wait_loaded(driver):
           let done = arguments[0];
 
           window.onload = done;
-          if (document.readyState === "complete") {
+          if (document.readyState === 'complete') {
             done();
           }
         """)
@@ -86,7 +86,7 @@ def close_all_windows_except_first(driver):
 def get_element_properties(driver, child):
     child_properties = driver.execute_script("""
       let elem_properties = {
-        tag: "",
+        tag: '',
         attributes: {},
       };
 
@@ -157,7 +157,7 @@ def do_something(driver, elem_properties=None):
     if elem is None:
         return None
 
-    driver.execute_script("arguments[0].scrollIntoView();", elem)
+    driver.execute_script('arguments[0].scrollIntoView();', elem)
 
     if elem.tag_name in ['button', 'a']:
         elem.click()
@@ -271,7 +271,7 @@ def run_tests(firefox_driver, chrome_driver, bugs):
                 sequence = run_test(bug, 'firefox', firefox_driver)
                 run_test(bug, 'chrome', chrome_driver, sequence)
 
-                with open("data/%d.txt" % bug['id'], 'w') as f:
+                with open('data/%d.txt' % bug['id'], 'w') as f:
                     for element in sequence:
                         f.write(json.dumps(element) + '\n')
 
@@ -289,13 +289,13 @@ os.environ['MOZ_HEADLESS'] = '1'
 os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
-firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
+firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--window-size=412,732")
-chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36")
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--window-size=412,732')
+chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
 
 
 def main(bugs):
