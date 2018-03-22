@@ -207,7 +207,7 @@ def get_code(driver, file_path):
     wait_loaded(driver)
 
     with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(driver.page_source)
+        f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
 
 def get_screenshot_and_domtree(driver, file_name):
