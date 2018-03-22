@@ -204,16 +204,15 @@ def screenshot(driver, file_path):
 
 
 def get_code(driver, file_path):
-    if(not(os.path.isdir('source'))):
-        utils.mkdir('source')
-    source = driver.page_source
-    with open(file_path, "w", encoding="utf-8") as open_file:
-        open_file.append("source code : " + source + "\n")
+    wait_loaded(driver)
+    
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(driver.page_source)
 
 
-def get_screenshot_code(driver, location):
-    screenshot(driver, 'data/' + location + '.png')
-    get_code(driver, 'source/' + location + '.txt')
+def get_screenshot_and_domtree(driver, file_name):
+    screenshot(driver, 'data/' + file_name + '.png')
+    get_code(driver, 'data/'+ 'dom_LOCATION_' + file_name + '.txt')
 
 
 def run_test(bug, browser, driver, op_sequence=None):
@@ -226,7 +225,7 @@ def run_test(bug, browser, driver, op_sequence=None):
         traceback.print_exc()
         print('Continuing...')
 
-    get_screenshot_code(driver, '%d_%s' % (bug['id'], browser))
+    get_screenshot_and_domtree(driver, '%d_%s' % (bug['id'], browser))
     saved_sequence = []
     try:
         max_iter = 7 if op_sequence is None else len(op_sequence)
@@ -243,7 +242,7 @@ def run_test(bug, browser, driver, op_sequence=None):
 
             print('  - Using %s' % elem_properties)
             image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-            get_screenshot_code(driver, image_file)
+            get_screenshot_and_domtree(driver, image_file)
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
