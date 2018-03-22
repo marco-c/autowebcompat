@@ -205,14 +205,14 @@ def screenshot(driver, file_path):
 
 def get_code(driver, file_path):
     wait_loaded(driver)
-    
+
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(driver.page_source)
 
 
 def get_screenshot_and_domtree(driver, file_name):
     screenshot(driver, 'data/' + file_name + '.png')
-    get_code(driver, 'data/'+ 'dom_LOCATION_' + file_name + '.txt')
+    get_code(driver, 'data/' + 'dom_LOCATION_' + file_name + '.txt')
 
 
 def run_test(bug, browser, driver, op_sequence=None):
