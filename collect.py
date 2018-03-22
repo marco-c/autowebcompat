@@ -182,6 +182,8 @@ def do_something(driver, elem_properties=None):
             elem.send_keys('quick search')
         elif input_type == 'color':
             driver.execute_script("arguments[0].value = '#ff0000'", elem)
+        elif input_type == 'submit':
+            elem.click()
         else:
             raise Exception('Unsupported input type: %s' % input_type)
     elif elem.tag_name == 'select':
