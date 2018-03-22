@@ -184,10 +184,10 @@ def read_labels(encoding, file_name='labels.csv'):
         with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
-            if encoding == "Y vs D + N":
-                labels = {row[0]: 1 if row[1] == "y" else 0 for row in reader}
-            elif encoding == "Y + D vs N":
-                labels = {row[0]: 0 if row[1] == "n" else 1 for row in reader}
+            if encoding == 'Y vs D + N':
+                labels = {row[0]: 1 if row[1] == 'y' else 0 for row in reader}
+            elif encoding == 'Y + D vs N':
+                labels = {row[0]: 0 if row[1] == 'n' else 1 for row in reader}
 
     except FileNotFoundError:
         labels = {}
