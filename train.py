@@ -8,7 +8,7 @@ parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, hel
 parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
 args = parser.parse_args()
 
-labels = utils.read_labels(classification_type='Y vs D + N')
+labels = utils.read_labels()
 
 utils.prepare_images()
 all_image_names = [i for i in utils.get_images() if i in labels]
@@ -33,7 +33,7 @@ images_test = [i for i in all_image_names if i not in set(images_train)]
 
 def couples_generator(images):
     for i in images:
-        yield load_pair(i), labels[i]
+        yield load_pair(i), utils.Classify(labels[i], 'Y vs D + N')
 
 
 def gen_func(images):

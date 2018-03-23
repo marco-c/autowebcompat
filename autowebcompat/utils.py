@@ -179,20 +179,28 @@ def make_infinite(gen_func, elems):
         yield from gen_func(elems)
 
 
-def read_labels(file_name='labels.csv', classification_type=None):
+def read_labels(file_name='labels.csv'):
     try:
         with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
-            if classification_type is None:
-                labels = {row[0]: row[1] for row in reader}
-            elif classification_type == 'Y vs D + N':
-                labels = {row[0]: 1 if row[1] == 'y' else 0 for row in reader}
-            elif classification_type == 'Y + D vs N':
-                labels = {row[0]: 0 if row[1] == 'n' else 1 for row in reader}
+            labels = {row[0]: row[1] for row in reader}
     except FileNotFoundError:
         labels = {}
     return labels
+
+
+def Classify(label, classification_type='Y vs D + N'):
+    if classification_type == 'Y vs D + N':
+        if label == 'y':
+            return 1
+        else:
+            return 0
+    elif classification_type == 'Y + D vs N':
+        if label == 'n':
+            return 0
+        else:
+            return 1
 
 
 def write_labels(labels, file_name='labels.csv'):
