@@ -199,7 +199,7 @@ def do_something(driver, elem_properties=None):
 
 def screenshot(driver, file_path):
     wait_loaded(driver)
-
+    file_path = "file:///home/anuja/tj/autowebcompat/test.html"
     driver.get_screenshot_as_file(file_path)
     image = Image.open(file_path)
     image.save(file_path)
