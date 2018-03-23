@@ -179,17 +179,17 @@ def make_infinite(gen_func, elems):
         yield from gen_func(elems)
 
 
-def read_labels(file_name='labels.csv', classification_type = None):
+def read_labels(file_name='labels.csv', classification_type=None):
     try:
         with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
-            if classification_type == None:
-                 labels = {row[0]: row[1] for row in reader}
+            if classification_type is None:
+                labels = {row[0]: row[1] for row in reader}
             elif classification_type == 'Y vs D + N':
-                 labels = {row[0]: 1 if row[1] == 'y' else 0 for row in reader}
+                labels = {row[0]: 1 if row[1] == 'y' else 0 for row in reader}
             elif classification_type == 'Y + D vs N':
-                 labels = {row[0]: 0 if row[1] == 'n' else 1 for row in reader}
+                labels = {row[0]: 0 if row[1] == 'n' else 1 for row in reader}
     except FileNotFoundError:
         labels = {}
     return labels
