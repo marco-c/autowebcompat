@@ -179,12 +179,12 @@ def make_infinite(gen_func, elems):
         yield from gen_func(elems)
 
 
-def read_labels(file_name='labels.csv'):
+def read_labels(file_name='labels.csv', encode='d+n'):
     try:
         with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
-            labels = {row[0]: row[1] for row in reader}
+            labels = {row[0]: label_encoder(row[1], encoder=encode) for row in reader}
     except FileNotFoundError:
         labels = {}
     return labels
@@ -196,3 +196,16 @@ def write_labels(labels, file_name='labels.csv'):
         writer.writerow(['Image Name', 'Label'])
         for key, values in labels.items():
             writer.writerow([key, values])
+
+
+def label_encoder(label, encoder='d+n'):
+    if encoder == 'd+n':
+        if label == 'y':
+            return 0
+        if label == 'n' or 'd':
+            return 1
+    if encoder == 'y+d':
+        if label == 'y' or 'd':
+            return 0
+        if label == 'n':
+            return 1
