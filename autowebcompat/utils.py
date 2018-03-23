@@ -190,7 +190,7 @@ def read_labels(file_name='labels.csv'):
     return labels
 
 
-def Classify(label, classification_type='Y vs D + N'):
+def to_categorical_label(label, classification_type='Y vs D + N'):
     if classification_type == 'Y vs D + N':
         if label == 'y':
             return 1
