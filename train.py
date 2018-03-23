@@ -33,7 +33,7 @@ images_test = [i for i in all_image_names if i not in set(images_train)]
 
 def couples_generator(images):
     for i in images:
-        yield load_pair(i), labels[i]
+        yield load_pair(i), utils.to_categorical_label(labels[i], 'Y vs D + N')
 
 
 def gen_func(images):

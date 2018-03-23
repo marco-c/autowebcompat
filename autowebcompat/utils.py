@@ -190,6 +190,19 @@ def read_labels(file_name='labels.csv'):
     return labels
 
 
+def to_categorical_label(label, classification_type='Y vs D + N'):
+    if classification_type == 'Y vs D + N':
+        if label == 'y':
+            return 1
+        else:
+            return 0
+    elif classification_type == 'Y + D vs N':
+        if label == 'n':
+            return 0
+        else:
+            return 1
+
+
 def write_labels(labels, file_name='labels.csv'):
     with open(file_name, 'w') as f:
         writer = csv.writer(f, delimiter=',')
