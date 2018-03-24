@@ -13,4 +13,4 @@ def test_labels():
 def test_validate_labels():
     labels = utils.read_labels()
     for label in labels.values():
-        assert label in 'y' or 'n' or 'd'
+        assert label in ['y', 'n', 'd']
