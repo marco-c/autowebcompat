@@ -17,6 +17,7 @@ image = utils.load_image(all_images[0])
 input_shape = image.shape
 BATCH_SIZE = 32
 EPOCHS = 50
+random.seed(42)
 
 
 def load_pair(fname):
