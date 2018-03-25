@@ -42,7 +42,6 @@ def wait_loaded(driver):
     try:
         driver.execute_async_script("""
           let done = arguments[0];
-
           window.onload = done;
           if (document.readyState === 'complete') {
             done();
@@ -89,12 +88,10 @@ def get_element_properties(driver, child):
         tag: '',
         attributes: {},
       };
-
       for (let i = 0; i < arguments[0].attributes.length; i++) {
         elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
       elem_properties.tag = arguments[0].tagName;
-
       return elem_properties;
     """, child)
 
@@ -199,7 +196,6 @@ def do_something(driver, elem_properties=None):
 
 def screenshot(driver, file_path):
     wait_loaded(driver)
-    file_path = "file:///home/anuja/tj/autowebcompat/test.html"
     driver.get_screenshot_as_file(file_path)
     image = Image.open(file_path)
     image.save(file_path)
@@ -209,6 +205,7 @@ def run_test(bug, browser, driver, op_sequence=None):
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
 
     try:
+        bug['url'] = "https://www.google.co.in/"
         driver.get(bug['url'])
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
@@ -310,4 +307,4 @@ if __name__ == '__main__':
     random.shuffle(bugs)
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
-            executor.submit(main, bugs[i::MAX_THREADS])
+executor.submit(main, bugs[i::MAX_THREADS])
