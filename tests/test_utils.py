@@ -100,3 +100,18 @@ def test_balance_unbalanced_data():
 
     with pytest.raises(StopIteration):
         next(balanced_data)
+
+
+def test_to_categorical_label():
+    label = 'y'
+    categorical_label = utils.to_categorical_label(label, 'Y vs D + N')
+    assert categorical_label == 1
+    label = 'd'
+    categorical_label = utils.to_categorical_label(label, 'Y vs D + N')
+    assert categorical_label == 0
+    label = 'n'
+    categorical_label = utils.to_categorical_label(label, 'Y + D vs N')
+    assert categorical_label == 0
+    label = 'y'
+    categorical_label = utils.to_categorical_label(label, 'Y + D vs N')
+    assert categorical_label == 1
