@@ -42,6 +42,7 @@ def wait_loaded(driver):
     try:
         driver.execute_async_script("""
           let done = arguments[0];
+
           window.onload = done;
           if (document.readyState === 'complete') {
             done();
@@ -88,10 +89,12 @@ def get_element_properties(driver, child):
         tag: '',
         attributes: {},
       };
+
       for (let i = 0; i < arguments[0].attributes.length; i++) {
         elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
       elem_properties.tag = arguments[0].tagName;
+
       return elem_properties;
     """, child)
 
@@ -177,10 +180,10 @@ def do_something(driver, elem_properties=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
-        elif input_type == 'color':
-            driver.execute_script("arguments[0].value = '#ff0000'", elem)
         elif input_type == 'submit':
             elem.click()
+        elif input_type == 'color':
+            driver.execute_script("arguments[0].value = '#ff0000'", elem)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
     elif elem.tag_name == 'select':
@@ -195,24 +198,33 @@ def do_something(driver, elem_properties=None):
 
 
 def screenshot(driver, file_path):
-    wait_loaded(driver)
     driver.get_screenshot_as_file(file_path)
     image = Image.open(file_path)
     image.save(file_path)
+
+
+def get_domtree(driver, file_path):
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(driver.execute_script('return document.documentElement.outerHTML'))
+
+
+def get_screenshot_and_domtree(driver, file_name):
+    wait_loaded(driver)
+    screenshot(driver, 'data/' + file_name + '.png')
+    get_domtree(driver, 'data/' + 'dom_' + file_name + '.txt')
 
 
 def run_test(bug, browser, driver, op_sequence=None):
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
 
     try:
-        bug['url'] = "https://www.google.co.in/"
         driver.get(bug['url'])
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
 
-    screenshot(driver, 'data/%d_%s.png' % (bug['id'], browser))
+    get_screenshot_and_domtree(driver, '%d_%s' % (bug['id'], browser))
 
     saved_sequence = []
     try:
@@ -230,7 +242,7 @@ def run_test(bug, browser, driver, op_sequence=None):
 
             print('  - Using %s' % elem_properties)
             image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-            screenshot(driver, 'data/%s.png' % (image_file))
+            get_screenshot_and_domtree(driver, image_file)
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
@@ -307,4 +319,4 @@ if __name__ == '__main__':
     random.shuffle(bugs)
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for i in range(MAX_THREADS):
-executor.submit(main, bugs[i::MAX_THREADS])
+            executor.submit(main, bugs[i::MAX_THREADS])
