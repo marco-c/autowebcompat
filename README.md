@@ -58,15 +58,8 @@ For the unsupervised training, we are using a related problem for which we alrea
 - The **collect.py** script is the crawler that collects screenshots of web pages in different browsers;
 - The **label.py** script is a utility that helps labelling couples of screenshots (are they the same in the two browsers or are there differences?);
 - The **pretrain.py** script trains a neural network on the website screenshots for a slightly different problem (for which we know the solution), so that we can reuse the network weights for the training on the actual problem;
-<<<<<<< HEAD
 - The **train.py** script trains the neural network on the website screenshots to detect compat issues;
 - The **data_inconsistencies.py** script checks the generated screenshots and takes note of any data inconsistency (e.g. screenshots that were taken in Firefox but not in Chrome).
-||||||| merged common ancestors
-- The **train.py** script trains the neural network on the website screenshots to detect compat issues.
-=======
-- The **train.py** script trains the neural network on the website screenshots to detect compat issues;
-- The **data_inconsistencies.py** script checks the data/ repository and writes the inconsistencies to an inconsistencies.csv file
->>>>>>> Update README.md
 
 ## Setup
 
@@ -76,14 +69,7 @@ For the unsupervised training, we are using a related problem for which we alrea
 - Clone the repository with submodules: `git lfs clone --recurse-submodules REPO_URL`
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
-<<<<<<< HEAD
 - Run the **pretrain.py / train.py** script to train the neural network.
-||||||| merged common ancestors
-- Run the **get_dependencies.py** script.
-=======
-- Run the **get_dependencies.py** script.
-- Run the **pre-train.py / train.py** script, for locally running the neural network.
->>>>>>> Update README.md
 
 ## Communication
 

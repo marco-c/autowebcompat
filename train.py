@@ -3,9 +3,13 @@ import random
 
 from autowebcompat import network, utils
 
+CLASSIFICATION_TYPES = ['Y vs N + D', 'Y + D vs N']
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
 parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
+parser.add_argument('classification_type', type=str, choices=CLASSIFICATION_TYPES, help='Select the classification_type for training')
 args = parser.parse_args()
 
 labels = utils.read_labels()
@@ -34,7 +38,7 @@ images_test = [i for i in all_image_names if i not in set(images_train)]
 
 def couples_generator(images):
     for i in images:
-        yield load_pair(i), utils.to_categorical_label(labels[i], 'Y vs D + N')
+        yield load_pair(i), utils.to_categorical_label(labels[i], args.classification_type)
 
 
 def gen_func(images):
