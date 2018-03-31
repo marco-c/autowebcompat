@@ -7,7 +7,7 @@ from autowebcompat import network, utils
 parser = argparse.ArgumentParser()
 parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
 parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
-parser.add_argument('classification_type', type=str, choices=utils.CLASSIFICATION_TYPES, help='Select the classification_type for training')
+parser.add_argument('classification_type', type=str, choices=utils.CLASSIFICATION_TYPES, default=utils.CLASSIFICATION_TYPES[0], help='Select the classification_type for training')
 args = parser.parse_args()
 
 labels = utils.read_labels()
