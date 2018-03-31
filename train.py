@@ -3,13 +3,11 @@ import random
 
 from autowebcompat import network, utils
 
-CLASSIFICATION_TYPES = ['Y vs N + D', 'Y + D vs N']
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
 parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
-parser.add_argument('classification_type', type=str, choices=CLASSIFICATION_TYPES, help='Select the classification_type for training')
+parser.add_argument('classification_type', type=str, choices=utils.CLASSIFICATION_TYPES, help='Select the classification_type for training')
 args = parser.parse_args()
 
 labels = utils.read_labels()
