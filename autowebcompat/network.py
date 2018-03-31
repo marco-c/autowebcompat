@@ -95,6 +95,62 @@ def create_vgglike_network(input_shape):
 
     return Model(input, x)
 
+#Resnet 50
+def identity_block(input_tensor, kernel_size, filters, stage, block):
+
+    filters1, filters2, filters3 = filters
+    if K.image_data_format() == 'channels_last':
+        bn_axis = 3
+    else:
+        bn_axis = 1
+    conv_name_base = 'res' + str(stage) + block + '_branch'
+    bn_name_base = 'bn' + str(stage) + block + '_branch'
+
+    out = Conv2D(filters1, (1,1), name=conv_name_base + '2a')(input_tensor)
+    out = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(out)
+    out = Activation('relu')(out)
+
+    out = Conv2D(filters2, kernel_size, padding='same', name=conv_name_base + '2b')(out)
+    out = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(out)
+    out = Activation('relu')(out)
+
+    out = Conv2D(filters3, (1,1), name=conv_name_base + '2c')(out)
+    out = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(out)
+
+    out = layers.add([out, input_tensor])
+    out = Activation('relu')(out)
+    return out
+
+def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2,2)):
+
+    filters1, filters2, filters3 = filters
+    if K.image_data_format() == 'channels_last':
+        bn_axis = 3
+    else:
+        bn_axis = 1
+    conv_name_base = 'res' + str(stage) + block + '_branch'
+    bn_name_base = 'bn' + str(stage) + block + '_branch'
+
+    out = Conv2D(filters1, (1, 1), strides=strides, name=conv_name_base + '2a')(input_tensor)
+    out = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(out)
+    out = Activation('relu')(out)
+
+    out = Conv2D(filters2, kernel_size, padding='same', name=conv_name_base + '2b')(out)
+    out = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(out)
+    out = Activation('relu')(out)
+
+    out = Conv2D(filters3, (1, 1), name=conv_name_base + '2c')(out)
+    out = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(out)
+
+    shortcut = Conv2D(filters3, (1, 1), strides=strides, name=conv_name_base + '1')(input_tensor)
+    shortcut = BatchNormalization(axis=bn_axis, name=bn_name_base + '1')(shortcut)
+
+    out = layers.add([out, shortcut])
+    out = Activation('relu')(out)
+    return out
+
+
+
 
 def create_simnet_network(input_shape):
     L2_REGULARIZATION = 0.001
