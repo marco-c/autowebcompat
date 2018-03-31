@@ -48,10 +48,11 @@ def test_read_labels():
 
 
 def test_write_labels(tmpdir):
-    label = {1: 1, 2: 2}
+    label = {'1': '1', '2': '2'}
     file_path = tmpdir.join('test.csv')
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
+    assert(label == utils.read_labels(file_name=file_path))
 
 
 test_balance_data = [
