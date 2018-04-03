@@ -23,8 +23,10 @@ all_images = utils.get_all_images()[:SAMPLE_SIZE]
 image = utils.load_image(all_images[0])
 input_shape = image.shape
 
-TRAIN_SAMPLE = 90 * (SAMPLE_SIZE // 100)
-TEST_SAMPLE = SAMPLE_SIZE - TRAIN_SAMPLE
+TRAIN_SAMPLE = 80 * (SAMPLE_SIZE // 100)
+VALIDATION_SAMPLE = 10 * (SAMPLE_SIZE // 100)
+TEST_SAMPLE = SAMPLE_SIZE - (TRAIN_SAMPLE + VALIDATION_SAMPLE)
+
 
 bugs_to_website = {}
 for bug in bugs:
@@ -42,7 +44,7 @@ def are_same_site(image1, image2):
 
 
 random.shuffle(all_images)
-images_train, images_test = all_images[:TRAIN_SAMPLE], all_images[SAMPLE_SIZE - TEST_SAMPLE:]
+images_train, images_validation, images_test = all_images[:TRAIN_SAMPLE], all_images[TRAIN_SAMPLE:VALIDATION_SAMPLE + TRAIN_SAMPLE], all_images[SAMPLE_SIZE - TEST_SAMPLE:]
 
 
 def couples_generator(images):
@@ -56,14 +58,17 @@ def gen_func(images):
 
 
 train_couples_len = sum(1 for e in gen_func(images_train))
+validation_couples_len = sum(1 for e in gen_func(images_validation))
 test_couples_len = sum(1 for e in gen_func(images_test))
 
 print('Training with %d couples.' % train_couples_len)
+print('Validation with %d couples.' % validation_couples_len)
 print('Testing with %d couples.' % test_couples_len)
 print(input_shape)
 
 data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
+validation_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_validation), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
 model = network.create(input_shape, args.network)
@@ -71,7 +76,7 @@ network.compile(model, args.optimizer)
 
 model.save('pretrain.h5')
 
-model.fit_generator(train_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, epochs=EPOCHS)
+model.fit_generator(train_iterator, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 
 model.save('pretrain.h5')
 
