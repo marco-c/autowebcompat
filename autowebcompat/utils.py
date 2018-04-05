@@ -1,12 +1,13 @@
+import csv
 import json
 import os
 import random
 import threading
-import numpy as np
+
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-import csv
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+import numpy as np
 
 
 def get_bugs():
@@ -140,32 +141,36 @@ class CouplesIterator():
 
 
 def balance(it):
+    # Initialise last_label to None so that cur_label != last_label
+    # is always True for the first element in it.
     last_label = None
-    queue_1 = []
-    queue_0 = []
+
+    queue = {
+        0: [],
+        1: []
+    }
+
     for e in it:
-        label = e[1]
-        if label != last_label:
-            last_label = label
-            yield e
+        cur_label = e[1]
+
+        if cur_label != last_label:
+            # Maintain relative order.
+            # Append element and pop from front.
+            queue[cur_label].append(e)
+            element = queue[cur_label].pop(0)
+            last_label = cur_label
+            yield element
         else:
-            if label == 1:
-                queue_1.append(e)
-            else:
-                queue_0.append(e)
+            queue[cur_label].append(e)
 
-            while True:
-                if last_label == 1:
-                    if len(queue_0) == 0:
-                        break
-                    e = queue_0.pop()
-                else:
-                    if len(queue_1) == 0:
-                        break
-                    e = queue_1.pop()
-
-                last_label = e[1]
-                yield e
+    # After every element has been considered, some queue may still be
+    # non-empty. If so, and provided the non-empty queue has label other
+    # than last label, then take elements from there.
+    other_label = 1 if last_label == 0 else 0
+    while len(queue[other_label]) != 0:
+        element = queue[other_label].pop(0)
+        other_label = 1 if other_label == 0 else 0
+        yield element
 
 
 def make_infinite(gen_func, elems):
@@ -185,9 +190,25 @@ def read_labels(file_name='labels.csv'):
     return labels
 
 
+CLASSIFICATION_TYPES = ['Y vs N + D', 'Y + D vs N']
+
+
+def to_categorical_label(label, classification_type):
+    if classification_type == 'Y vs D + N':
+        if label == 'y':
+            return 1
+        else:
+            return 0
+    elif classification_type == 'Y + D vs N':
+        if label == 'n':
+            return 0
+        else:
+            return 1
+
+
 def write_labels(labels, file_name='labels.csv'):
     with open(file_name, 'w') as f:
         writer = csv.writer(f, delimiter=',')
-        writer.writerow(["Image Name", "Label"])
+        writer.writerow(['Image Name', 'Label'])
         for key, values in labels.items():
             writer.writerow([key, values])
