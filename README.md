@@ -39,7 +39,7 @@ In the training phase, the best case is that we are able to detect between Y+D a
 
 The labeling technical details are described [in this issue](https://github.com/marco-c/autowebcompat/issues/2).
 
-### Training
+### Training methodologies
 
 Now that we have a dataset with labels, we can train a neural network to automatically detect screenshots that are incompatible. We are currently using a [Siamese architecture](https://papers.nips.cc/paper/769-signature-verification-using-a-siamese-time-delay-neural-network.pdf) with different Convolutional Neural Networks, but are open to test other ideas.
 
@@ -69,7 +69,21 @@ For the unsupervised training, we are using a related problem for which we alrea
 - Clone the repository with submodules: `git lfs clone --recurse-submodules REPO_URL`
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
-- Run the **pretrain.py / train.py** script to train the neural network.
+
+## Training the network
+- The **pretrain.py** or **train.py** script can be run to train the neural network.
+- There are options for running the same:
+
+    ```
+    -network                  For training different kinds of
+                              network
+                              
+    -optimizer                For training a network with different
+                              kinds of optimizers   
+                              
+    -classification_type      Either Y vs N + D or Y + N vs D
+    ```
+
 
 ## Communication
 
