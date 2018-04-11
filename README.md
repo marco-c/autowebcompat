@@ -39,7 +39,7 @@ In the training phase, the best case is that we are able to detect between Y+D a
 
 The labeling technical details are described [in this issue](https://github.com/marco-c/autowebcompat/issues/2).
 
-### Training 
+### Training
 
 Now that we have a dataset with labels, we can train a neural network to automatically detect screenshots that are incompatible. We are currently using a [Siamese architecture](https://papers.nips.cc/paper/769-signature-verification-using-a-siamese-time-delay-neural-network.pdf) with different Convolutional Neural Networks, but are open to test other ideas.
 
