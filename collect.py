@@ -305,6 +305,7 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--headless')
+chrome_options.add_argument('--hide-scrollbars')
 chrome_options.add_argument('--window-size=412,732')
 chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
 
