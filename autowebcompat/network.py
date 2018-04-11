@@ -3,7 +3,7 @@ from keras.layers import ActivityRegularization, Conv2D, Dense, Dropout, Flatten
 from keras.models import Model
 from keras.optimizers import SGD, Adam, Nadam, RMSprop
 
-SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'simnet', 'simnetlike']
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike']
 SUPPORTED_OPTIMIZERS = {
     'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
     'adam': Adam(),
@@ -59,6 +59,48 @@ def create_vgg16_network(input_shape):
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
 
     # Block 5
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    x = Flatten()(x)
+    x = Dense(4096, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(4096, activation='relu')(x)
+    # Softmax layer Not Necessary
+    return Model(input, x)
+
+
+def create_vgg19_network(input_shape):
+    input = Input(shape=input_shape)
+
+    # Block 1
+    x = Conv2D(64, (3, 3), padding='same', activation='relu')(input)
+    x = Conv2D(64, (3, 3), padding='same', activation='relu')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 2
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 3
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 4
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
+
+    # Block 5
+    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
