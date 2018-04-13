@@ -5,10 +5,10 @@ import numpy as np
 
 from autowebcompat import utils
 
-labels_directory = "label_persons/"
+labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
-parser.add_argument("file_name", action="store")
+parser.add_argument('file_name', action='store')
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name + ".csv")

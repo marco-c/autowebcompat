@@ -2,7 +2,7 @@ from os import listdir
 
 from autowebcompat import utils
 
-labels_directory = "label_persons/"
+labels_directory = 'label_persons/'
 all_file_names = [f for f in listdir(labels_directory)]
 
 labels_voted = {}

@@ -46,11 +46,11 @@ def print_statistics(file_name, incons):
 
     incons_f = [int(x) for x in firefox]
     incons_c = [int(x) for x in chrome]
-    print("Number of photos: {} " .format(total_img))
-    print("Number of pairs of images: {} " .format(int((total_img - n_incons) / 2)))
-    print("Number of pairs of images possible: {} " .format(int((total_img - n_incons) / 2 + n_incons)))
-    print("Percentage of Firefox inconsistencies: {}  " .format(int(((n_incons - sum(incons_f)) / n_incons) * 100)))
-    print("Percentage of Chrome inconsistencies: {} " .format(int(((n_incons - sum(incons_c)) / n_incons) * 100)))
+    print('Number of photos: {} ' .format(total_img))
+    print('Number of pairs of images: {} ' .format(int((total_img - n_incons) / 2)))
+    print('Number of pairs of images possible: {} ' .format(int((total_img - n_incons) / 2 + n_incons)))
+    print('Percentage of Firefox inconsistencies: {}  ' .format(int(((n_incons - sum(incons_f)) / n_incons) * 100)))
+    print('Percentage of Chrome inconsistencies: {} ' .format(int(((n_incons - sum(incons_c)) / n_incons) * 100)))
 
 
 def main():
