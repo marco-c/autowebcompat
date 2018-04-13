@@ -11,8 +11,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('file_name', action='store')
 args = parser.parse_args()
 
-labels = utils.read_labels(labels_directory + args.file_name + ".csv")
-bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + "_bounding_box.json")
+labels = utils.read_labels(labels_directory + args.file_name + '.csv')
+bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + '_bounding_box.json')
 
 images_to_show = [i for i in utils.get_images() if i not in labels]
 drawing = False
@@ -20,7 +20,7 @@ shifting = False
 changing_shape = False
 box_to_change = {}
 all_boxes = {}
-key_map = {"Escape": 27, "r": 114, "Enter": 13, "Space": 32, "y": 121, "n": 110, "d": 100}
+key_map = {'Escape': 27, 'r': 114, 'Enter': 13, 'Space': 32, 'y': 121, 'n': 110, 'd': 100}
 cv2.namedWindow('firefox')
 cv2.namedWindow('chrome')
 cv2.namedWindow('firefox_chrome_overlay')
@@ -223,9 +223,9 @@ def draw_bounding_boxes(event, mouse_x, mouse_y, flags, param):
 def get_new_image():
     global all_boxes
     current_image = images_to_show.pop()
-    print("Reading %s" % current_image)
-    firefox_screenshot = cv2.imread("data/%s_firefox.png" % current_image)
-    chrome_screenshot = cv2.imread("data/%s_chrome.png" % current_image)
+    print('Reading %s' % current_image)
+    firefox_screenshot = cv2.imread('data/%s_firefox.png' % current_image)
+    chrome_screenshot = cv2.imread('data/%s_chrome.png' % current_image)
     if firefox_screenshot.shape != chrome_screenshot.shape:
         return 0
     drawing_area_firefox = reset_bounding_boxes(firefox_screenshot.shape)
@@ -249,18 +249,18 @@ def get_new_image():
         cv2.moveWindow('firefox_chrome_overlay', 20 + firefox_window.shape[1] + chrome_window.shape[1], 0)
         k = cv2.waitKey(1) & 0xFF
         # <Escape> quits marking area without saving
-        if k == key_map["Escape"]:
+        if k == key_map['Escape']:
             cv2.destroyAllWindows()
             return 1
         # 'r' resets the present selection of bounding boxes
-        elif k == key_map["r"]:
+        elif k == key_map['r']:
             drawing_area_firefox = reset_bounding_boxes(firefox_screenshot.shape)
             drawing_area_chrome = reset_bounding_boxes(chrome_screenshot.shape)
             all_boxes, boxes_firefox, boxes_chrome = {'n': [], 'd': []}, {'n': [], 'd': []}, {'n': [], 'd': []}
             cv2.setMouseCallback('firefox', draw_bounding_boxes, [drawing_area_firefox, drawing_area_chrome, boxes_firefox])
             cv2.setMouseCallback('chrome', draw_bounding_boxes, [drawing_area_chrome, drawing_area_firefox, boxes_chrome])
         # <Return> saves the current marking and moves to next image
-        elif k == key_map["Enter"]:
+        elif k == key_map['Enter']:
             if visibility == 1:
                 visibility = 0.5
             else:
@@ -274,9 +274,9 @@ def get_new_image():
                     labels[current_image] = 'n'
                 return 0
         # <Space> skips the labeling of current image
-        elif k == key_map["Space"]:
+        elif k == key_map['Space']:
             return 0
-        elif k == key_map["y"]:
+        elif k == key_map['y']:
             bounding_boxes[current_image + '_firefox'] = boxes_firefox
             bounding_boxes[current_image + '_chrome'] = boxes_chrome
             labels[current_image] = 'y'
@@ -289,8 +289,8 @@ def main():
             break
 
     # Store results.
-    utils.write_bounding_boxes(bounding_boxes, labels_directory + args.file_name + "_bounding_box.json")
-    utils.write_labels(labels, labels_directory + args.file_name + ".csv")
+    utils.write_bounding_boxes(bounding_boxes, labels_directory + args.file_name + '_bounding_box.json')
+    utils.write_labels(labels, labels_directory + args.file_name + '.csv')
 
 
 if __name__ == '__main__':
