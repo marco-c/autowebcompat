@@ -79,6 +79,8 @@ For the unsupervised training, we are using a related problem for which we alrea
     -optimizer                To select the optimizer to use   
                               
     -classification_type      Either Y vs N + D or Y + N vs D
+
+    --early_stoppping	      (Optional) To stop training when validation accuracy has stopped improving
     ```
 
 

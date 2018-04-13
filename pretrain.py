@@ -4,6 +4,8 @@ import itertools
 import random
 from urllib.parse import urlparse
 
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+
 from autowebcompat import network, utils
 
 SAMPLE_SIZE = 3000
@@ -14,6 +16,7 @@ random.seed(42)
 parser = argparse.ArgumentParser()
 parser.add_argument('network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
 parser.add_argument('optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
+parser.add_argument('--early_stopping', dest='early_stopping', action='store_true', help='Stop training training when validation accuracy has stopped improving.')
 args = parser.parse_args()
 
 bugs = utils.get_bugs()
@@ -74,11 +77,12 @@ test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test)
 model = network.create(input_shape, args.network)
 network.compile(model, args.optimizer)
 
-model.save('pretrain.h5')
+callbacks_list = [ModelCheckpoint('best_pretrain_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')]
 
-model.fit_generator(train_iterator, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
+if args.early_stopping:
+    callbacks_list.append(EarlyStopping(monitor='val_accuracy', patience=2))
 
-model.save('pretrain.h5')
+model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)
