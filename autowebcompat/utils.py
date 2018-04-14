@@ -212,3 +212,17 @@ def write_labels(labels, file_name='labels.csv'):
         writer.writerow(['Image Name', 'Label'])
         for key, values in labels.items():
             writer.writerow([key, values])
+
+
+def read_bounding_boxes(file_name):
+    try:
+        with open(file_name, 'r') as f:
+            bounding_boxes = json.load(f)
+    except FileNotFoundError:
+        bounding_boxes = {}
+    return bounding_boxes
+
+
+def write_bounding_boxes(bounding_boxes, file_name):
+    with open(file_name, 'w') as f:
+        print(json.dumps(bounding_boxes), file=f)
