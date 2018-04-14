@@ -39,6 +39,18 @@ In the training phase, the best case is that we are able to detect between Y+D a
 
 The labeling technical details are described [in this issue](https://github.com/marco-c/autowebcompat/issues/2).
 
+### Bounded-Box Labeling 
+
+This kind of labeling allows us to store the areas where the incompatibilities lie alongside the labels.
+<img src="https://user-images.githubusercontent.com/19645459/37787732-b21122b4-2e25-11e8-8d01-8d192023463f.png" />
+
+```
+Press 'y' to mark compatible.
+Press 'Enter' to select regions of incompatibility.
+Click 'T' to toggle on top left of boundary boxes.GREEN --> 'n' YELLOW --> 'd'
+Press 'Enter' to save changes
+``` 
+
 ### Training
 
 Now that we have a dataset with labels, we can train a neural network to automatically detect screenshots that are incompatible. We are currently using a [Siamese architecture](https://papers.nips.cc/paper/769-signature-verification-using-a-siamese-time-delay-neural-network.pdf) with different Convolutional Neural Networks, but are open to test other ideas.
