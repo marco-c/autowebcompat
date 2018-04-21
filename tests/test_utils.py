@@ -1,6 +1,8 @@
 import os
 
 from PIL import Image
+import keras
+from keras.preprocessing.image import ImageDataGenerator, img_to_array
 import numpy as np
 import pytest
 
@@ -53,6 +55,22 @@ def test_write_labels(tmpdir):
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
     assert(label == utils.read_labels(file_name=file_path))
+
+
+def test_get_ImageDataGenerator(tmpdir):
+    file_path = tmpdir.join('Image2.jpg')
+    img = Image.new('RGB', (30, 30), color=(255, 0, 0))
+    img.save(file_path.strpath)
+
+    data_gen = utils.get_ImageDataGenerator(['Image2.jpg'], (32, 24, 3), file_path.dirname)
+    assert(isinstance(data_gen, ImageDataGenerator))
+
+    x = img_to_array(img, data_format=keras.backend.image_data_format())
+    x = x.reshape((1,) + x.shape)
+    X_batch = data_gen.flow(x).next()
+    assert X_batch.shape[0] == x.shape[0]
+    assert X_batch.shape[1:] == x.shape[1:]
+    assert (X_batch >= 0).all() and (X_batch <= 1).all()
 
 
 test_balance_data = [
