@@ -39,17 +39,16 @@ In the training phase, the best case is that we are able to detect between Y+D a
 
 The labeling technical details are described [in this issue](https://github.com/marco-c/autowebcompat/issues/2).
 
-### Bounded-Box Labeling 
+The Bounded-Box labeling allows us to store the areas where the incompatibilities lie.
 
-This kind of labeling allows us to store the areas where the incompatibilities lie alongside the labels.
-<img src="https://user-images.githubusercontent.com/19645459/37787732-b21122b4-2e25-11e8-8d01-8d192023463f.png" />
+<img src="https://user-images.githubusercontent.com/18056781/39081659-fdd4655e-4562-11e8-86f9-a5fab28634bf.JPG" />
 
-```
-Press 'y' to mark compatible.
-Press 'Enter' to select regions of incompatibility.
-Click 'T' to toggle on top left of boundary boxes.GREEN --> 'n' YELLOW --> 'd'
-Press 'Enter' to save changes
-``` 
+<img src="https://user-images.githubusercontent.com/18056781/39081665-10eda006-4563-11e8-9455-986b5a23934e.jpg" />
+
+- Press 'y' to mark compatible.
+- Press 'Enter' to select regions of incompatibility.
+- Click 'T' on top left of boundary boxes to toggle between colors. GREEN --> 'n' YELLOW --> 'd'
+- Press 'Enter' to save changes 
 
 ### Training
 
