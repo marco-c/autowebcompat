@@ -45,9 +45,9 @@ The bounding-box labeling allows us to store the areas where the incompatibiliti
 
 <img src="https://user-images.githubusercontent.com/18056781/39081665-10eda006-4563-11e8-9455-986b5a23934e.jpg" />
 
-- Press 'y' to mark the images as compatible.
-- Press 'Enter' to select the regions.
-- Click 'T' on top left of boundary boxes to toggle between colors. Green corresponds to 'n', yellow corresponds to 'd'.
+- Press 'y' to mark the images as compatible;
+- Press 'Enter' to select the regions;
+- Click the 'T' button in the top left corner of a boundary box to toggle between classes. Green corresponds to 'n', yellow corresponds to 'd';
 - Press 'Enter' to save changes. 
 
 ### Training
