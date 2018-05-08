@@ -32,11 +32,7 @@ TEST_SAMPLE = SAMPLE_SIZE - (TRAIN_SAMPLE + VALIDATION_SAMPLE)
 
 
 def load_pair(fname):
-    f = utils.load_image(fname + '_firefox.png')
-    print(f.shape)
-    c = utils.load_image(fname + '_chrome.png')
-    print(c.shape)
-    return [f, c]
+    return [fname + '_firefox.png', fname + '_chrome.png']
 
 
 random.shuffle(all_image_names)
