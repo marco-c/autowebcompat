@@ -68,3 +68,6 @@ if args.early_stopping:
 model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)
+information = vars(args)
+information.update({'Accuracy': score})
+utils.write_train_info(information)
