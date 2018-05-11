@@ -1,0 +1,12 @@
+network : vgg16
+optimizer : adam
+classification_type : Y vs D + N
+early_stopping : False
+Accuracy : score
+Operating System : GNU/Linux
+GPU1 : GM107M [GeForce GTX 950M]
+GPU2 : HD Graphics 530
+CPU(s) : 8
+Thread(s) per core : 2
+Core(s) per socket : 4
+Model name : Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
