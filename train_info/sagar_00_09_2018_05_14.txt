@@ -1,8 +1,13 @@
-network : vgg16
+network : inception
 optimizer : adam
 classification_type : Y vs D + N
 early_stopping : False
-Accuracy : score
+Accuracy : 50
+Train Time : 4.76837158203125e-07
+Number of Train Samples : 1280
+Number of Validation Samples : 160
+Test Time : 2.384185791015625e-07
+Number of Test Samples : 203
 Operating System : GNU/Linux
 GPU1 : GM107M [GeForce GTX 950M]
 GPU2 : HD Graphics 530

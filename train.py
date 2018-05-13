@@ -1,5 +1,6 @@
 import argparse
 import random
+import time
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
@@ -65,9 +66,15 @@ callbacks_list = [ModelCheckpoint('best_train_model.hdf5', monitor='val_accuracy
 if args.early_stopping:
     callbacks_list.append(EarlyStopping(monitor='val_accuracy', patience=2))
 
-model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
+start_train_time = time.time()
+# model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
+train_time = time.time() - start_train_time
+
+start_test_time = time.time()
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
+test_time = time.time() - start_test_time
 print(score)
+
 information = vars(args)
-information.update({'Accuracy': score})
+information.update({'Accuracy': score, 'Train Time': train_time, 'Number of Train Samples': train_couples_len, 'Number of Validation Samples': validation_couples_len, 'Test Time': test_time, 'Number of Test Samples': test_couples_len})
 utils.write_train_info(information)
