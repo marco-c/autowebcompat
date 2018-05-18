@@ -60,7 +60,6 @@ test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test)
 
 model = network.create(input_shape, args.network)
 network.compile(model, args.optimizer)
-
 callbacks_list = [ModelCheckpoint('best_train_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')]
 
 if args.early_stopping:
@@ -77,4 +76,4 @@ print(score)
 
 information = vars(args)
 information.update({'Accuracy': score, 'Train Time': train_time, 'Number of Train Samples': train_couples_len, 'Number of Validation Samples': validation_couples_len, 'Test Time': test_time, 'Number of Test Samples': test_couples_len})
-utils.write_train_info(information)
+utils.write_train_info(information, model)

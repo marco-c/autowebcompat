@@ -230,6 +230,15 @@ def write_bounding_boxes(bounding_boxes, file_name):
         print(json.dumps(bounding_boxes), file=f)
 
 
+def get_all_model_summary(model, model_summary):
+    line = []
+    model.summary(print_fn=lambda x: line.append(x + '\n'))
+    model_summary[model.get_config()['name']] = '\n' + ''.join(line)
+    for layer in model.layers:
+        if isinstance(layer, keras.engine.training.Model):
+            get_all_model_summary(layer, model_summary)
+
+
 def get_machine_info():
     parameter_value_map = {}
     operating_sys = subprocess.check_output('uname -o', shell=True).strip().decode()
@@ -249,7 +258,7 @@ def get_machine_info():
     return parameter_value_map
 
 
-def write_train_info(information, file_name=None):
+def write_train_info(information, model, file_name=None):
     if file_name is None:
         file_name = subprocess.check_output('uname -n', shell=True).strip().decode()
         file_name += datetime.now().strftime('_%H_%M_%Y_%m_%d.txt')
@@ -257,4 +266,9 @@ def write_train_info(information, file_name=None):
     information.update(machine_info)
     with open(os.path.join('train_info', file_name), 'w') as f:
         for key, value in information.items():
+            print('%s : %s' % (key, value), file=f)
+        print('\n', file=f)
+        model_summary = {}
+        get_all_model_summary(model, model_summary)
+        for key, value in model_summary.items():
             print('%s : %s' % (key, value), file=f)
