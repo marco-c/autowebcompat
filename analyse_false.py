@@ -3,6 +3,8 @@ from urllib.parse import urlparse
 from keras.models import load_model
 from autowebcompat.network import contrastive_loss
 import itertools
+import tkinter as tk
+from PIL import ImageTk, Image
 import numpy as np
 
 from autowebcompat import utils
@@ -31,7 +33,6 @@ def are_same_site(image1, image2):
     return site_for_image(image1) == site_for_image(image2)
 
 def couples_generator(images):
-    # for image_couple in itertools.combinations_with_replacement(images, 2):
     for image_couple in itertools.combinations(images, 2):
         yield image_couple, 1 if are_same_site(image_couple[0], image_couple[1]) else 0
 
@@ -53,8 +54,29 @@ predictions = model.predict_generator(all_iterator, steps=all_couples_len / BATC
 
 rounded_preds = np.round(predictions)
 
-print(rounded_preds)
+new_gen = utils.make_infinite(gen_func, all_images)
+false_vals = []
+for prediction in predictions:
+    images, classid = next(new_gen)
+    if classid != prediction:
+        false_vals.append(images)
 
-actual_vals = np.array([a[1] for a in couples_generator(all_images)])
+window = tk.Tk()
 
-print(rounded_preds.shape, actual_vals.shape)
+panel1 = tk.Label(window)
+panel1.pack(side="left", padx=10)
+panel2 = tk.Label(window)
+panel2.pack(side="left", padx=10)
+
+def show_next_image(image1, image2):
+    img1 = ImageTk.PhotoImage(Image.open(image1))
+    panel1.configure(image=img1)
+    panel1.image = img1
+
+    img2 = ImageTk.PhotoImage(Image.open(image2))
+    panel2.configure(image=img2)
+    panel2.image = img2
+
+
+
+window.mainloop()
