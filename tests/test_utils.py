@@ -1,7 +1,11 @@
 import os
-from tempfile import TemporaryDirectory
-import numpy as np
+
 from PIL import Image
+import keras
+from keras.preprocessing.image import ImageDataGenerator, img_to_array
+import numpy as np
+import pytest
+
 from autowebcompat import utils
 
 
@@ -10,19 +14,18 @@ def test_get_bugs():
     assert(isinstance(bugs, list))
 
 
-def test_mkdir():
-    d = TemporaryDirectory()
-    direc_path = d.name + "/test"
+def test_mkdir(tmpdir):
+    direc_path = tmpdir.strpath + '/test'
     utils.mkdir(direc_path)
     assert(os.path.isdir(direc_path))
     utils.mkdir(direc_path)
 
 
 def test_load_image(tmpdir):
-    d = TemporaryDirectory()
-    img = Image.new("RGB", (30, 30))
-    img.save(d.name + "/Image.jpg")
-    img = utils.load_image("Image.jpg", d.name)
+    file_path = tmpdir.join('Image.jpg')
+    img = Image.new('RGB', (30, 30))
+    img.save(file_path.strpath)
+    img = utils.load_image('Image.jpg', file_path.dirname)
     assert(isinstance(img, np.ndarray))
     assert(img.shape == (32, 24, 3))
 
@@ -46,9 +49,88 @@ def test_read_labels():
     assert(isinstance(labels, dict))
 
 
-def test_write_labels():
-    label = {1: 1, 2: 2}
-    d = TemporaryDirectory()
-    file_path = d.name + "/test.csv"
+def test_write_labels(tmpdir):
+    label = {'1': '1', '2': '2'}
+    file_path = tmpdir.join('test.csv')
     utils.write_labels(label, file_name=file_path)
     assert(os.path.exists(file_path))
+    assert(label == utils.read_labels(file_name=file_path))
+
+
+def test_get_ImageDataGenerator(tmpdir):
+    file_path = tmpdir.join('Image2.jpg')
+    img = Image.new('RGB', (30, 30), color=(255, 0, 0))
+    img.save(file_path.strpath)
+
+    data_gen = utils.get_ImageDataGenerator(['Image2.jpg'], (32, 24, 3), file_path.dirname)
+    assert(isinstance(data_gen, ImageDataGenerator))
+
+    x = img_to_array(img, data_format=keras.backend.image_data_format())
+    x = x.reshape((1,) + x.shape)
+    X_batch = data_gen.flow(x).next()
+    assert X_batch.shape[0] == x.shape[0]
+    assert X_batch.shape[1:] == x.shape[1:]
+    assert (X_batch >= 0).all() and (X_batch <= 1).all()
+
+
+test_balance_data = [
+    ('data1', 1),
+    ('data2', 1),
+    ('data3', 0),
+    ('data4', 0),
+    ('data5', 0),
+    ('data6', 1)
+]
+
+
+@pytest.mark.parametrize('unbalanced_data', [
+    test_balance_data,
+    iter(test_balance_data)
+])
+def test_balance(unbalanced_data):
+    balanced_data = utils.balance(unbalanced_data)
+
+    assert(('data1', 1) == next(balanced_data))
+    assert(('data3', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
+    assert(('data4', 0) == next(balanced_data))
+    assert(('data6', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+
+    with pytest.raises(StopIteration):
+        next(balanced_data)
+
+
+def test_balance_unbalanced_data():
+    unbalanced_tuples = [
+        ('data1', 1),
+        ('data2', 1),
+        ('data3', 1),
+        ('data4', 0),
+        ('data5', 0)]
+
+    balanced_data = utils.balance(unbalanced_tuples)
+
+    assert(('data1', 1) == next(balanced_data))
+    assert(('data4', 0) == next(balanced_data))
+    assert(('data2', 1) == next(balanced_data))
+    assert(('data5', 0) == next(balanced_data))
+    assert(('data3', 1) == next(balanced_data))
+
+    with pytest.raises(StopIteration):
+        next(balanced_data)
+
+
+def test_to_categorical_label():
+    label = 'y'
+    categorical_label = utils.to_categorical_label(label, 'Y vs D + N')
+    assert categorical_label == 1
+    label = 'd'
+    categorical_label = utils.to_categorical_label(label, 'Y vs D + N')
+    assert categorical_label == 0
+    label = 'n'
+    categorical_label = utils.to_categorical_label(label, 'Y + D vs N')
+    assert categorical_label == 0
+    label = 'y'
+    categorical_label = utils.to_categorical_label(label, 'Y + D vs N')
+    assert categorical_label == 1

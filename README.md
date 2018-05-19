@@ -39,6 +39,17 @@ In the training phase, the best case is that we are able to detect between Y+D a
 
 The labeling technical details are described [in this issue](https://github.com/marco-c/autowebcompat/issues/2).
 
+The bounding-box labeling allows us to store the areas where the incompatibilities lie.
+
+<img src="https://user-images.githubusercontent.com/18056781/39081659-fdd4655e-4562-11e8-86f9-a5fab28634bf.JPG" />
+
+<img src="https://user-images.githubusercontent.com/18056781/39081665-10eda006-4563-11e8-9455-986b5a23934e.jpg" />
+
+- Press 'y' to mark the images as compatible;
+- Press 'Enter' to select the regions;
+- Click the 'T' button in the top left corner of a boundary box to toggle between classes. Green corresponds to 'n', yellow corresponds to 'd';
+- Press 'Enter' to save changes. 
+
 ### Training
 
 Now that we have a dataset with labels, we can train a neural network to automatically detect screenshots that are incompatible. We are currently using a [Siamese architecture](https://papers.nips.cc/paper/769-signature-verification-using-a-siamese-time-delay-neural-network.pdf) with different Convolutional Neural Networks, but are open to test other ideas.
@@ -65,11 +76,24 @@ For the unsupervised training, we are using a related problem for which we alrea
 
 **Python 3** is required.
 
-- Install [Git Large File Storage](https://git-lfs.github.com/), either manually or through a package like `git-lfs` if available on your system.
-- Clone the repository with submodules: `git clone --recurse-submodules git@github.com:marco-c/autowebcompat.git`
+- Install [Git Large File Storage](https://git-lfs.github.com/), either manually or through a package like `git-lfs` if available on your system (in case of using [PackageCloud](https://github.com/git-lfs/git-lfs/blob/master/INSTALLING.md)).
+- Clone the repository with submodules: `git lfs clone --recurse-submodules REPO_URL`
 - Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
 - Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
-- Run the **pretrain.py / train.py** script to train the neural network.
+
+## Training the network
+- The **pretrain.py** or **train.py** script can be run to train the neural network, with the following options:
+
+    ```
+    -network                  To select which network architecture to use
+                                                       
+    -optimizer                To select the optimizer to use   
+                              
+    -classification_type      Either Y vs N + D or Y + N vs D
+
+    --early_stoppping	      (Optional) To stop training when validation accuracy has stopped improving
+    ```
+
 
 ## Communication
 
