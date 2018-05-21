@@ -21,7 +21,6 @@ labels = utils.read_labels()
 
 utils.prepare_images()
 all_image_names = [i for i in utils.get_images() if i in labels]
-print(all_image_names)
 all_images = sum([[i + '_firefox.png', i + '_chrome.png'] for i in all_image_names], [])
 image = utils.load_image(all_images[0])
 input_shape = image.shape
@@ -33,26 +32,32 @@ def couples_generator(images):
     for i in images:
         yield load_pair(i), utils.to_categorical_label(labels[i], args.classification_type)
 
-def gen_func(images):
-    return couples_generator(images)
+def gen_func(images, coupleIterator):
+    index = 0
+    for x_batch, y_batch in coupleIterator:
+        yield images[index: index + BATCH_SIZE], x_batch, y_batch
+        index += BATCH_SIZE
 
-number_of_couples = sum(1 for e in gen_func(all_image_names))
+number_of_couples = sum(1 for e in couples_generator(all_image_names))
 
 print(input_shape)
 
 data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
-all_iterator = utils.CouplesIterator(gen_func(all_image_names), input_shape, data_gen, BATCH_SIZE)
+all_iterator = gen_func(all_image_names, utils.CouplesIterator(couples_generator(all_image_names), input_shape, data_gen, BATCH_SIZE))
 
 model = load_model('best_train_model.hdf5', custom_objects={'contrastive_loss': contrastive_loss})
 
 images_for_analysis = []
-for x_batch, y_batch in all_iterator:
+for image_names, x_batch, y_batch in all_iterator:
     predictions = model.predict(x_batch)
 
-    for truth, prediction, image in zip(y_batch, predictions, x_batch):
-        if truth != math.round(prediction):
-            images_for_analysis.append([*x_batch, prediction])
+    for batch_index in range(BATCH_SIZE):
+        truth = y_batch[batch_index]
+        prediction = np.round(predictions[batch_index])
+        image_name = image_names[batch_index]
 
+        if truth != np.round(prediction):
+            images_for_analysis.append([ truth, prediction, image_name ])
 
 # Create UI
 window = tk.Tk()
@@ -75,23 +80,32 @@ panel2_text.grid(row=1, column=1)
 prediction_text = tk.Label(image_view)
 prediction_text.grid(row=2)
 
+image_index = 0
+
 # Fill with image
 def show_next_image():
-    global panel1, panel2, panel1_text, panel2_text
+    global panel1, panel2, panel1_text, panel2_text, image_index
 
-    img1 = ImageTk.PhotoImage(Image.open("data/" + image1))
+    truth, prediction, image_name = images_for_analysis[image_index]
+
+    firefox_name =  image_name + "_firefox.png"
+    chrome_name = image_name + "_chrome.png"
+
+    img1 = ImageTk.PhotoImage(Image.open("data/" + firefox_name))
     panel1.configure(image=img1)
     panel1.image = img1
-    panel1_text.config(text=image1)
+    panel1_text.config(text=firefox_name)
 
-    img2 = ImageTk.PhotoImage(Image.open("data/" + image2))
+    img2 = ImageTk.PhotoImage(Image.open("data/" + chrome_name))
     panel2.configure(image=img2)
     panel2.image = img2
-    panel2_text.config(text=image2)
+    panel2_text.config(text=chrome_name)
 
-    prediction_text.config("Prediction: " + str(prediction))
+    prediction_text.config(text="Truth: {}, Prediction: {}".format(truth, prediction))
 
-show_next_image(*false_vals[0])
+    image_index += 1
+
+show_next_image()
 
 next = tk.Button(window, text="Next")
 next.pack(side="bottom", ipadx=30, ipady=30, pady=20)
