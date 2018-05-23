@@ -65,6 +65,8 @@ def prepare_images():
             else:
                 img = orig
 
+            if img.size[1] > 732:
+                img = img.crop((0, 0, img.size[0], 732))
             img = img.resize((192, 256), Image.LANCZOS)
             img.save(os.path.join('data_resized', f))
         except IOError as e:
