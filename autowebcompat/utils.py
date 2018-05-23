@@ -243,13 +243,14 @@ def get_machine_info():
     parameter_value_map = {}
     operating_sys = subprocess.check_output('uname -o', shell=True).strip().decode()
     parameter_value_map['Operating System'] = operating_sys
+    if 'Linux' not in operating_sys:
+        return parameter_value_map
 
     gpu = subprocess.check_output('lshw -C display | grep product', shell=True).strip().decode()
     gpu = gpu.split('\n')
     for i in range(len(gpu)):
         gpu[i] = gpu[i].split(':')[1].strip()
         parameter_value_map['GPU%d' % (i + 1)] = gpu[i]
-
     lscpu = subprocess.check_output('lscpu | grep \'^CPU(s):\|Core\|Thread\'', shell=True).strip().decode()
     lscpu = lscpu.split('\n')
     for row in lscpu:
