@@ -1,7 +1,10 @@
 import csv
+from datetime import datetime
 import json
 import os
 import random
+import subprocess
+import sys
 import threading
 
 from PIL import Image
@@ -228,3 +231,60 @@ def read_bounding_boxes(file_name):
 def write_bounding_boxes(bounding_boxes, file_name):
     with open(file_name, 'w') as f:
         print(json.dumps(bounding_boxes), file=f)
+
+
+def get_all_model_summary(model, model_summary):
+    line = []
+    model.summary(print_fn=lambda x: line.append(x + '\n'))
+    model_summary[model.get_config()['name']] = '\n' + ''.join(line)
+    for layer in model.layers:
+        if isinstance(layer, keras.engine.training.Model):
+            get_all_model_summary(layer, model_summary)
+
+
+def get_machine_info():
+    parameter_value_map = {}
+    operating_sys = sys.platform
+    parameter_value_map['Operating System'] = operating_sys
+    if 'linux' not in operating_sys:
+        return parameter_value_map
+
+    gpu = subprocess.check_output('lshw -C display | grep product', shell=True).strip().decode()
+    gpu = gpu.split('\n')
+    for i in range(len(gpu)):
+        gpu[i] = gpu[i].split(':')[1].strip()
+        parameter_value_map['GPU%d' % (i + 1)] = gpu[i]
+    lscpu = subprocess.check_output('lscpu | grep \'^CPU(s):\|Core\|Thread\'', shell=True).strip().decode()
+    lscpu = lscpu.split('\n')
+    for row in lscpu:
+        row = row.split(':')
+        parameter_value_map[row[0]] = row[1].strip()
+    return parameter_value_map
+
+
+def write_train_info(information, model, train_history, file_name=None):
+    if file_name is None:
+        file_name = subprocess.check_output('uname -n', shell=True).strip().decode()
+        file_name += datetime.now().strftime('_%H_%M_%Y_%m_%d.txt')
+    machine_info = get_machine_info()
+    information.update(machine_info)
+    with open(os.path.join('train_info', file_name), 'w') as f:
+        for key, value in information.items():
+            print('%s : %s' % (key, value), file=f)
+        print('\n', file=f)
+        model_summary = {}
+        get_all_model_summary(model, model_summary)
+        for key, value in model_summary.items():
+            print('%s : %s' % (key, value), file=f)
+
+        print('Sr.No.\t\t', end=' ', file=f)
+        train_history_list = []
+        for key, value in train_history.items():
+            print('%s\t\t' % key, end=' ', file=f)
+            train_history_list.append(value)
+        train_history_list = np.transpose(np.array(train_history_list))
+        for i in range(len(train_history_list)):
+            print('\n%d\t\t' % (i + 1), end=' ', file=f)
+            row = train_history_list[i]
+            for col in row:
+                print('%f\t\t' % col, end=' ', file=f)
