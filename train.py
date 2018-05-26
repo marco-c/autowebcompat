@@ -2,7 +2,7 @@ import argparse
 import random
 import time
 
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, Callback
 
 from autowebcompat import network, utils
 
@@ -17,6 +17,22 @@ parser.add_argument('classification_type', type=str, choices=utils.CLASSIFICATIO
 parser.add_argument('--early_stopping', dest='early_stopping', action='store_true', help='Stop training training when validation accuracy has stopped improving.')
 
 args = parser.parse_args()
+
+
+class Timer(Callback):
+    def on_train_begin(self, logs={}):
+        self.train_begin_time = time.time()
+        self.epoch_times = []
+
+    def on_epoch_begin(self, batch, logs={}):
+        self.epoch_begin_time = time.time()
+
+    def on_epoch_end(self, batch, logs={}):
+        self.epoch_times.append(time.time() - self.epoch_begin_time)
+
+    def on_train_end(self, logs={}):
+        self.train_time = time.time() - self.train_begin_time
+
 
 labels = utils.read_labels()
 
@@ -60,20 +76,17 @@ test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test)
 
 model = network.create(input_shape, args.network)
 network.compile(model, args.optimizer)
-callbacks_list = [ModelCheckpoint('best_train_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')]
+timer = Timer()
+callbacks_list = [ModelCheckpoint('best_train_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True, mode='max'), timer]
 
 if args.early_stopping:
     callbacks_list.append(EarlyStopping(monitor='val_accuracy', patience=2))
-
-start_train_time = time.time()
-model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
-train_time = time.time() - start_train_time
-
-start_test_time = time.time()
+train_history = model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
-test_time = time.time() - start_test_time
 print(score)
 
+train_history = train_history.history
+train_history.update({'epoch time': timer.epoch_times})
 information = vars(args)
-information.update({'Accuracy': score, 'Train Time': train_time, 'Number of Train Samples': train_couples_len, 'Number of Validation Samples': validation_couples_len, 'Test Time': test_time, 'Number of Test Samples': test_couples_len})
-utils.write_train_info(information, model)
+information.update({'Accuracy': score, 'Train Time': timer.train_time, 'Number of Train Samples': train_couples_len, 'Number of Validation Samples': validation_couples_len, 'Number of Test Samples': test_couples_len})
+utils.write_train_info(information, model, train_history)

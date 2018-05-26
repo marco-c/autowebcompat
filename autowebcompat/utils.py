@@ -4,6 +4,7 @@ import json
 import os
 import random
 import subprocess
+import sys
 import threading
 
 from PIL import Image
@@ -241,9 +242,9 @@ def get_all_model_summary(model, model_summary):
 
 def get_machine_info():
     parameter_value_map = {}
-    operating_sys = subprocess.check_output('uname -o', shell=True).strip().decode()
+    operating_sys = sys.platform
     parameter_value_map['Operating System'] = operating_sys
-    if 'Linux' not in operating_sys:
+    if 'linux' not in operating_sys:
         return parameter_value_map
 
     gpu = subprocess.check_output('lshw -C display | grep product', shell=True).strip().decode()
@@ -259,7 +260,7 @@ def get_machine_info():
     return parameter_value_map
 
 
-def write_train_info(information, model, file_name=None):
+def write_train_info(information, model, train_history, file_name=None):
     if file_name is None:
         file_name = subprocess.check_output('uname -n', shell=True).strip().decode()
         file_name += datetime.now().strftime('_%H_%M_%Y_%m_%d.txt')
@@ -273,3 +274,15 @@ def write_train_info(information, model, file_name=None):
         get_all_model_summary(model, model_summary)
         for key, value in model_summary.items():
             print('%s : %s' % (key, value), file=f)
+
+        print('Sr.No.\t\t', end=' ', file=f)
+        train_history_list = []
+        for key, value in train_history.items():
+            print('%s\t\t' % key, end=' ', file=f)
+            train_history_list.append(value)
+        train_history_list = np.transpose(np.array(train_history_list))
+        for i in range(len(train_history_list)):
+            print('\n%d\t\t' % (i + 1), end=' ', file=f)
+            row = train_history_list[i]
+            for col in row:
+                print('%f\t\t' % col, end=' ', file=f)
