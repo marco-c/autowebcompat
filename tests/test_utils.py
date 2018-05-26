@@ -142,4 +142,3 @@ def test_get_browser_bin():
     assert isinstance(nightly_bin, str)
     assert os.path.exists(os.path.abspath('./') + '/' + chrome_bin)
     assert os.path.exists(os.path.abspath('./') + '/' + nightly_bin)
-
