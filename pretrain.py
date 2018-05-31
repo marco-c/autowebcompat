@@ -4,9 +4,12 @@ import itertools
 import random
 from urllib.parse import urlparse
 
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
 
-from autowebcompat import network, utils
+from autowebcompat import network
+from autowebcompat import utils
+
 
 SAMPLE_SIZE = 3000
 BATCH_SIZE = 32

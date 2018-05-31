@@ -1,7 +1,18 @@
 from keras import backend as K
-from keras.layers import ActivityRegularization, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, concatenate
+from keras.layers import ActivityRegularization
+from keras.layers import Conv2D
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers import Flatten
+from keras.layers import Input
+from keras.layers import Lambda
+from keras.layers import MaxPooling2D
+from keras.layers import concatenate
 from keras.models import Model
-from keras.optimizers import SGD, Adam, Nadam, RMSprop
+from keras.optimizers import SGD
+from keras.optimizers import Adam
+from keras.optimizers import Nadam
+from keras.optimizers import RMSprop
 
 SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike']
 SUPPORTED_OPTIMIZERS = {

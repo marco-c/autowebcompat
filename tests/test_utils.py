@@ -1,13 +1,13 @@
 import os
 
 from PIL import Image
-import keras
-from keras.preprocessing.image import ImageDataGenerator, img_to_array
 import numpy as np
 import pytest
 
+import keras
+from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing.image import img_to_array
 from autowebcompat import utils
-
 
 def test_get_bugs():
     bugs = utils.get_bugs()

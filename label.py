@@ -5,6 +5,7 @@ import numpy as np
 
 from autowebcompat import utils
 
+
 labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
