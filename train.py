@@ -2,11 +2,12 @@ import argparse
 import random
 import time
 
-from autowebcompat import network
-from autowebcompat import utils
 from keras.callbacks import Callback
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
+
+from autowebcompat import network
+from autowebcompat import utils
 
 BATCH_SIZE = 32
 EPOCHS = 50

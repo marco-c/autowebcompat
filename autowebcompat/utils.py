@@ -7,12 +7,12 @@ import subprocess
 import sys
 import threading
 
-import numpy as np
+from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
-from PIL import Image
+import numpy as np
 
 
 def get_bugs():

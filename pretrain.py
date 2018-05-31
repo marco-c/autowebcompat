@@ -10,7 +10,6 @@ from keras.callbacks import ModelCheckpoint
 from autowebcompat import network
 from autowebcompat import utils
 
-
 SAMPLE_SIZE = 3000
 BATCH_SIZE = 32
 EPOCHS = 50

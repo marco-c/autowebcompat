@@ -15,7 +15,6 @@ from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
 
-
 MAX_THREADS = 5
 
 if sys.platform.startswith('linux'):
