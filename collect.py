@@ -9,7 +9,9 @@ import traceback
 
 from PIL import Image
 from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
+from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
 
