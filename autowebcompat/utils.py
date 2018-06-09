@@ -13,6 +13,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
 import numpy as np
+from tensorflow.python.client import device_lib
 
 
 def get_bugs():
@@ -251,11 +252,12 @@ def get_machine_info():
     if 'linux' not in operating_sys:
         return parameter_value_map
 
-    gpu = subprocess.check_output('lshw -C display | grep product', shell=True).strip().decode()
-    gpu = gpu.split('\n')
-    for i in range(len(gpu)):
-        gpu[i] = gpu[i].split(':')[1].strip()
-        parameter_value_map['GPU%d' % (i + 1)] = gpu[i]
+    for i, device in enumerate(device_lib.list_local_devices()):
+        if device.device_type != 'GPU':
+            continue
+        parameter_value_map['GPU_{}_name'.format(i + 1)] = device.name
+        parameter_value_map['GPU_{}_memory_limit'.format(i + 1)] = device.memory_limit
+        parameter_value_map['GPU_{}_description'.format(i + 1)] = device.physical_device_desc
     lscpu = subprocess.check_output('lscpu | grep \'^CPU(s):\|Core\|Thread\'', shell=True).strip().decode()
     lscpu = lscpu.split('\n')
     for row in lscpu:
