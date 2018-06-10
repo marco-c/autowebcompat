@@ -268,10 +268,10 @@ def get_new_image():
             else:
                 bounding_boxes[current_image + '_firefox'] = boxes_firefox
                 bounding_boxes[current_image + '_chrome'] = boxes_chrome
-                if len(boxes_chrome['n'] + boxes_firefox['n']) == 0:
-                    labels[current_image] = 'd'
-                elif len(boxes_chrome['n'] + boxes_firefox['n'] + boxes_chrome['d'] + boxes_firefox['d']) == 0:
+                if len(boxes_chrome['n'] + boxes_firefox['n'] + boxes_chrome['d'] + boxes_firefox['d']) == 0:
                     labels[current_image] = 'y'
+                elif len(boxes_chrome['n'] + boxes_firefox['n']) == 0:
+                    labels[current_image] = 'd'
                 else:
                     labels[current_image] = 'n'
                 return 0
