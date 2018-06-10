@@ -1,4 +1,5 @@
 import argparse
+import random
 
 import cv2
 import numpy as np
@@ -15,6 +16,7 @@ labels = utils.read_labels(labels_directory + args.file_name + '.csv')
 bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + '_bounding_box.json')
 
 images_to_show = [i for i in utils.get_images() if i not in labels]
+random.shuffle(images_to_show)
 drawing = False
 shifting = False
 changing_shape = False
