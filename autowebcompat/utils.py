@@ -272,6 +272,9 @@ def write_train_info(information, model, train_history, file_name=None):
         file_name += datetime.now().strftime('_%H_%M_%Y_%m_%d.txt')
     machine_info = get_machine_info()
     information.update(machine_info)
+
+    if not os.path.exists('train_info'):
+        os.makedirs('train_info')
     with open(os.path.join('train_info', file_name), 'w') as f:
         for key, value in information.items():
             print('%s : %s' % (key, value), file=f)
