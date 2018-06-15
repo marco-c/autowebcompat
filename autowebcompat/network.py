@@ -189,8 +189,7 @@ def create_inception_network(input_shape):
 
 def create_resnet50_network(input_shape):
     base_model = ResNet50(input_shape=input_shape)
-    base_model.layers.pop()
-    return base_model
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('flatten_1').output)
 
 
 def create(input_shape, network='vgglike', weights=None):
