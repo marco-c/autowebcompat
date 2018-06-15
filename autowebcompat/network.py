@@ -46,7 +46,9 @@ def create_mlp(input_shape):
 
 
 def create_vgg16_network(input_shape):
-    return VGG16(input_shape=input_shape)
+    base_model = VGG16(input_shape=input_shape)
+    base_model.layers.pop()
+    return base_model
 
 
 def create_vgg19_network(input_shape):
