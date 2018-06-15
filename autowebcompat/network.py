@@ -1,4 +1,5 @@
 from keras import backend as K
+from keras.applications.resnet50 import ResNet50
 from keras.applications.vgg16 import VGG16
 from keras.applications.vgg19 import VGG19
 from keras.layers import ActivityRegularization
@@ -16,7 +17,7 @@ from keras.optimizers import Adam
 from keras.optimizers import Nadam
 from keras.optimizers import RMSprop
 
-SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike']
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike', 'resnet50']
 SUPPORTED_OPTIMIZERS = {
     'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
     'adam': Adam(),
@@ -182,6 +183,11 @@ def create_inception_network(input_shape):
     x = Dense(128, activation='relu')(x)
 
     return Model(input, x)
+
+
+def create_resnet50_network(input_shape):
+    base_model = ResNet50(input_shape=input_shape)
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('flatten_1').output)
 
 
 def create(input_shape, network='vgglike', weights=None):
