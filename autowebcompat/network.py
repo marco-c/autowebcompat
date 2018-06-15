@@ -51,14 +51,12 @@ def create_mlp(input_shape, weights):
 
 def create_vgg16_network(input_shape, weights):
     base_model = VGG16(input_shape=input_shape, weights=weights)
-    base_model.layers.pop()
-    return base_model
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('fc2').output)
 
 
 def create_vgg19_network(input_shape, weights):
     base_model = VGG19(input_shape=input_shape, weights=weights)
-    base_model.layers.pop()
-    return base_model
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('fc2').output)
 
 
 def create_vgglike_network(input_shape, weights):
@@ -191,8 +189,7 @@ def create_inception_network(input_shape, weights):
 
 def create_resnet50_network(input_shape, weights):
     base_model = ResNet50(input_shape=input_shape, weights=weights)
-    base_model.layers.pop()
-    return base_model
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('flatten_1').output)
 
 
 def create(input_shape, network='vgglike', weights=None):
