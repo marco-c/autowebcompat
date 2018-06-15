@@ -1,4 +1,5 @@
 from keras import backend as K
+from keras.applications.resnet50 import ResNet50
 from keras.layers import ActivityRegularization
 from keras.layers import Conv2D
 from keras.layers import Dense
@@ -251,6 +252,12 @@ def create_inception_network(input_shape):
     x = Dense(128, activation='relu')(x)
 
     return Model(input, x)
+
+
+def create_resnet50_network(input_shape):
+    base_model = ResNet50(input_shape=input_shape)
+    base_model.layers.pop()
+    return base_model
 
 
 def create(input_shape, network='vgglike', weights=None):
