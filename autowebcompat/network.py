@@ -1,4 +1,5 @@
 from keras import backend as K
+from keras.applications.vgg16 import VGG16
 from keras.layers import ActivityRegularization
 from keras.layers import Conv2D
 from keras.layers import Dense
@@ -45,42 +46,7 @@ def create_mlp(input_shape):
 
 
 def create_vgg16_network(input_shape):
-    input = Input(shape=input_shape)
-
-    # Block 1
-    x = Conv2D(64, (3, 3), padding='same', activation='relu')(input)
-    x = Conv2D(64, (3, 3), padding='same', activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 2
-    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 3
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 4
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 5
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    x = Flatten()(x)
-    x = Dense(4096, activation='relu')(x)
-    x = Dropout(0.5)(x)
-    x = Dense(4096, activation='relu')(x)
-    # Softmax layer Not Necessary
-    return Model(input, x)
+    return VGG16(input_shape=input_shape)
 
 
 def create_vgg19_network(input_shape):
