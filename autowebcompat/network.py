@@ -24,6 +24,8 @@ SUPPORTED_OPTIMIZERS = {
     'nadam': Nadam(),
     'rms': RMSprop()
 }
+SUPPORTED_WEIGHTS = ['imagenet']
+SUPPORTED_NETWORKS_WITH_WEIGHTS = ['vgg16', 'vgg19', 'resnet50']
 
 
 def euclidean_distance(vects):
@@ -36,7 +38,7 @@ def eucl_dist_output_shape(shapes):
     return (shape1[0], 1)
 
 
-def create_mlp(input_shape):
+def create_mlp(input_shape, weights):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     x = Dense(128, activation='relu')(x)
@@ -47,19 +49,19 @@ def create_mlp(input_shape):
     return Model(input, x)
 
 
-def create_vgg16_network(input_shape):
-    base_model = VGG16(input_shape=input_shape)
+def create_vgg16_network(input_shape, weights):
+    base_model = VGG16(input_shape=input_shape, weights=weights)
     base_model.layers.pop()
     return base_model
 
 
-def create_vgg19_network(input_shape):
-    base_model = VGG19(input_shape=input_shape)
+def create_vgg19_network(input_shape, weights):
+    base_model = VGG19(input_shape=input_shape, weights=weights)
     base_model.layers.pop()
     return base_model
 
 
-def create_vgglike_network(input_shape):
+def create_vgglike_network(input_shape, weights):
     input = Input(shape=input_shape)
 
     # input: 192x256 images with 3 channels -> (192, 256, 3) tensors.
@@ -83,13 +85,13 @@ def create_vgglike_network(input_shape):
     return Model(input, x)
 
 
-def create_simnet_network(input_shape):
+def create_simnet_network(input_shape, weights):
     L2_REGULARIZATION = 0.001
 
     input = Input(shape=input_shape)
 
     # CNN 1
-    vgg16 = create_vgg16_network(input_shape)
+    vgg16 = create_vgg16_network(input_shape, weights)
     cnn_1 = vgg16(input)
 
     # CNN 2
@@ -121,13 +123,13 @@ def create_simnet_network(input_shape):
     return Model(input, output)
 
 
-def create_simnetlike_network(input_shape):
+def create_simnetlike_network(input_shape, weights):
     L2_REGULARIZATION = 0.005
 
     input = Input(shape=input_shape)
 
     # CNN 1
-    vgg16 = create_vgglike_network(input_shape)
+    vgg16 = create_vgglike_network(input_shape, weights)
     cnn_1 = vgg16(input)
 
     # CNN 2
@@ -159,7 +161,7 @@ def create_simnetlike_network(input_shape):
     return Model(input, output)
 
 
-def create_inception_network(input_shape):
+def create_inception_network(input_shape, weights):
     """
        Simple architecture with one layer of inception model
 
@@ -187,23 +189,27 @@ def create_inception_network(input_shape):
     return Model(input, x)
 
 
-def create_resnet50_network(input_shape):
-    base_model = ResNet50(input_shape=input_shape)
+def create_resnet50_network(input_shape, weights):
+    base_model = ResNet50(input_shape=input_shape, weights=weights)
     base_model.layers.pop()
     return base_model
 
 
 def create(input_shape, network='vgglike', weights=None):
     assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
+    if weights is not None:
+        assert network in SUPPORTED_NETWORKS_WITH_WEIGHTS, '%s does not have weights for %s ' % (network, weights)
+        assert input_shape == (224, 224, 3), 'shape must be (224, 224, 3)'
+
     network_func = globals()['create_%s_network' % network]
-    base_network = network_func(input_shape)
+    base_network = network_func(input_shape, weights)
 
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
 
     # Loading pretrained weights corresponding to the network used
-    if weights:
-        base_network.load_weights(weights)
+    # if weights:
+    #     base_network.load_weights(weights)
 
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
