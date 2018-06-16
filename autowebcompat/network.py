@@ -197,6 +197,9 @@ def create(input_shape, network='vgglike', weights=None):
     if weights is not None:
         assert network in SUPPORTED_NETWORKS_WITH_WEIGHTS, '%s does not have weights for %s ' % (network, weights)
         assert input_shape == (224, 224, 3), 'shape must be (224, 224, 3)'
+        weights_file = None
+        if weights != 'imagenet':
+            weights_file = weights
 
     network_func = globals()['create_%s_network' % network]
     base_network = network_func(input_shape, weights)
@@ -205,9 +208,8 @@ def create(input_shape, network='vgglike', weights=None):
     input_b = Input(shape=input_shape)
 
     # Loading pretrained weights corresponding to the network used
-    # if weights:
-    #     base_network.load_weights(weights)
-
+    if weights_file:
+        base_network.load_weights(weights_file)
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
 
