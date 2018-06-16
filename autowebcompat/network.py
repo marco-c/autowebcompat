@@ -192,24 +192,23 @@ def create_resnet50_network(input_shape, weights):
     return Model(inputs=base_model.input, outputs=base_model.get_layer('flatten_1').output)
 
 
-def create(input_shape, network='vgglike', weights=None):
+def create(input_shape, network='vgglike', weights=None, builtin_weights=None):
     assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
-    if weights is not None:
-        assert network in SUPPORTED_NETWORKS_WITH_WEIGHTS, '%s does not have weights for %s ' % (network, weights)
-        assert input_shape == (224, 224, 3), 'shape must be (224, 224, 3)'
-        weights_file = None
-        if weights != 'imagenet':
-            weights_file = weights
+    assert weights is None or builtin_weights is None, 'only one type of weights are allowed at once'
+
+    if builtin_weights:
+        assert network in SUPPORTED_NETWORKS_WITH_WEIGHTS, '%s does not have weights for %s ' % (network, builtin_weights)
 
     network_func = globals()['create_%s_network' % network]
-    base_network = network_func(input_shape, weights)
+    base_network = network_func(input_shape, builtin_weights)
 
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
 
     # Loading pretrained weights corresponding to the network used
-    if weights_file:
-        base_network.load_weights(weights_file)
+    if weights:
+        base_network.load_weights(weights)
+
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
 
