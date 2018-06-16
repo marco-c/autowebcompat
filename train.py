@@ -95,7 +95,7 @@ print(score)
 y_true, y_pred = [], []
 for i, (x, y) in enumerate(test_iterator):
     y_pred_batch = model.predict_on_batch(x)
-    y_pred_batch = np.where(y_pred_batch > 0.5, 1, 0)
+    y_pred_batch = np.where(y_pred_batch < 0.5, 1, 0)
     y_true.extend(y)
     y_pred.extend(y_pred_batch.flatten().tolist())
     if i == test_couples_len // BATCH_SIZE:
