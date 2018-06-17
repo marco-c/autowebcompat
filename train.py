@@ -18,6 +18,8 @@ random.seed(42)
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
 parser.add_argument('-o', '--optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
+parser.add_argument('-w', '--weights', type=str, help='Location of the weights to be loaded for the given model')
+parser.add_argument('-bw', '--builtin_weights', type=str, choices=network.SUPPORTED_WEIGHTS, help='Select the weights to be loaded for the given model')
 parser.add_argument('-ct', '--classification_type', type=str, choices=utils.CLASSIFICATION_TYPES, default=utils.CLASSIFICATION_TYPES[0], help='Select the classification_type for training')
 parser.add_argument('-es', '--early_stopping', dest='early_stopping', action='store_true', help='Stop training training when validation accuracy has stopped improving.')
 
@@ -79,7 +81,7 @@ train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_trai
 validation_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_validation), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = network.create(input_shape, args.network)
+model = network.create(input_shape, args.network, args.weights, args.builtin_weights)
 network.compile(model, args.optimizer)
 
 timer = Timer()
