@@ -1,6 +1,7 @@
 import argparse
 import random
 import time
+import tensorflow as tf
 
 from keras.callbacks import Callback
 from keras.callbacks import EarlyStopping
@@ -11,6 +12,8 @@ from autowebcompat import utils
 
 BATCH_SIZE = 32
 EPOCHS = 50
+
+tf.logging.set_verbosity(tf.logging.ERROR)                                      # Supress warnings
 random.seed(42)
 
 parser = argparse.ArgumentParser()
@@ -46,7 +49,7 @@ all_image_names = [i for i in utils.get_images() if i in labels]
 all_images = sum([[i + '_firefox.png', i + '_chrome.png'] for i in all_image_names], [])
 image = utils.load_image(all_images[0])
 input_shape = image.shape
-
+print("Input shape: " + str(input_shape))
 SAMPLE_SIZE = len(all_image_names)
 TRAIN_SAMPLE = 80 * (SAMPLE_SIZE // 100)
 VALIDATION_SAMPLE = 10 * (SAMPLE_SIZE // 100)
