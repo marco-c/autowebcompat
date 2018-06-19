@@ -11,7 +11,7 @@ from autowebcompat import network
 from autowebcompat import utils
 
 BATCH_SIZE = 32
-EPOCHS = 100
+EPOCHS = 5
 
 tf.logging.set_verbosity(tf.logging.ERROR)                                      # Supress warnings
 random.seed(42)
