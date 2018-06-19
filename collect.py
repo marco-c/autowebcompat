@@ -303,7 +303,7 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
-firefox_profile.set_preference('intl.accept_languages', 'it');
+firefox_profile.set_preference('intl.accept_languages', 'it')
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
 chrome_options.add_argument('--no-sandbox')
