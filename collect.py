@@ -303,6 +303,7 @@ os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
 firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
+firefox_profile.set_preference('intl.accept_languages', 'it');
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
 chrome_options.add_argument('--no-sandbox')
@@ -310,6 +311,7 @@ chrome_options.add_argument('--headless')
 chrome_options.add_argument('--hide-scrollbars')
 chrome_options.add_argument('--window-size=412,732')
 chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
+chrome_options.add_argument('--lang=it')
 
 
 def main(bugs):
