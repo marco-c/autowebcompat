@@ -26,6 +26,12 @@ changing_shape = False
 box_to_change = {}
 all_boxes = {}
 key_map = {'Escape': 27, 'r': 114, 'Enter': 13, 'Space': 32, 'y': 121, 'left_a': 97, 'right_d': 100}
+COLOR_N = (0, 255, 0)  # GREEN
+COLOR_D = (0, 255, 255)  # YELLOW
+COLOR_PLUS = (255, 0, 0)  # BLUE
+COLOR_TOGGLE_ND = (0, 0, 255)  # RED
+COLOR_CHANGE_SHAPE = (0, 0, 255)  # RED
+COLOR_CROSS = (0, 0, 255)  # RED
 cv2.namedWindow('firefox')
 cv2.namedWindow('chrome')
 cv2.namedWindow('firefox_chrome_overlay')
@@ -96,33 +102,33 @@ def create_bounding_box(drawing_area, start_x, start_y, end_x, end_y, color):
 
 
 def create_cross(drawing_area, start_x, start_y, end_x, end_y):
-    cv2.line(drawing_area, (end_x - 2, start_y + 2), (end_x - 12, start_y + 12), (0, 0, 255), 2)
-    cv2.line(drawing_area, (end_x - 12, start_y + 2), (end_x - 2, start_y + 12), (0, 0, 255), 2)
+    cv2.line(drawing_area, (end_x - 2, start_y + 2), (end_x - 12, start_y + 12), COLOR_CROSS, 2)
+    cv2.line(drawing_area, (end_x - 12, start_y + 2), (end_x - 2, start_y + 12), COLOR_CROSS, 2)
 
 
 def create_plus(drawing_area, start_x, start_y, end_x, end_y):
     center_x = (start_x + end_x) // 2
     center_y = (start_y + end_y) // 2
-    cv2.arrowedLine(drawing_area, (center_x, center_y - 10), (center_x, center_y + 10), (255, 0, 0), 2, tipLength=0.2)
-    cv2.arrowedLine(drawing_area, (center_x - 10, center_y), (center_x + 10, center_y), (255, 0, 0), 2, tipLength=0.2)
-    cv2.arrowedLine(drawing_area, (center_x, center_y + 10), (center_x, center_y - 10), (255, 0, 0), 2, tipLength=0.2)
-    cv2.arrowedLine(drawing_area, (center_x + 10, center_y), (center_x - 10, center_y), (255, 0, 0), 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x, center_y - 10), (center_x, center_y + 10), COLOR_PLUS, 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x - 10, center_y), (center_x + 10, center_y), COLOR_PLUS, 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x, center_y + 10), (center_x, center_y - 10), COLOR_PLUS, 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x + 10, center_y), (center_x - 10, center_y), COLOR_PLUS, 2, tipLength=0.2)
 
 
 def create_toggle_nd(drawing_area, start_x, start_y, end_x, end_y):
-    cv2.line(drawing_area, (start_x + 2, start_y + 2), (start_x + 12, start_y + 2), (0, 0, 255), 2)
-    cv2.line(drawing_area, (start_x + 7, start_y + 2), (start_x + 7, start_y + 12), (0, 0, 255), 2)
+    cv2.line(drawing_area, (start_x + 2, start_y + 2), (start_x + 12, start_y + 2), COLOR_TOGGLE_ND, 2)
+    cv2.line(drawing_area, (start_x + 7, start_y + 2), (start_x + 7, start_y + 12), COLOR_TOGGLE_ND, 2)
 
 
 def create_change_shape(drawing_area, start_x, start_y, end_x, end_y):
-    cv2.arrowedLine(drawing_area, (end_x - 12, end_y - 12), (end_x - 2, end_y - 2), (255, 0, 0), 2, tipLength=0.3)
-    cv2.arrowedLine(drawing_area, (end_x - 2, end_y - 2), (end_x - 12, end_y - 12), (255, 0, 0), 2, tipLength=0.3)
+    cv2.arrowedLine(drawing_area, (end_x - 12, end_y - 12), (end_x - 2, end_y - 2), COLOR_CHANGE_SHAPE, 2, tipLength=0.3)
+    cv2.arrowedLine(drawing_area, (end_x - 2, end_y - 2), (end_x - 12, end_y - 12), COLOR_CHANGE_SHAPE, 2, tipLength=0.3)
 
 
 def draw_bounding_boxes_init(param):
     [main_drawing_area, secondary_drawing_area, boxes] = param
-    # GREEN --> 'n'     YELLOW --> 'd'
-    color = {'d': (0, 255, 255), 'n': (0, 255, 0)}
+
+    color = {'d': COLOR_D, 'n': COLOR_N}
     for boxes_type, boxes_values in all_boxes.items():
         for box in boxes_values:
             if box in boxes[boxes_type]:
@@ -143,8 +149,8 @@ def draw_bounding_boxes_init(param):
 def draw_bounding_boxes(event, mouse_x, mouse_y, flags, param):
     global start_x, start_y, drawing, end_x, end_y, shifting, box_to_change, changing_shape
     [main_drawing_area, secondary_drawing_area, boxes] = param
-    # GREEN --> 'n'     YELLOW --> 'd'
-    color = {'d': (0, 255, 255), 'n': (0, 255, 0)}
+
+    color = {'d': COLOR_D, 'n': COLOR_N}
     for boxes_type, boxes_values in all_boxes.items():
         for box in boxes_values:
             if box in boxes[boxes_type]:
