@@ -10,16 +10,19 @@ labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file_name', action='store')
+parser.add_argument('--verify', dest='verify', default=False, action='store_true')
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name + '.csv')
 bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + '_bounding_box.json')
 
-images_to_show = [i for i in utils.get_images() if i not in labels]
-random.shuffle(images_to_show)
-images_marked = [i for i in utils.get_images() if i in labels]
-images_to_show = images_marked + images_to_show
-image_index = len(images_marked)
+if args.verify:
+    images_to_show = [i for i in utils.get_images() if i in labels]
+else:
+    images_to_show = [i for i in utils.get_images() if i not in labels]
+    random.shuffle(images_to_show)
+
+image_index = 0
 drawing = False
 shifting = False
 changing_shape = False
