@@ -285,7 +285,27 @@ def get_new_image():
             return 0
 
 
+class terminal_color:
+    OKGREEN = '\033[92m'
+    OKYELLOW = '\033[93m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def show_help():
+    print('\n===========================  ' + terminal_color.BOLD + 'Guidelines for Labeling' + terminal_color.ENDC + '  =================================')
+    print('1. Press ' + terminal_color.BOLD + 'y' + terminal_color.ENDC + ' to mark the images as compatible')
+    print('2. Press ' + terminal_color.BOLD + 'Enter' + terminal_color.ENDC + ' to select regions')
+    print('3. Click the ' + terminal_color.BOLD + 'T' + terminal_color.ENDC + ' button in the top left corner of a bounding box to toggle between classes')
+    print('4. ' + terminal_color.OKGREEN + 'Green corresponds to (not compatible) ' + terminal_color.UNDERLINE + 'n' + terminal_color.ENDC)
+    print('5. ' + terminal_color.OKYELLOW + 'Yellow corresponds to (compatible but different) ' + terminal_color.UNDERLINE + 'd' + terminal_color.ENDC)
+    print('6. Press ' + terminal_color.BOLD + 'Enter' + terminal_color.ENDC + ' to save changes')
+    print('======================================================================================\n')
+
+
 def main():
+    show_help()
     while len(images_to_show):
         if get_new_image():
             break
