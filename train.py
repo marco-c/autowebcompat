@@ -6,6 +6,8 @@ import tensorflow as tf
 from keras.callbacks import Callback
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
+import numpy as np
+from sklearn.metrics import confusion_matrix
 
 from autowebcompat import network
 from autowebcompat import utils
@@ -93,6 +95,18 @@ if args.early_stopping:
 train_history = model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)
+
+y_true, y_pred = [], []
+for i, (x, y) in enumerate(test_iterator):
+    y_pred_batch = model.predict_on_batch(x)
+    y_pred_batch = np.where(y_pred_batch < 0.5, 1, 0)
+    y_true.extend(y)
+    y_pred.extend(y_pred_batch.flatten().tolist())
+    if i == test_couples_len // BATCH_SIZE:
+        break
+
+print('Confusion Matrix')
+print(confusion_matrix(y_true, y_pred))
 
 train_history = train_history.history
 train_history.update({'epoch time': timer.epoch_times})
