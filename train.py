@@ -17,6 +17,7 @@ random.seed(42)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
+parser.add_argument('-l', '--labels', type=str, default='labels.csv', help='Location of labels file to be used for training')
 parser.add_argument('-o', '--optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
 parser.add_argument('-w', '--weights', type=str, help='Location of the weights to be loaded for the given model')
 parser.add_argument('-bw', '--builtin_weights', type=str, choices=network.SUPPORTED_WEIGHTS, help='Select the weights to be loaded for the given model')
@@ -41,7 +42,7 @@ class Timer(Callback):
         self.train_time = time.time() - self.train_begin_time
 
 
-labels = utils.read_labels()
+labels = utils.read_labels(args.labels)
 
 utils.prepare_images()
 all_image_names = [i for i in utils.get_images() if i in labels]
