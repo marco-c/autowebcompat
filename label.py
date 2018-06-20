@@ -9,20 +9,32 @@ from autowebcompat import utils
 labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('file_name', action='store')
+parser.add_argument('file_name', action='store', help='Filename to open and save your labels')
+parser.add_argument('--verify', dest='verify', default=False, action='store_true', help='To verify and edit previous labels')
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name + '.csv')
 bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + '_bounding_box.json')
 
-images_to_show = [i for i in utils.get_images() if i not in labels]
-random.shuffle(images_to_show)
+if args.verify:
+    images_to_show = [i for i in utils.get_images() if i in labels]
+else:
+    images_to_show = [i for i in utils.get_images() if i not in labels]
+    random.shuffle(images_to_show)
+
+image_index = 0
 drawing = False
 shifting = False
 changing_shape = False
 box_to_change = {}
 all_boxes = {}
-key_map = {'Escape': 27, 'r': 114, 'Enter': 13, 'Space': 32, 'y': 121, 'n': 110, 'd': 100}
+key_map = {'Escape': 27, 'r': 114, 'Enter': 13, 'Space': 32, 'y': 121, 'left_a': 97, 'right_d': 100}
+COLOR_N = (0, 255, 0)  # GREEN
+COLOR_D = (0, 255, 255)  # YELLOW
+COLOR_PLUS = (255, 0, 0)  # BLUE
+COLOR_TOGGLE_ND = (0, 0, 255)  # RED
+COLOR_CHANGE_SHAPE = (0, 0, 255)  # RED
+COLOR_CROSS = (0, 0, 255)  # RED
 cv2.namedWindow('firefox')
 cv2.namedWindow('chrome')
 cv2.namedWindow('firefox_chrome_overlay')
@@ -93,34 +105,55 @@ def create_bounding_box(drawing_area, start_x, start_y, end_x, end_y, color):
 
 
 def create_cross(drawing_area, start_x, start_y, end_x, end_y):
-    cv2.line(drawing_area, (end_x - 2, start_y + 2), (end_x - 12, start_y + 12), (0, 0, 255), 2)
-    cv2.line(drawing_area, (end_x - 12, start_y + 2), (end_x - 2, start_y + 12), (0, 0, 255), 2)
+    cv2.line(drawing_area, (end_x - 2, start_y + 2), (end_x - 12, start_y + 12), COLOR_CROSS, 2)
+    cv2.line(drawing_area, (end_x - 12, start_y + 2), (end_x - 2, start_y + 12), COLOR_CROSS, 2)
 
 
 def create_plus(drawing_area, start_x, start_y, end_x, end_y):
     center_x = (start_x + end_x) // 2
     center_y = (start_y + end_y) // 2
-    cv2.arrowedLine(drawing_area, (center_x, center_y - 10), (center_x, center_y + 10), (255, 0, 0), 2, tipLength=0.2)
-    cv2.arrowedLine(drawing_area, (center_x - 10, center_y), (center_x + 10, center_y), (255, 0, 0), 2, tipLength=0.2)
-    cv2.arrowedLine(drawing_area, (center_x, center_y + 10), (center_x, center_y - 10), (255, 0, 0), 2, tipLength=0.2)
-    cv2.arrowedLine(drawing_area, (center_x + 10, center_y), (center_x - 10, center_y), (255, 0, 0), 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x, center_y - 10), (center_x, center_y + 10), COLOR_PLUS, 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x - 10, center_y), (center_x + 10, center_y), COLOR_PLUS, 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x, center_y + 10), (center_x, center_y - 10), COLOR_PLUS, 2, tipLength=0.2)
+    cv2.arrowedLine(drawing_area, (center_x + 10, center_y), (center_x - 10, center_y), COLOR_PLUS, 2, tipLength=0.2)
 
 
 def create_toggle_nd(drawing_area, start_x, start_y, end_x, end_y):
-    cv2.line(drawing_area, (start_x + 2, start_y + 2), (start_x + 12, start_y + 2), (0, 0, 255), 2)
-    cv2.line(drawing_area, (start_x + 7, start_y + 2), (start_x + 7, start_y + 12), (0, 0, 255), 2)
+    cv2.line(drawing_area, (start_x + 2, start_y + 2), (start_x + 12, start_y + 2), COLOR_TOGGLE_ND, 2)
+    cv2.line(drawing_area, (start_x + 7, start_y + 2), (start_x + 7, start_y + 12), COLOR_TOGGLE_ND, 2)
 
 
 def create_change_shape(drawing_area, start_x, start_y, end_x, end_y):
-    cv2.arrowedLine(drawing_area, (end_x - 12, end_y - 12), (end_x - 2, end_y - 2), (255, 0, 0), 2, tipLength=0.3)
-    cv2.arrowedLine(drawing_area, (end_x - 2, end_y - 2), (end_x - 12, end_y - 12), (255, 0, 0), 2, tipLength=0.3)
+    cv2.arrowedLine(drawing_area, (end_x - 12, end_y - 12), (end_x - 2, end_y - 2), COLOR_CHANGE_SHAPE, 2, tipLength=0.3)
+    cv2.arrowedLine(drawing_area, (end_x - 2, end_y - 2), (end_x - 12, end_y - 12), COLOR_CHANGE_SHAPE, 2, tipLength=0.3)
+
+
+def draw_bounding_boxes_init(param):
+    [main_drawing_area, secondary_drawing_area, boxes] = param
+
+    color = {'d': COLOR_D, 'n': COLOR_N}
+    for boxes_type, boxes_values in all_boxes.items():
+        for box in boxes_values:
+            if box in boxes[boxes_type]:
+                box_main_drawing_area = main_drawing_area
+                box_secondary_drawing_area = secondary_drawing_area
+            else:
+                box_main_drawing_area = secondary_drawing_area
+                box_secondary_drawing_area = main_drawing_area
+
+            create_bounding_box(box_main_drawing_area, box[0], box[1], box[2], box[3], color[boxes_type])
+            create_cross(box_main_drawing_area, box[0], box[1], box[2], box[3])
+            create_plus(box_main_drawing_area, box[0], box[1], box[2], box[3])
+            create_change_shape(box_main_drawing_area, box[0], box[1], box[2], box[3])
+            create_toggle_nd(box_main_drawing_area, box[0], box[1], box[2], box[3])
+            create_bounding_box(box_secondary_drawing_area, box[0], box[1], box[2], box[3], color[boxes_type])
 
 
 def draw_bounding_boxes(event, mouse_x, mouse_y, flags, param):
     global start_x, start_y, drawing, end_x, end_y, shifting, box_to_change, changing_shape
     [main_drawing_area, secondary_drawing_area, boxes] = param
-    # GREEN --> 'n'     YELLOW --> 'd'
-    color = {'d': (0, 255, 255), 'n': (0, 255, 0)}
+
+    color = {'d': COLOR_D, 'n': COLOR_N}
     for boxes_type, boxes_values in all_boxes.items():
         for box in boxes_values:
             if box in boxes[boxes_type]:
@@ -223,8 +256,10 @@ def draw_bounding_boxes(event, mouse_x, mouse_y, flags, param):
 
 # The images are not the same and you want to mark the bounding box.
 def get_new_image():
-    global all_boxes
-    current_image = images_to_show.pop()
+    global all_boxes, image_index
+    image_index = max(0, image_index)
+    image_index = min(image_index, len(images_to_show) - 1)
+    current_image = images_to_show[image_index]
     print('Reading %s' % current_image)
     firefox_screenshot = cv2.imread('data/%s_firefox.png' % current_image)
     chrome_screenshot = cv2.imread('data/%s_chrome.png' % current_image)
@@ -232,14 +267,25 @@ def get_new_image():
         return 0
     drawing_area_firefox = reset_bounding_boxes(firefox_screenshot.shape)
     drawing_area_chrome = reset_bounding_boxes(chrome_screenshot.shape)
-    all_boxes, boxes_firefox, boxes_chrome = {'n': [], 'd': []}, {'n': [], 'd': []}, {'n': [], 'd': []}
+    visibility = 1
+    if current_image + '_firefox' in bounding_boxes.keys():
+        all_boxes = {'n': [], 'd': []}
+        boxes_firefox = bounding_boxes[current_image + '_firefox']
+        boxes_chrome = bounding_boxes[current_image + '_chrome']
+        all_boxes['n'] = boxes_firefox['n'][:] + boxes_chrome['n'][:]
+        all_boxes['d'] = boxes_firefox['d'][:] + boxes_chrome['d'][:]
+        visibility = 0.5
+        draw_bounding_boxes_init([drawing_area_firefox, drawing_area_chrome, boxes_firefox])
+    else:
+        all_boxes, boxes_firefox, boxes_chrome = {'n': [], 'd': []}, {'n': [], 'd': []}, {'n': [], 'd': []}
 
     cv2.setMouseCallback('firefox', draw_bounding_boxes, [drawing_area_firefox, drawing_area_chrome, boxes_firefox])
     cv2.setMouseCallback('chrome', draw_bounding_boxes, [drawing_area_chrome, drawing_area_firefox, boxes_chrome])
-    visibility = 1
     while True:
         all_boxes['n'] = boxes_firefox['n'][:] + boxes_chrome['n'][:]
         all_boxes['d'] = boxes_firefox['d'][:] + boxes_chrome['d'][:]
+        if all_boxes['n'] or all_boxes['d']:
+            visibility = 0.5
         firefox_window = cv2.addWeighted(drawing_area_firefox, 1 - visibility, firefox_screenshot, visibility, 0)
         chrome_window = cv2.addWeighted(drawing_area_chrome, 1 - visibility, chrome_screenshot, visibility, 0)
         firefox_chrome_overlay = cv2.addWeighted(firefox_screenshot, 0.5, chrome_screenshot, 0.5, 0)
@@ -274,14 +320,23 @@ def get_new_image():
                     labels[current_image] = 'd'
                 else:
                     labels[current_image] = 'n'
+                image_index += 1
                 return 0
         # <Space> skips the labeling of current image
         elif k == key_map['Space']:
+            image_index += 1
             return 0
         elif k == key_map['y']:
             bounding_boxes[current_image + '_firefox'] = boxes_firefox
             bounding_boxes[current_image + '_chrome'] = boxes_chrome
             labels[current_image] = 'y'
+            image_index += 1
+            return 0
+        elif k == key_map['right_d']:
+            image_index += 1
+            return 0
+        elif k == key_map['left_a']:
+            image_index -= 1
             return 0
 
 
@@ -295,18 +350,21 @@ class terminal_color:
 
 def show_help():
     print('\n===========================  ' + terminal_color.BOLD + 'Guidelines for Labeling' + terminal_color.ENDC + '  =================================')
-    print('1. Press ' + terminal_color.BOLD + 'y' + terminal_color.ENDC + ' to mark the images as compatible')
-    print('2. Press ' + terminal_color.BOLD + 'Enter' + terminal_color.ENDC + ' to select regions')
-    print('3. Click the ' + terminal_color.BOLD + 'T' + terminal_color.ENDC + ' button in the top left corner of a bounding box to toggle between classes')
+    print('1. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'y' + terminal_color.ENDC + ' to mark the images as compatible')
+    print('2. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Enter' + terminal_color.ENDC + ' to select regions')
+    print('3. Click the ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'T' + terminal_color.ENDC + ' button in the top left corner of a bounding box to toggle between classes')
     print('4. ' + terminal_color.OKGREEN + 'Green corresponds to (not compatible) ' + terminal_color.UNDERLINE + 'n' + terminal_color.ENDC)
     print('5. ' + terminal_color.OKYELLOW + 'Yellow corresponds to (compatible but different) ' + terminal_color.UNDERLINE + 'd' + terminal_color.ENDC)
-    print('6. Press ' + terminal_color.BOLD + 'Enter' + terminal_color.ENDC + ' to save changes')
+    print('6. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Enter' + terminal_color.ENDC + ' again to save changes')
+    print('7. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Space' + terminal_color.ENDC + ' to skip the images')
+    print('8. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'a and d' + terminal_color.ENDC + ' to navigate left and right, respectively')
+    print('9. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Escape' + terminal_color.ENDC + ' to exit the labeling')
     print('======================================================================================\n')
 
 
 def main():
     show_help()
-    while len(images_to_show):
+    while image_index != len(images_to_show):
         if get_new_image():
             break
 
