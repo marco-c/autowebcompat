@@ -94,10 +94,14 @@ train_history = model.fit_generator(train_iterator, callbacks=callbacks_list, va
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)
 
+validation_generator = test_datagen.flow_from_directory(test_data_path,
+                                                        target_size=(img_rows, img_cols),
+                                                        batch_size=batch_size,class_mode='categorical')
+
 Y_pred = model.predict_generator(validation_generator, TEST_SAMPLE // BATCH_SIZE+1)
 y_pred = np.argmax(Y_pred, axis=1)
 print('Confusion Matrix')
-print(confusion_matrix(validation_generator.classes, y_pred))
+print(confusion_matrix(('Y','D+N'), y_pred))
 print('Classification Report')
 target_names = ['Y', 'D+N']
 print(classification_report(validation_generator.classes, y_pred, target_names=target_names))
