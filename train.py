@@ -11,7 +11,7 @@ from autowebcompat import network
 from autowebcompat import utils
 
 BATCH_SIZE = 32
-EPOCHS = 50
+EPOCHS = 1
 
 tf.logging.set_verbosity(tf.logging.ERROR)                                      # Supress warnings
 random.seed(42)
@@ -49,7 +49,6 @@ all_image_names = [i for i in utils.get_images() if i in labels]
 all_images = sum([[i + '_firefox.png', i + '_chrome.png'] for i in all_image_names], [])
 image = utils.load_image(all_images[0])
 input_shape = image.shape
-print("Input shape: " + str(input_shape))
 SAMPLE_SIZE = len(all_image_names)
 TRAIN_SAMPLE = 80 * (SAMPLE_SIZE // 100)
 VALIDATION_SAMPLE = 10 * (SAMPLE_SIZE // 100)
@@ -94,6 +93,14 @@ if args.early_stopping:
 train_history = model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)
+
+Y_pred = model.predict_generator(validation_generator, TEST_SAMPLE // BATCH_SIZE+1)
+y_pred = np.argmax(Y_pred, axis=1)
+print('Confusion Matrix')
+print(confusion_matrix(validation_generator.classes, y_pred))
+print('Classification Report')
+target_names = ['Y', 'D+N']
+print(classification_report(validation_generator.classes, y_pred, target_names=target_names))
 
 train_history = train_history.history
 train_history.update({'epoch time': timer.epoch_times})
