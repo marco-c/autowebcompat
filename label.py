@@ -9,8 +9,8 @@ from autowebcompat import utils
 labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('file_name', action='store')
-parser.add_argument('--verify', dest='verify', default=False, action='store_true')
+parser.add_argument('file_name', action='store', help='Filename to open and save your labels')
+parser.add_argument('--verify', dest='verify', default=False, action='store_true', help='To verify and edit previous labels')
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name + '.csv')
