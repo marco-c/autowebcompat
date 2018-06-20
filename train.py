@@ -100,7 +100,7 @@ print('Confusion Matrix')
 print(confusion_matrix(('Y','D+N'), y_pred))
 print('Classification Report')
 target_names = ['Y', 'D+N']
-print(classification_report(validation_generator.classes, y_pred, target_names=target_names))
+print(classification_report(('Y','D+N'), y_pred, target_names=target_names))
 
 train_history = train_history.history
 train_history.update({'epoch time': timer.epoch_times})
