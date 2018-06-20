@@ -35,9 +35,9 @@ COLOR_PLUS = (255, 0, 0)  # BLUE
 COLOR_TOGGLE_ND = (0, 0, 255)  # RED
 COLOR_CHANGE_SHAPE = (0, 0, 255)  # RED
 COLOR_CROSS = (0, 0, 255)  # RED
-cv2.namedWindow('firefox')
-cv2.namedWindow('chrome')
-cv2.namedWindow('firefox_chrome_overlay')
+cv2.namedWindow('firefox', cv2.WINDOW_NORMAL)
+cv2.namedWindow('chrome', cv2.WINDOW_NORMAL)
+cv2.namedWindow('firefox_chrome_overlay', cv2.WINDOW_NORMAL)
 
 
 def reset_bounding_boxes(drawing_area_shape):
@@ -265,6 +265,13 @@ def get_new_image():
     chrome_screenshot = cv2.imread('data/%s_chrome.png' % current_image)
     if firefox_screenshot.shape != chrome_screenshot.shape:
         return 0
+    cv2.resizeWindow('chrome', chrome_screenshot.shape[1], chrome_screenshot.shape[0])
+    cv2.resizeWindow('firefox', firefox_screenshot.shape[1], firefox_screenshot.shape[0])
+    cv2.resizeWindow('firefox_chrome_overlay', chrome_screenshot.shape[1], chrome_screenshot.shape[0])
+    cv2.moveWindow('firefox', 20, 0)
+    cv2.moveWindow('chrome', 20 + firefox_screenshot.shape[1], 0)
+    cv2.moveWindow('firefox_chrome_overlay', 20 + firefox_screenshot.shape[1] + chrome_screenshot.shape[1], 0)
+
     drawing_area_firefox = reset_bounding_boxes(firefox_screenshot.shape)
     drawing_area_chrome = reset_bounding_boxes(chrome_screenshot.shape)
     visibility = 1
@@ -292,9 +299,6 @@ def get_new_image():
         cv2.imshow('firefox', firefox_window)
         cv2.imshow('chrome', chrome_window)
         cv2.imshow('firefox_chrome_overlay', firefox_chrome_overlay)
-        cv2.moveWindow('firefox', 20, 0)
-        cv2.moveWindow('chrome', 20 + firefox_window.shape[1], 0)
-        cv2.moveWindow('firefox_chrome_overlay', 20 + firefox_window.shape[1] + chrome_window.shape[1], 0)
         k = cv2.waitKey(1) & 0xFF
         # <Escape> quits marking area without saving
         if k == key_map['Escape']:
