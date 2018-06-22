@@ -47,8 +47,8 @@ The bounding-box labeling allows us to store the areas where the incompatibiliti
 
 - Press 'y' to mark the images as compatible;
 - Press 'Enter' to select the regions;
-- Click the 'T' button in the top left corner of a boundary box to toggle between classes. Green corresponds to 'n', yellow corresponds to 'd';
-- Press 'Enter' to save changes. 
+- Click the 'T' button in the top left corner of a boundary box to toggle between classes. Purple corresponds to 'n', yellow corresponds to 'd';
+- Press 'Enter' to save changes.
 
 ### Training
 
@@ -86,9 +86,9 @@ For the unsupervised training, we are using a related problem for which we alrea
 
     ```
     -network                  To select which network architecture to use
-                                                       
+
     -optimizer                To select the optimizer to use   
-                              
+
     -classification_type      Either Y vs N + D or Y + N vs D
 
     --early_stoppping	      (Optional) To stop training when validation accuracy has stopped improving
