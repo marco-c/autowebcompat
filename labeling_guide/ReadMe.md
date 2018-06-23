@@ -15,16 +15,16 @@
 ## Bounding boxes marked as incompatible - n 
 ---
 #### They are different.
-#### Mark the parts which are different logically with Green.
-> Improper loading of images, missing text, different design, different languages are marked incompatible with Green.
+#### Mark the parts which are logically different.
+> Improper loading of images, missing text, different design, different languages are marked incompatible.
 ---
 
 ## Bounding boxes marked as different yet compatible - d 
 ---
 #### They look different.
-#### Mark the parts which are same logically with Yellow.
+#### Mark the parts which are logically the same.
 >Different advertisements, different videos loaded, time-in-clock are marked
-as different yet compatible with Yellow.
+as different yet compatible.
 ---
 <p align="center"><img src="n1.png" width=617 height=357></p>
 <p align="center"><img src="n2.png" width=617 height=357></p>
