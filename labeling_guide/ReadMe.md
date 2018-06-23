@@ -2,14 +2,10 @@
 # Labeling Guidelines
 
 ## Images marked as compatible - y 
-
 ---
-
-#### They look same.
+#### They look the same.
 #### firefox\_chrome\_overlay window should nearly overlap them.
-
 ---
-
 <p align="center"><img src="y1.png" width=617 height=357></p>
 <p align="center"><img src="y2.png" width=617 height=357></p>
 <p align="center"><img src="y3.png" width=617 height=357></p>
@@ -17,27 +13,19 @@
 <p align="center"><img src="y5.png" width=617 height=357></p>
 
 ## Bounding boxes marked as incompatible - n 
-
 ---
-
 #### They are different.
 #### Mark the parts which are different logically with Green.
 > Improper loading of images, missing text, different design, different languages are marked incompatible with Green.
-
-----
-
-
-## Bounding boxes marked as different yet compatible - d 
-
 ---
 
+## Bounding boxes marked as different yet compatible - d 
+---
 #### They look different.
 #### Mark the parts which are same logically with Yellow.
 >Different advertisements, different videos loaded, time-in-clock are marked
 as different yet compatible with Yellow.
-
 ---
-
 <p align="center"><img src="n1.png" width=617 height=357></p>
 <p align="center"><img src="n2.png" width=617 height=357></p>
 <p align="center"><img src="n3.png" width=617 height=357></p>
