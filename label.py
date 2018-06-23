@@ -264,6 +264,7 @@ def get_new_image():
     firefox_screenshot = cv2.imread('data/%s_firefox.png' % current_image)
     chrome_screenshot = cv2.imread('data/%s_chrome.png' % current_image)
     if firefox_screenshot.shape != chrome_screenshot.shape:
+        del images_to_show[image_index]
         return 0
     cv2.resizeWindow('chrome', chrome_screenshot.shape[1], chrome_screenshot.shape[0])
     cv2.resizeWindow('firefox', firefox_screenshot.shape[1], firefox_screenshot.shape[0])
