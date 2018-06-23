@@ -1,8 +1,11 @@
 
 # Labeling Guidelines
 
+Now that the screenshots are available, they need to be labeled. The labeling phase operates on couples of comparable screenshots.
+
 ## Images marked as compatible - y 
 ---
+#### Couples of images that are clearly compatible.
 #### They look the same.
 #### firefox\_chrome\_overlay window should nearly overlap them.
 ---
@@ -14,6 +17,7 @@
 
 ## Bounding boxes marked as incompatible - n 
 ---
+#### Couples of images which are not compatible
 #### They are different.
 #### Mark the parts which are logically different.
 > Improper loading of images, missing text, different design, different languages are marked incompatible.
@@ -21,9 +25,10 @@
 
 ## Bounding boxes marked as different yet compatible - d 
 ---
+#### Couples of images that are compatible, but with content differences.
 #### They look different.
 #### Mark the parts which are logically the same.
->Different advertisements, different videos loaded, time-in-clock are marked
+>Different advertisements, different videos loaded, time-in-clock, captchas are marked
 as different yet compatible.
 ---
 <p align="center"><img src="labeling_guide/n1.png" width=617 height=357></p>
@@ -42,3 +47,5 @@ as different yet compatible.
 <p align="center"><img src="labeling_guide/n14.png" width=617 height=357></p>
 <p align="center"><img src="labeling_guide/d1.png" width=617 height=357></p>
 
+
+In the training phase, the best case is that we are able to detect between **Y + D and N**. If we are not able to do that, we should at least aim for the relaxed problem of detecting between **Y and D + N**. This is why we have this three labeling system.
