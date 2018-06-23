@@ -43,7 +43,7 @@ The bounding-box labeling allows us to store the areas where the incompatibiliti
 
 <img src="https://user-images.githubusercontent.com/18056781/39081659-fdd4655e-4562-11e8-86f9-a5fab28634bf.JPG" />
 
-<img src="https://user-images.githubusercontent.com/18056781/39081665-10eda006-4563-11e8-9455-986b5a23934e.jpg" />
+<img src="https://user-images.githubusercontent.com/18056781/41806002-99faae6c-76d1-11e8-9442-aa2c4f5025b5.png" />
 
 - Press 'y' to mark the images as compatible;
 - Press 'Enter' to select the regions;
