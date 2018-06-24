@@ -20,7 +20,7 @@ Now that the screenshots are available, they need to be labeled. The labeling ph
 #### Couples of images which are not compatible
 #### They are different.
 #### Mark the parts which are logically different.
-> Improper loading of images, missing text, different design, different languages are marked incompatible.
+> For example, improper loading of images, missing text, different design, different languages, different selections, missing bullets or checkboxes and others are marked incompatible.
 ---
 
 ## Bounding boxes marked as different yet compatible - d 
@@ -28,8 +28,7 @@ Now that the screenshots are available, they need to be labeled. The labeling ph
 #### Couples of images that are compatible, but with content differences.
 #### They look different.
 #### Mark the parts which are logically the same.
->Different advertisements, different videos loaded, time-in-clock, captchas are marked
-as different yet compatible.
+>Since the screenshots are taken at different times in the two browsers, there are differences which are not incompatibilities but are actually due to the different timing. For example, a banner could be showing a different advertisement, a video could be in two different frames, a clock could be showing different time, a captcha could be showing different characters or images, two news could be different, and so on.
 ---
 <p align="center"><img src="labeling_guide/n1.png" width=617 height=357></p>
 <p align="center"><img src="labeling_guide/n2.png" width=617 height=357></p>
