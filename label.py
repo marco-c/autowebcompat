@@ -350,7 +350,7 @@ def show_help():
     print('1. Press *y* to mark the images as compatible')
     print('2. Press *Enter* to select regions')
     print('3. Click the T button in the top left corner of a bounding box to toggle between classes')
-    print('4. *Green* corresponds to (not compatible) *n*')
+    print('4. *Purple* corresponds to (not compatible) *n*')
     print('5. *Yellow* corresponds to (compatible but different) *d*')
     print('6. Press *Enter* again to save changes')
     print('7. Press *Space* to skip the images')
