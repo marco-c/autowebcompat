@@ -5,7 +5,9 @@ import difflib
 from lxml import etree
 
 ignoredAttrib = {'style', 'type'}
-matched = {}
+matched21 = {}
+matched12 = {}
+nodes_info = {1: {}, 2: {}}
 tree1 = None
 tree2 = None
 
@@ -50,40 +52,90 @@ def calculateMatchIndex(x, y):
     ATTRIB = 0.25
     xPath1 = tree1.getpath(x)
     xPath2 = tree2.getpath(y)
-    xPathSim = difflib.SequenceMatcher(None, xPath1, xPath2).ratio()
+    if xPath1 == xPath2:
+        xPathSim = 1
+    else:
+        xPathSim = difflib.SequenceMatcher(None, xPath1, xPath2).ratio()
     attrib_x = processAttributes(x.attrib)
     attrib_y = processAttributes(y.attrib)
     attribSim = getMapSimilarity(attrib_x, attrib_y)
     return XPATH * xPathSim + ATTRIB * attribSim
 
 
-def ExactMatchVisitor(node, root):
-    if root not in matched.keys():
-        if node.tag == root.tag:
-            matchIndex = calculateMatchIndex(node, root)
-            if matchIndex == 1.0:
-                matched[root] = node
-                return True
-    # print(list(root))
-    for child in list(root):
-        if ExactMatchVisitor(node, child):
-            return True
+def ExactMatchVisitor(root1, root2):
+    global matched21, matched12
+    # ct  = 0
+    for node1 in root1.iter():
+        # print(ct)
+        best_match = 0
+        for node2 in root2.iter():
+            # ct += 1
+            if node1.tag == node2.tag:
+                if node2 not in matched21.keys():
+                    matchIndex = calculateMatchIndex(node1, node2)
+                    # print(tree1.getpath(node1), tree2.getpath(node2), matchIndex)
+                    if matchIndex == 1.0:
+                        # print(tree1.getpath(node1))
+                        # print(tree2.getpath(node2))
+                        # print(matchIndex)
+                        # input()
+                        matched12[node1] = node2
+                        matched21[node2] = node1
+                        break
+                    elif matchIndex > best_match:
+                        best_match = matchIndex
+                        best_match_node = node2
+        if best_match >= 0.85:
+            matched12[node1] = best_match_node
+            matched21[best_match_node] = node1
+            # print(tree1.getpath(node1))
+            # print(tree2.getpath(best_match_node))
+            # print(best_match)
+            # input()
+        # input()
+
+
+def AssignLevelVisitor(root, sno):
+    levels = []
+    for node in root.iter():
+        if node.getparent() is None:
+            nodes_info[sno][node]['level'] = 0
+            levels.append([])
+            levels[0].append(node)
+        else:
+            nodes_info[sno][node]['level'] = nodes_info[sno][node.getparent()]['level'] + 1
+            if len(levels) == nodes_info[sno][node]['level']:
+                levels.append([])
+            levels[nodes_info[sno][node]['level']].append(node)
+    return levels
 
 
 def do_match(root1, root2):
-    global matched
+    global matched21, matched12
     # perfect matching
-    worklist = []
-    worklist.append(root1)
-    while worklist:
-        node = worklist.pop(0)
-        ExactMatchVisitor(node, root2)
-        for child in list(node):
-            worklist.append(child)
+    # Assign Levels
+    # levels1 = AssignLevelVisitor(root1, 1)
+    # levels2 = AssignLevelVisitor(root2, 2)
+    ExactMatchVisitor(root1, root2)
+
+    # print(list(nodes_info[1].keys()))
+    # print(list(matched21.keys()))
+    unmatched_nodes_chrome = [node for node in set(a.iter(tag=etree.Element)) - set(matched12.keys())]
+    print("Unmatched Nodes chrome : %d" % len(unmatched_nodes_chrome))
+
+    for node in unmatched_nodes_chrome:
+        print(tree1.getpath(node), node.attrib)
+
+    unmatched_nodes_firefox = [node for node in set(b.iter(tag=etree.Element)) - set(matched21.keys())]
+    print("Unmatched Nodes firefox: %d" % len(unmatched_nodes_chrome))
+    for node in unmatched_nodes_firefox:
+        print(tree2.getpath(node), node.attrib)
 
 
 for file in dom_files:
-    matched = {}
+    # if '1211_0' not in file:
+    #     continue
+    matched21 = {}
     chrome_dom_file = os.path.join(folder, file)
     firefox_dom_file = os.path.join(folder, file.replace('chrome', 'firefox'))
     print(chrome_dom_file)
@@ -97,13 +149,32 @@ for file in dom_files:
     b = etree.HTML(firefox_dom)
     tree1 = etree.ElementTree(a)
     tree2 = etree.ElementTree(b)
-    do_match(a, b)
-    print(len(matched))
-    # print(matched)
+    for node in a.iter(tag = etree.Element):
+        nodes_info[1][node] = {}
+    for node in b.iter(tag = etree.Element):
+        nodes_info[2][node] = {}
+    # print(nodes_info)
+    l1 = list(a.iter(tag=etree.Element))
+    l2 = list(b.iter(tag=etree.Element))
+    s1 = []
+    s2 = []
+    # for i in range(len(l2)):
+    #     s1.append(tree1.getpath(l1[i]))
+    #     s2.append(tree2.getpath(l2[i]))
+    #     print(s1[-1], s2[-1])
+    #     input()
+    # print(len(set(s2) & set(s1)))
+    # print(matched21)
     # print(tree1.getpath(a[0]))
     # print(tree2.getpath(b[0]))
-    print(len(list(b.iter())))
-    print(len(list(a.iter())))
+    print("Chrome Nodes : %d" % len(list(a.iter())))
+    print("Firefox Nodes : %d" % len(list(b.iter())))
+
+    if len(list(a.iter())) + len(list(b.iter())) > 1700:
+        continue
+    do_match(a, b)
+    print("Matched Nodes : %d\n\n" % len(matched21))
     # print(tree1.getpath(tree1.findall('.//div')[12]))
+    # print(tree1.getpath(tree1.findall('.//div')[12].getparent()))
     # print()
-    input()
+    # input()
