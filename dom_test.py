@@ -10,7 +10,8 @@ matched12 = {}
 nodes_info = {1: {}, 2: {}}
 tree1 = None
 tree2 = None
-
+THRESHOLD_LEVEL = 0.75
+THRESHOLD_GLOBAL = 0.85
 folder = 'data'
 dom_files = [f for f in os.listdir(folder) if 'dom' in f and 'chrome' in f]
 
@@ -65,10 +66,9 @@ def calculateMatchIndex(x, y):
 def ExactMatchVisitor(root1, root2):
     global matched21, matched12
     # ct  = 0
-    for node1 in root1.iter():
+    for node1 in root1.iter(tag=etree.Element):
         # print(ct)
-        best_match = 0
-        for node2 in root2.iter():
+        for node2 in root2.iter(tag=etree.Element):
             # ct += 1
             if node1.tag == node2.tag:
                 if node2 not in matched21.keys():
@@ -82,22 +82,11 @@ def ExactMatchVisitor(root1, root2):
                         matched12[node1] = node2
                         matched21[node2] = node1
                         break
-                    elif matchIndex > best_match:
-                        best_match = matchIndex
-                        best_match_node = node2
-        if best_match >= 0.85:
-            matched12[node1] = best_match_node
-            matched21[best_match_node] = node1
-            # print(tree1.getpath(node1))
-            # print(tree2.getpath(best_match_node))
-            # print(best_match)
-            # input()
-        # input()
 
 
 def AssignLevelVisitor(root, sno):
     levels = []
-    for node in root.iter():
+    for node in root.iter(tag=etree.Element):
         if node.getparent() is None:
             nodes_info[sno][node]['level'] = 0
             levels.append([])
@@ -110,32 +99,68 @@ def AssignLevelVisitor(root, sno):
     return levels
 
 
+def ApproxMatchVisitor(worklist, root2):
+    global matched21, matched12
+    # ct  = 0
+    for node1 in worklist:
+        bestMatchIndex = 0
+        bestMatchNode = None
+        # print(ct)
+        for node2 in root2.iter(tag=etree.Element):
+            # ct += 1
+            if node1.tag == node2.tag:
+                if node2 not in matched21.keys():
+                    matchIndex = calculateMatchIndex(node1, node2)
+                    # print(tree1.getpath(node1), tree2.getpath(node2), matchIndex)
+                    if matchIndex > THRESHOLD_GLOBAL and matchIndex > bestMatchIndex:
+                        bestMatchIndex = matchIndex
+                        bestMatchNode = node2
+                        # print(tree1.getpath(node1))
+                        # print(tree2.getpath(node2))
+                        # print(matchIndex)
+                        # input()
+        if bestMatchNode is not None:
+            matched12[node1] = bestMatchNode
+            matched21[bestMatchNode] = node1
+
+
 def do_match(root1, root2):
     global matched21, matched12
-    # perfect matching
-    # Assign Levels
-    # levels1 = AssignLevelVisitor(root1, 1)
-    # levels2 = AssignLevelVisitor(root2, 2)
+    # 1. perfect matching
     ExactMatchVisitor(root1, root2)
 
-    # print(list(nodes_info[1].keys()))
-    # print(list(matched21.keys()))
-    unmatched_nodes_chrome = [node for node in set(a.iter(tag=etree.Element)) - set(matched12.keys())]
-    print("Unmatched Nodes chrome : %d" % len(unmatched_nodes_chrome))
+    # Assign Levels
+    AssignLevelVisitor(root1, 1)
+    levels2 = AssignLevelVisitor(root2, 2)
+    unmatched_nodes = [node for node in set(a.iter(tag=etree.Element)) - set(matched12.keys())]
+    worklist = []
 
-    for node in unmatched_nodes_chrome:
-        print(tree1.getpath(node), node.attrib)
+    # 2. level matching
+    for node in unmatched_nodes:
+        level = nodes_info[1][node]['level']
+        if level < len(levels2):
+            lnodes = levels2[level]
+            bestMatchIndex = 0
+            bestMatchNode = None
+            for ln in lnodes:
+                if ln not in matched21.keys():
+                    matchIndex = calculateMatchIndex(node, ln)
+                    if matchIndex > THRESHOLD_LEVEL and matchIndex > bestMatchIndex:
+                        bestMatchIndex = matchIndex
+                        bestMatchNode = ln
+            if bestMatchNode is not None:
+                matched12[node] = bestMatchNode
+                matched21[bestMatchNode] = node
+            else:
+                worklist.append(node)
 
-    unmatched_nodes_firefox = [node for node in set(b.iter(tag=etree.Element)) - set(matched21.keys())]
-    print("Unmatched Nodes firefox: %d" % len(unmatched_nodes_chrome))
-    for node in unmatched_nodes_firefox:
-        print(tree2.getpath(node), node.attrib)
+    # 3. Approximate global matching
+    ApproxMatchVisitor(worklist, root2)
 
 
 for file in dom_files:
-    # if '1211_0' not in file:
-    #     continue
     matched21 = {}
+    matched12 = {}
     chrome_dom_file = os.path.join(folder, file)
     firefox_dom_file = os.path.join(folder, file.replace('chrome', 'firefox'))
     print(chrome_dom_file)
@@ -149,9 +174,9 @@ for file in dom_files:
     b = etree.HTML(firefox_dom)
     tree1 = etree.ElementTree(a)
     tree2 = etree.ElementTree(b)
-    for node in a.iter(tag = etree.Element):
+    for node in a.iter(tag=etree.Element):
         nodes_info[1][node] = {}
-    for node in b.iter(tag = etree.Element):
+    for node in b.iter(tag=etree.Element):
         nodes_info[2][node] = {}
     # print(nodes_info)
     l1 = list(a.iter(tag=etree.Element))
@@ -167,14 +192,14 @@ for file in dom_files:
     # print(matched21)
     # print(tree1.getpath(a[0]))
     # print(tree2.getpath(b[0]))
-    print("Chrome Nodes : %d" % len(list(a.iter())))
-    print("Firefox Nodes : %d" % len(list(b.iter())))
+    print("Chrome Nodes : %d" % len(list(a.iter(tag=etree.Element))))
+    print("Firefox Nodes : %d" % len(list(b.iter(tag=etree.Element))))
 
-    if len(list(a.iter())) + len(list(b.iter())) > 1700:
+    if len(list(a.iter(tag=etree.Element))) + len(list(b.iter(tag=etree.Element))) > 1700:
         continue
     do_match(a, b)
     print("Matched Nodes : %d\n\n" % len(matched21))
     # print(tree1.getpath(tree1.findall('.//div')[12]))
     # print(tree1.getpath(tree1.findall('.//div')[12].getparent()))
     # print()
-    # input()
+    input()
