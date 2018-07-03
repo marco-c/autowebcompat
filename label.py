@@ -29,7 +29,7 @@ changing_shape = False
 box_to_change = {}
 all_boxes = {}
 key_map = {'Escape': 27, 'r': 114, 'Enter': 13, 'Space': 32, 'y': 121, 'left_a': 97, 'right_d': 100}
-COLOR_N = (0, 255, 0)  # GREEN
+COLOR_N = (128, 0, 128)  # PURPLE
 COLOR_D = (0, 255, 255)  # YELLOW
 COLOR_PLUS = (255, 0, 0)  # BLUE
 COLOR_TOGGLE_ND = (0, 0, 255)  # RED
@@ -264,6 +264,7 @@ def get_new_image():
     firefox_screenshot = cv2.imread('data/%s_firefox.png' % current_image)
     chrome_screenshot = cv2.imread('data/%s_chrome.png' % current_image)
     if firefox_screenshot.shape != chrome_screenshot.shape:
+        del images_to_show[image_index]
         return 0
     cv2.resizeWindow('chrome', chrome_screenshot.shape[1], chrome_screenshot.shape[0])
     cv2.resizeWindow('firefox', firefox_screenshot.shape[1], firefox_screenshot.shape[0])
@@ -344,25 +345,17 @@ def get_new_image():
             return 0
 
 
-class terminal_color:
-    OKGREEN = '\033[92m'
-    OKYELLOW = '\033[93m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 def show_help():
-    print('\n===========================  ' + terminal_color.BOLD + 'Guidelines for Labeling' + terminal_color.ENDC + '  =================================')
-    print('1. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'y' + terminal_color.ENDC + ' to mark the images as compatible')
-    print('2. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Enter' + terminal_color.ENDC + ' to select regions')
-    print('3. Click the ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'T' + terminal_color.ENDC + ' button in the top left corner of a bounding box to toggle between classes')
-    print('4. ' + terminal_color.OKGREEN + 'Green corresponds to (not compatible) ' + terminal_color.UNDERLINE + 'n' + terminal_color.ENDC)
-    print('5. ' + terminal_color.OKYELLOW + 'Yellow corresponds to (compatible but different) ' + terminal_color.UNDERLINE + 'd' + terminal_color.ENDC)
-    print('6. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Enter' + terminal_color.ENDC + ' again to save changes')
-    print('7. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Space' + terminal_color.ENDC + ' to skip the images')
-    print('8. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'a and d' + terminal_color.ENDC + ' to navigate left and right, respectively')
-    print('9. Press ' + terminal_color.BOLD + terminal_color.UNDERLINE + 'Escape' + terminal_color.ENDC + ' to exit the labeling')
+    print('\n===========================  Guidelines for Labeling  =================================')
+    print('1. Press *y* to mark the images as compatible')
+    print('2. Press *Enter* to select regions')
+    print('3. Click the T button in the top left corner of a bounding box to toggle between classes')
+    print('4. *Purple* corresponds to (not compatible) *n*')
+    print('5. *Yellow* corresponds to (compatible but different) *d*')
+    print('6. Press *Enter* again to save changes')
+    print('7. Press *Space* to skip the images')
+    print('8. Press *a* and *d* to navigate left and right, respectively')
+    print('9. Press *Escape* to exit the labeling')
     print('======================================================================================\n')
 
 
