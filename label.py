@@ -1,4 +1,5 @@
 import argparse
+import functools
 import random
 
 import cv2
@@ -359,8 +360,29 @@ def show_help():
     print('======================================================================================\n')
 
 
+def images_cmp(x, y):
+    img_list_x = x.split('_')
+    img_list_y = y.split('_')
+    if len(img_list_x) != len(img_list_y):
+        return len(img_list_x) - len(img_list_y)
+    for (f1, f2) in zip(img_list_x, img_list_y):
+        if f1 == f2:
+            continue
+        if f1.isdigit():
+            return int(f1) - int(f2)
+
+
 def main():
+    global images_to_show
     show_help()
+
+    images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
+    bug_ids = set([file_name.split('_')[0] for file_name in images_to_show])
+    ordered_images = []
+    for bug_id in bug_ids:
+        ordered_images.extend([file_name for file_name in images_to_show if bug_id == file_name.split('_')[0]])
+    images_to_show = ordered_images
+
     while image_index != len(images_to_show):
         if get_new_image():
             break
