@@ -372,16 +372,21 @@ def images_cmp(x, y):
             return int(f1) - int(f2)
 
 
+def group_images():
+    sorted_images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
+    bug_ids = set([file_name.split('_')[0] for file_name in sorted_images_to_show])
+    ordered_images = []
+    for bug_id in bug_ids:
+        for file_name in sorted_images_to_show:
+            if bug_id == file_name.split('_')[0]:
+                ordered_images.append(file_name)
+    return ordered_images
+
+
 def main():
     global images_to_show
     show_help()
-
-    images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
-    bug_ids = set([file_name.split('_')[0] for file_name in images_to_show])
-    ordered_images = []
-    for bug_id in bug_ids:
-        ordered_images.extend([file_name for file_name in images_to_show if bug_id == file_name.split('_')[0]])
-    images_to_show = ordered_images
+    images_to_show = group_images()
 
     while image_index != len(images_to_show):
         if get_new_image():
