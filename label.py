@@ -376,8 +376,7 @@ def group_images():
     global images_to_show
     sorted_images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
     bug_ids = set([file_name.split('_')[0] for file_name in sorted_images_to_show])
-    ordered_images = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == file_name.split('_')[0]]
-    images_to_show = ordered_images
+    images_to_show = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == file_name.split('_')[0]]
 
 
 def main():
