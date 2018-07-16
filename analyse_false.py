@@ -63,7 +63,8 @@ for image_names, x_batch, y_batch in all_iterator:
 window = tk.Tk()
 
 image_view = tk.Frame(window)
-image_view.pack()
+
+image_view.pack(side="top")
 
 panel1 = tk.Label(image_view)
 panel1.grid(row=0, column=0)
@@ -105,9 +106,7 @@ def show_next_image():
 
     image_index += 1
 
-show_next_image()
-
-next = tk.Button(window, text="Next")
-next.pack(side="bottom", ipadx=30, ipady=30, pady=20)
+next_button = tk.Button(window, text="Next", command=show_next_image)
+next_button.pack(side="bottom", ipadx=30, ipady=10, pady=20)
 
 window.mainloop()
