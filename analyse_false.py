@@ -45,7 +45,7 @@ print(input_shape)
 data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 all_iterator = gen_func(all_image_names, utils.CouplesIterator(couples_generator(all_image_names), input_shape, data_gen, BATCH_SIZE))
 
-model = load_model('best_train_model.hdf5', custom_objects={'contrastive_loss': contrastive_loss})
+model = load_model('best_pretrain_model.hdf5', custom_objects={'contrastive_loss': contrastive_loss})
 
 images_for_analysis = []
 for image_names, x_batch, y_batch in all_iterator:
@@ -79,7 +79,7 @@ panel2_text = tk.Label(image_view)
 panel2_text.grid(row=1, column=1)
 
 prediction_text = tk.Label(image_view)
-prediction_text.grid(row=2)
+prediction_text.grid(row=2, column=0)
 
 image_index = 0
 
@@ -106,7 +106,7 @@ def show_next_image():
 
     image_index += 1
 
-next_button = tk.Button(window, text="Next", command=show_next_image)
-next_button.pack(side="bottom", ipadx=30, ipady=10, pady=20)
+next_button = tk.Button(image_view, text="Next", command=show_next_image)
+next_button.grid(row=2, column=1, ipadx=30, ipady=10, pady=20)
 
 window.mainloop()
