@@ -106,7 +106,24 @@ def show_next_image():
 
     image_index += 1
 
-next_button = tk.Button(image_view, text="Next", command=show_next_image)
-next_button.grid(row=2, column=1, ipadx=30, ipady=10, pady=20)
+def show_prev_image():
+    global image_index
+    image_index -= 2
+    if image_index < 0:
+        image_index = 0
 
+    show_next_image()
+
+button_view = tk.Frame(image_view)
+button_view.grid(row=2, column=1)
+
+next_button = tk.Button(button_view, text="Next", command=show_next_image)
+next_button.grid(row=0, column=1, ipadx=30, ipady=10, pady=20)
+
+previous_button = tk.Button(button_view, text="Previous", command=show_prev_image)
+previous_button.grid(row=0, column=0, ipadx=30, ipady=10, pady=20)
+
+show_next_image()
+window.bind('<Left>', lambda x: show_prev_image())
+window.bind('<Right>', lambda x: show_next_image())
 window.mainloop()
