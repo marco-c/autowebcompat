@@ -15,7 +15,6 @@ args = parser.parse_args()
 bugs = utils.get_bugs()
 
 BATCH_SIZE = 32
-EPOCHS = 50
 
 labels = utils.read_labels()
 
@@ -87,6 +86,9 @@ image_index = 0
 def show_next_image():
     global panel1, panel2, panel1_text, panel2_text, image_index
 
+    if image_index >= len(images_for_analysis):
+        image_index = len(images_for_analysis)
+
     truth, prediction, image_name = images_for_analysis[image_index]
 
     firefox_name =  image_name + "_firefox.png"
@@ -126,4 +128,5 @@ previous_button.grid(row=0, column=0, ipadx=30, ipady=10, pady=20)
 show_next_image()
 window.bind('<Left>', lambda x: show_prev_image())
 window.bind('<Right>', lambda x: show_next_image())
+
 window.mainloop()
