@@ -19,7 +19,7 @@ from keras.optimizers import RMSprop
 
 SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike', 'resnet50']
 SUPPORTED_OPTIMIZERS = {
-    'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
+    'sgd': SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True),
     'adam': Adam(),
     'nadam': Nadam(),
     'rms': RMSprop()
