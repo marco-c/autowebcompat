@@ -12,8 +12,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 
 from autowebcompat import utils
+from lxml import etree
 
 MAX_THREADS = 5
 
@@ -222,10 +224,27 @@ def get_domtree(driver, file_path):
         f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
 
+def get_coordinates(driver, file_path):
+    dom_tree = etree.HTML(driver.execute_script('return document.documentElement.outerHTML'))
+    dom_element_tree = etree.ElementTree(dom_tree)
+    loc_dict = {}
+    for elem in dom_tree.iter(tag=etree.Element):
+        xpath = dom_element_tree.getpath(elem)
+        try:
+            web_elem = driver.find_element_by_xpath(xpath)
+        except NoSuchElementException:
+            continue
+        loc_dict[xpath] = web_elem.rect
+
+    with open(file_path, 'w') as f:
+        json.dump(loc_dict, f)
+
+
 def get_screenshot_and_domtree(driver, file_name):
     wait_loaded(driver)
     screenshot(driver, 'data/' + file_name + '.png')
     get_domtree(driver, 'data/' + 'dom_' + file_name + '.txt')
+    get_coordinates(driver, 'data/' + 'loc_' + file_name + '.txt')
 
 
 def run_test(bug, browser, driver, op_sequence=None):
