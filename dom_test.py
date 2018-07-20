@@ -1,7 +1,7 @@
+import difflib
 import os
 import re
 
-import difflib
 from lxml import etree
 
 ignoredAttrib = {'style', 'type'}
@@ -23,9 +23,9 @@ def processAttributes(attrib):
 
 
 def cleanAndCompare(str1, str2):
-    str1 = re.sub(r'[\'\"\\s]', '', str1)
-    str2 = re.sub(r'[\'\"\\s]', '', str2)
-    return str1 == str2                     # change to levenshtein (minimum edit distance) just thinking for src
+    str1 = re.sub(r'[\'\'\\s]', '', str1)
+    str2 = re.sub(r'[\'\'\\s]', '', str2)
+    return str1 == str2
 
 
 def mapDiff(x, y):
@@ -65,20 +65,12 @@ def calculateMatchIndex(x, y):
 
 def ExactMatchVisitor(root1, root2):
     global matched21, matched12
-    # ct  = 0
     for node1 in root1.iter(tag=etree.Element):
-        # print(ct)
         for node2 in root2.iter(tag=etree.Element):
-            # ct += 1
             if node1.tag == node2.tag:
                 if node2 not in matched21.keys():
                     matchIndex = calculateMatchIndex(node1, node2)
-                    # print(tree1.getpath(node1), tree2.getpath(node2), matchIndex)
                     if matchIndex == 1.0:
-                        # print(tree1.getpath(node1))
-                        # print(tree2.getpath(node2))
-                        # print(matchIndex)
-                        # input()
                         matched12[node1] = node2
                         matched21[node2] = node1
                         break
@@ -101,24 +93,16 @@ def AssignLevelVisitor(root, sno):
 
 def ApproxMatchVisitor(worklist, root2):
     global matched21, matched12
-    # ct  = 0
     for node1 in worklist:
         bestMatchIndex = 0
         bestMatchNode = None
-        # print(ct)
         for node2 in root2.iter(tag=etree.Element):
-            # ct += 1
             if node1.tag == node2.tag:
                 if node2 not in matched21.keys():
                     matchIndex = calculateMatchIndex(node1, node2)
-                    # print(tree1.getpath(node1), tree2.getpath(node2), matchIndex)
                     if matchIndex > THRESHOLD_GLOBAL and matchIndex > bestMatchIndex:
                         bestMatchIndex = matchIndex
                         bestMatchNode = node2
-                        # print(tree1.getpath(node1))
-                        # print(tree2.getpath(node2))
-                        # print(matchIndex)
-                        # input()
         if bestMatchNode is not None:
             matched12[node1] = bestMatchNode
             matched21[bestMatchNode] = node1
@@ -169,7 +153,7 @@ for file in dom_files:
         chrome_dom = f.read()
     with open(firefox_dom_file, 'r') as f:
         firefox_dom = f.read()
-    # print(compare_doms(etree.HTML(chrome_dom), etree.HTML(firefox_dom)))
+
     a = etree.HTML(chrome_dom)
     b = etree.HTML(firefox_dom)
     tree1 = etree.ElementTree(a)
@@ -178,28 +162,16 @@ for file in dom_files:
         nodes_info[1][node] = {}
     for node in b.iter(tag=etree.Element):
         nodes_info[2][node] = {}
-    # print(nodes_info)
+
     l1 = list(a.iter(tag=etree.Element))
     l2 = list(b.iter(tag=etree.Element))
     s1 = []
     s2 = []
-    # for i in range(len(l2)):
-    #     s1.append(tree1.getpath(l1[i]))
-    #     s2.append(tree2.getpath(l2[i]))
-    #     print(s1[-1], s2[-1])
-    #     input()
-    # print(len(set(s2) & set(s1)))
-    # print(matched21)
-    # print(tree1.getpath(a[0]))
-    # print(tree2.getpath(b[0]))
-    print("Chrome Nodes : %d" % len(list(a.iter(tag=etree.Element))))
-    print("Firefox Nodes : %d" % len(list(b.iter(tag=etree.Element))))
+
+    print('Chrome Nodes : %d' % len(list(a.iter(tag=etree.Element))))
+    print('Firefox Nodes : %d' % len(list(b.iter(tag=etree.Element))))
 
     if len(list(a.iter(tag=etree.Element))) + len(list(b.iter(tag=etree.Element))) > 1700:
         continue
     do_match(a, b)
-    print("Matched Nodes : %d\n\n" % len(matched21))
-    # print(tree1.getpath(tree1.findall('.//div')[12]))
-    # print(tree1.getpath(tree1.findall('.//div')[12].getparent()))
-    # print()
-    input()
+    print('Matched Nodes : %d\n\n' % len(matched21))
