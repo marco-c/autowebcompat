@@ -1,4 +1,5 @@
 import argparse
+from collections import OrderedDict
 import functools
 import random
 
@@ -20,8 +21,12 @@ bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + '
 if args.verify:
     images_to_show = [i for i in utils.get_images() if i in labels]
 else:
-    images_to_show = [i for i in utils.get_images() if i not in labels]
-    random.shuffle(images_to_show)
+    all_labels = utils.read_labels()
+    unlabelled_in_all_labels = [i for i in utils.get_images() if i in all_labels and i not in labels]
+    unlabelled = [i for i in utils.get_images() if i not in all_labels and i not in labels]
+    random.shuffle(unlabelled)
+    random.shuffle(unlabelled_in_all_labels)
+    images_to_show = unlabelled + unlabelled_in_all_labels
 
 image_index = 0
 drawing = False
@@ -375,7 +380,7 @@ def images_cmp(x, y):
 def group_images():
     global images_to_show
     sorted_images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
-    bug_ids = set([file_name.split('_')[0] for file_name in sorted_images_to_show])
+    bug_ids = OrderedDict.fromkeys([file_name.split('_')[0] for file_name in unlabelled + unlabelled_in_all_labels])
     images_to_show = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == file_name.split('_')[0]]
 
 
