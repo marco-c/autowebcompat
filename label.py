@@ -1,4 +1,5 @@
 import argparse
+import functools
 import random
 
 import cv2
@@ -29,7 +30,7 @@ changing_shape = False
 box_to_change = {}
 all_boxes = {}
 key_map = {'Escape': 27, 'r': 114, 'Enter': 13, 'Space': 32, 'y': 121, 'left_a': 97, 'right_d': 100}
-COLOR_N = (0, 255, 0)  # GREEN
+COLOR_N = (128, 0, 128)  # PURPLE
 COLOR_D = (0, 255, 255)  # YELLOW
 COLOR_PLUS = (255, 0, 0)  # BLUE
 COLOR_TOGGLE_ND = (0, 0, 255)  # RED
@@ -350,7 +351,7 @@ def show_help():
     print('1. Press *y* to mark the images as compatible')
     print('2. Press *Enter* to select regions')
     print('3. Click the T button in the top left corner of a bounding box to toggle between classes')
-    print('4. *Green* corresponds to (not compatible) *n*')
+    print('4. *Purple* corresponds to (not compatible) *n*')
     print('5. *Yellow* corresponds to (compatible but different) *d*')
     print('6. Press *Enter* again to save changes')
     print('7. Press *Space* to skip the images')
@@ -359,8 +360,29 @@ def show_help():
     print('======================================================================================\n')
 
 
+def images_cmp(x, y):
+    img_list_x = x.split('_')
+    img_list_y = y.split('_')
+    if len(img_list_x) != len(img_list_y):
+        return len(img_list_x) - len(img_list_y)
+    for (f1, f2) in zip(img_list_x, img_list_y):
+        if f1 == f2:
+            continue
+        if f1.isdigit():
+            return int(f1) - int(f2)
+
+
+def group_images():
+    global images_to_show
+    sorted_images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
+    bug_ids = set([file_name.split('_')[0] for file_name in sorted_images_to_show])
+    images_to_show = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == file_name.split('_')[0]]
+
+
 def main():
     show_help()
+    group_images()
+
     while image_index != len(images_to_show):
         if get_new_image():
             break

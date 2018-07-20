@@ -200,9 +200,21 @@ def do_something(driver, elem_properties=None):
 
 
 def screenshot(driver, file_path):
-    driver.get_screenshot_as_file(file_path)
-    image = Image.open(file_path)
-    image.save(file_path)
+    WINDOW_HEIGHT = 732
+    WINDOW_WIDTH = 412
+    page_height = driver.execute_script('return document.body.scrollHeight;')
+    page_width = driver.execute_script('return document.body.scrollWidth;')
+    height = 0
+    while height < page_height:
+        width = 0
+        while width < page_width:
+            file_name = '_'.join(file_path.split('_')[:-1] + ['H', str(width), 'V', str(height)] + file_path.split('_')[-1:])
+            driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
+            driver.get_screenshot_as_file(file_name)
+            image = Image.open(file_name)
+            image.save(file_name)
+            width += WINDOW_WIDTH
+        height += WINDOW_HEIGHT
 
 
 def get_domtree(driver, file_path):
