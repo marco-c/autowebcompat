@@ -192,7 +192,7 @@ def read_labels(file_name='labels.csv'):
         with open(file_name, 'r') as f:
             next(f)
             reader = csv.reader(f)
-            labels = {row[0]: row[1] for row in reader}
+            labels = {row[0]: row[1] for row in reader if len(row) == 2}
     except FileNotFoundError:
         labels = {}
     return labels
