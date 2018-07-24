@@ -381,8 +381,8 @@ def images_cmp(x, y):
 def group_images():
     global images_to_show
     sorted_images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
-    bug_ids = OrderedDict.fromkeys([file_name.split('_')[0] for file_name in images_not_in_all_labels + images_in_all_labels])
-    images_to_show = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == file_name.split('_')[0]]
+    bug_ids = OrderedDict.fromkeys([utils.parse_file_name(file_name)['bug_id'] for file_name in images_not_in_all_labels + images_in_all_labels])
+    images_to_show = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == utils.parse_file_name(file_name)['bug_id']]
 
 
 def main():

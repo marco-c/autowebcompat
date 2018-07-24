@@ -27,7 +27,6 @@ elif sys.platform.startswith('win32'):
     chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
     nightly_bin = 'tools\\Nightly\\firefox.exe'
 
-
 utils.mkdir('data')
 
 bugs = utils.get_bugs()
@@ -208,7 +207,7 @@ def screenshot(driver, file_path):
     while height < page_height:
         width = 0
         while width < page_width:
-            file_name = '_'.join(file_path.split('_')[:-1] + ['H', str(width), 'V', str(height)] + file_path.split('_')[-1:])
+            file_name = utils.create_screenshot_name(file_path, width, height)
             driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
             driver.get_screenshot_as_file(file_name)
             image = Image.open(file_name)

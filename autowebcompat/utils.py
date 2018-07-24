@@ -293,3 +293,34 @@ def write_train_info(information, model, train_history, file_name=None):
             row = train_history_list[i]
             for col in row:
                 print('%f\t\t' % col, end=' ', file=f)
+
+
+def create_screenshot_name(file_path, width, height):
+    folder = file_path.split('/')[0]
+    file = file_path.split('/')[1]
+
+    file_name = file.split('.')[0]
+    extension = file.split('.')[1]
+    file_info = file_name.rsplit('_', 1)[0]
+    browser = file_name.rsplit('_', 1)[1]
+
+    new_file_name = file_info + '_H_' + str(width) + '_V_' + str(height) + '_' + browser + '.' + extension
+    return os.path.join(folder, new_file_name)
+
+
+def parse_file_name(file_name):
+    file_name = file_name.split('_')
+    file_info = {}
+    index = 0
+    file_info['bug_id'] = int(file_name[index])
+    index += 1
+
+    if file_name[index].isdigit():
+        file_info['seq_no'] = int(file_name[index])
+        index += 1
+
+    index += 1
+    file_info['height'] = int(file_name[index])
+    index += 2
+    file_info['width'] = int(file_name[index])
+    return file_info
