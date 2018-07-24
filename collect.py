@@ -13,6 +13,8 @@ from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import WebDriverException
+
 
 from autowebcompat import utils
 from lxml import etree
@@ -228,15 +230,108 @@ def get_coordinates(driver, file_path):
     dom_tree = etree.HTML(driver.execute_script('return document.documentElement.outerHTML'))
     dom_element_tree = etree.ElementTree(dom_tree)
     loc_dict = {}
-    for elem in dom_tree.iter(tag=etree.Element):
-        xpath = dom_element_tree.getpath(elem)
-        try:
-            web_elem = driver.find_element_by_xpath(xpath)
-        except NoSuchElementException:
-            continue
-        loc_dict[xpath] = web_elem.rect
+    dom_tree_elements = [elem for elem in dom_tree.iter(tag=etree.Element)]
+    web_elements = driver.find_elements_by_css_selector('*')
+    left_elements = []
+    dom_xpaths = []
+
+    for element in dom_tree_elements:
+        xpath = dom_element_tree.getpath(element)
+        dom_xpaths.append(xpath)
+    for element in web_elements:
+        xpath = driver.execute_script("""function absoluteXPath(element) {
+                                     var comp, comps = [];
+                                     var parent = null;
+                                     var xpath = '';
+                                     var getPos = function(element) {
+                                      var position = 0,
+                                       curNode, prevNode, nextNode;
+                                      if (element.nodeType == Node.ATTRIBUTE_NODE) {
+                                       return null;
+                                      }
+                                      prevNode = element.previousSibling;
+                                      nextNode = element.nextSibling;
+                                      while(prevNode) {
+                                         if(prevNode.nodeName == element.nodeName) {
+                                              position = 1;
+                                              break;
+                                         }
+                                         prevNode = prevNode.previousSibling;
+                                      }
+                                      while(nextNode) {
+                                         if(nextNode.nodeName == element.nodeName) {
+                                              position = 1;
+                                              break;
+                                         }
+                                         nextNode = nextNode.nextSibling;
+                                      }
+                                      for (curNode = element.previousSibling; curNode; curNode = curNode.previousSibling) {
+                                       if (curNode.nodeName == element.nodeName) {
+                                        ++position;
+                                       }
+                                      }
+                                      return position;
+                                     };
+
+                                     if (element instanceof Document) {
+                                      return '/';
+                                     }
+
+                                     for (; element && !(element instanceof Document); element = element.nodeType == Node.ATTRIBUTE_NODE ? element.ownerElement : element.parentNode) {
+                                      comp = comps[comps.length] = {};
+                                      switch (element.nodeType) {
+                                       case Node.TEXT_NODE:
+                                        comp.name = 'text()';
+                                        break;
+                                       case Node.ATTRIBUTE_NODE:
+                                        comp.name = '@' + element.nodeName;
+                                        break;
+                                       case Node.PROCESSING_INSTRUCTION_NODE:
+                                        comp.name = 'processing-instruction()';
+                                        break;
+                                       case Node.COMMENT_NODE:
+                                        comp.name = 'comment()';
+                                        break;
+                                       case Node.ELEMENT_NODE:
+                                        comp.name = element.nodeName;
+                                        break;
+                                      }
+                                      comp.position = getPos(element);
+                                     }
+
+                                     for (var i = comps.length - 1; i >= 0; i--) {
+                                      comp = comps[i];
+                                      xpath += '/' + comp.name.toLowerCase();
+                                      if (comp.position !== null && comp.position != '0') {
+                                       xpath += '[' + comp.position + ']';
+                                      }
+                                     }
+                                     return xpath;
+
+                                    }
+                                    return absoluteXPath(arguments[0]);""", element)
+
+        if xpath in dom_xpaths:
+            loc_dict[xpath] = element.size
+            loc_dict[xpath].update(element.location)
+            dom_xpaths.remove(xpath)
+
+    for xpath in dom_xpaths:
+            try:
+                element = driver.find_element_by_xpath(xpath)
+            except NoSuchElementException:
+                if 'noscript' not in xpath:
+                    left_elements.append(xpath)
+                continue
+            loc_dict[xpath] = element.size
+            loc_dict[xpath].update(element.location)
 
     with open(file_path, 'w') as f:
+        print('Elements Left = %d' % len(left_elements), file=f)
+        print('Elements Left After Self = %d' % len(dom_xpaths), file=f)
+        print('Elements in DomTree = %d' % len(dom_tree_elements), file=f)
+        print('Elements in Selenium = %d' % len(web_elements), file=f)
+        print(left_elements, file=f)
         json.dump(loc_dict, f)
 
 
@@ -261,7 +356,7 @@ def run_test(bug, browser, driver, op_sequence=None):
 
     saved_sequence = []
     try:
-        max_iter = 7 if op_sequence is None else len(op_sequence)
+        max_iter = 1 if op_sequence is None else len(op_sequence)
         for i in range(0, max_iter):
             if op_sequence is None:
                 elem_properties = do_something(driver)
