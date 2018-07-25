@@ -7,7 +7,7 @@ def test_labels():
     labels = utils.read_labels()
     for label in labels:
         for browser in ['firefox', 'chrome']:
-            assert os.path.join('data', '{}_{}.png'.format(label, browser))
+            assert os.path.exists(os.path.join('data', '{}_{}.png'.format(label, browser)))
 
 
 def test_validate_labels():
