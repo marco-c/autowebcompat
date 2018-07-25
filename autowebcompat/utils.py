@@ -218,7 +218,7 @@ def write_labels(labels, file_name='labels.csv'):
     with open(file_name, 'w') as f:
         writer = csv.writer(f, delimiter=',')
         writer.writerow(['Image Name', 'Label'])
-        for key, values in labels.items():
+        for key, values in sorted(labels.items()):
             writer.writerow([key, values])
 
 
