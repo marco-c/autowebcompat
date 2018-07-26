@@ -295,25 +295,24 @@ def write_train_info(information, model, train_history, file_name=None):
                 print('%f\t\t' % col, end=' ', file=f)
 
 
-def create_file_name(folder, bug_id, browser, width=None, height=None, seq_no=None, isDom=False):
+def create_file_name(bug_id, browser, width=None, height=None, seq_no=None):
     new_file_name_parts = []
-    if isDom:
-        new_file_name_parts.append('dom')
     new_file_name_parts.append(bug_id)
+
     if seq_no is not None:
         new_file_name_parts.append(seq_no)
+
     if width is not None:
         new_file_name_parts.append('H')
         new_file_name_parts.append(width)
+
     if height is not None:
         new_file_name_parts.append('V')
         new_file_name_parts.append(height)
+
     new_file_name_parts.append(browser)
     new_file_name = '_'.join(new_file_name_parts)
-    if isDom:
-        return os.path.join(folder, new_file_name + '.txt')
-    else:
-        return os.path.join(folder, new_file_name + '.png')
+    return new_file_name
 
 
 def parse_file_name(file_name):

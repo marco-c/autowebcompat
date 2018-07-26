@@ -138,41 +138,34 @@ def test_to_categorical_label():
 
 
 def test_create_file_name():
-    bug_id = '1661'
-    height = '10'
-    width = '20'
-    browser = 'chrome'
-    folder = 'test'
-    seq_no = None
-    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, width=width, height=height, seq_no=seq_no) == 'test/1661_H_20_V_10_chrome.png')
-    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, seq_no=seq_no, isDom=True) == 'test/dom_1661_chrome.txt')
-    seq_no = '2'
-    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, width=width, height=height, seq_no=seq_no) == 'test/1661_2_H_20_V_10_chrome.png')
-    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, seq_no=seq_no, isDom=True) == 'test/dom_1661_2_chrome.txt')
+    assert(utils.create_file_name(bug_id='1661', browser='chrome', seq_no=None) == '1661_chrome')
+    assert(utils.create_file_name(bug_id='1661', browser='chrome', width='20', height='10', seq_no=None) == '1661_H_20_V_10_chrome')
+    assert(utils.create_file_name(bug_id='1661', browser='chrome', width='20', height='10', seq_no='2') == '1661_2_H_20_V_10_chrome')
 
 
 def test_parse_file_name():
-    file_name = '1661'
-    utils_file_name_info = utils.parse_file_name(file_name)
-    file_name_info = {}
-    file_name_info['bug_id'] = 1661
-    assert(file_name_info == utils_file_name_info)
+    info = {
+        'bug_id': 1661
+    }
+    assert info == utils.parse_file_name('1661')
 
-    file_name = '1661_2'
-    utils_file_name_info = utils.parse_file_name(file_name)
-    file_name_info['seq_no'] = 2
-    assert(file_name_info == utils_file_name_info)
+    info = {
+        'bug_id': 1661,
+        'seq_no': 2
+    }
+    assert info == utils.parse_file_name('1661_2')
 
-    file_name = '1661_H_20_V_10'
-    utils_file_name_info = utils.parse_file_name(file_name)
-    file_name_info.pop('seq_no', None)
-    file_name_info['width'] = 20
-    file_name_info['height'] = 10
-    assert(file_name_info == utils_file_name_info)
+    info = {
+        'bug_id': 1661,
+        'width': 20,
+        'height': 10
+    }
+    assert info == utils.parse_file_name('1661_H_20_V_10')
 
-    file_name = '1661_2_H_20_V_10'
-    utils_file_name_info = utils.parse_file_name(file_name)
-    file_name_info['seq_no'] = 2
-    file_name_info['width'] = 20
-    file_name_info['height'] = 10
-    assert(file_name_info == utils_file_name_info)
+    info = {
+        'bug_id': 1661,
+        'seq_no': 2,
+        'width': 20,
+        'height': 10
+    }
+    assert info == utils.parse_file_name('1661_2_H_20_V_10')
