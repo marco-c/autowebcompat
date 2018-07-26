@@ -295,12 +295,25 @@ def write_train_info(information, model, train_history, file_name=None):
                 print('%f\t\t' % col, end=' ', file=f)
 
 
-def create_screenshot_name(file_name_info):
-    if 'seq_no' in file_name_info.keys():
-        new_file_name = '_'.join([file_name_info['bug_id'], file_name_info['seq_no'], 'H', file_name_info['width'], 'V', file_name_info['height'], file_name_info['browser']])
+def create_file_name(folder, bug_id, browser, width=None, height=None, seq_no=None, isDom=False):
+    new_file_name_parts = []
+    if isDom:
+        new_file_name_parts.append('dom')
+    new_file_name_parts.append(bug_id)
+    if seq_no is not None:
+        new_file_name_parts.append(seq_no)
+    if width is not None:
+        new_file_name_parts.append('H')
+        new_file_name_parts.append(width)
+    if height is not None:
+        new_file_name_parts.append('V')
+        new_file_name_parts.append(height)
+    new_file_name_parts.append(browser)
+    new_file_name = '_'.join(new_file_name_parts)
+    if isDom:
+        return os.path.join(folder, new_file_name + '.txt')
     else:
-        new_file_name = '_'.join([file_name_info['bug_id'], 'H', file_name_info['width'], 'V', file_name_info['height'], file_name_info['browser']])
-    return os.path.join(file_name_info['folder'], new_file_name + '.png')
+        return os.path.join(folder, new_file_name + '.png')
 
 
 def parse_file_name(file_name):
@@ -316,11 +329,3 @@ def parse_file_name(file_name):
         file_info['width'] = int(file_name_parts[shift + 2])
         file_info['height'] = int(file_name_parts[shift + 4])
     return file_info
-
-
-def create_dom_name(file_name_info):
-    if 'seq_no' in file_name_info.keys():
-        new_file_name = '_'.join(['dom', file_name_info['bug_id'], file_name_info['seq_no'], file_name_info['browser']])
-    else:
-        new_file_name = '_'.join(['dom', file_name_info['bug_id'], file_name_info['browser']])
-    return os.path.join(file_name_info['folder'], new_file_name + '.txt')

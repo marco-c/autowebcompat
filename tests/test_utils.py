@@ -137,16 +137,18 @@ def test_to_categorical_label():
     assert categorical_label == 1
 
 
-def test_create_screenshot_name():
-    file_name_info = {}
-    file_name_info['bug_id'] = '1661'
-    file_name_info['height'] = '10'
-    file_name_info['width'] = '20'
-    file_name_info['browser'] = 'chrome'
-    file_name_info['folder'] = 'test'
-    assert(utils.create_screenshot_name(file_name_info) == 'test/1661_H_20_V_10_chrome.png')
-    file_name_info['seq_no'] = '2'
-    assert(utils.create_screenshot_name(file_name_info) == 'test/1661_2_H_20_V_10_chrome.png')
+def test_create_file_name():
+    bug_id = '1661'
+    height = '10'
+    width = '20'
+    browser = 'chrome'
+    folder = 'test'
+    seq_no = None
+    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, width=width, height=height, seq_no=seq_no) == 'test/1661_H_20_V_10_chrome.png')
+    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, seq_no=seq_no, isDom=True) == 'test/dom_1661_chrome.txt')
+    seq_no = '2'
+    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, width=width, height=height, seq_no=seq_no) == 'test/1661_2_H_20_V_10_chrome.png')
+    assert(utils.create_file_name(folder=folder, bug_id=bug_id, browser=browser, seq_no=seq_no, isDom=True) == 'test/dom_1661_2_chrome.txt')
 
 
 def test_parse_file_name():
@@ -174,15 +176,3 @@ def test_parse_file_name():
     file_name_info['width'] = 20
     file_name_info['height'] = 10
     assert(file_name_info == utils_file_name_info)
-
-
-def test_create_dom_name():
-    file_name_info = {}
-    file_name_info['bug_id'] = '1661'
-    file_name_info['height'] = '10'
-    file_name_info['width'] = '20'
-    file_name_info['browser'] = 'chrome'
-    file_name_info['folder'] = 'test'
-    assert(utils.create_dom_name(file_name_info) == 'test/dom_1661_chrome.txt')
-    file_name_info['seq_no'] = '2'
-    assert(utils.create_dom_name(file_name_info) == 'test/dom_1661_2_chrome.txt')
