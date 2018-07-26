@@ -135,3 +135,54 @@ def test_to_categorical_label():
     label = 'y'
     categorical_label = utils.to_categorical_label(label, 'Y + D vs N')
     assert categorical_label == 1
+
+
+def test_create_screenshot_name():
+    file_name_info = {}
+    file_name_info['bug_id'] = '1661'
+    file_name_info['height'] = '10'
+    file_name_info['width'] = '20'
+    file_name_info['browser'] = 'chrome'
+    file_name_info['folder'] = 'test'
+    assert(utils.create_screenshot_name(file_name_info) == 'test/1661_H_20_V_10_chrome.png')
+    file_name_info['seq_no'] = '2'
+    assert(utils.create_screenshot_name(file_name_info) == 'test/1661_2_H_20_V_10_chrome.png')
+
+
+def test_parse_file_name():
+    file_name = '1661'
+    utils_file_name_info = utils.parse_file_name(file_name)
+    file_name_info = {}
+    file_name_info['bug_id'] = 1661
+    assert(file_name_info == utils_file_name_info)
+
+    file_name = '1661_2'
+    utils_file_name_info = utils.parse_file_name(file_name)
+    file_name_info['seq_no'] = 2
+    assert(file_name_info == utils_file_name_info)
+
+    file_name = '1661_H_20_V_10'
+    utils_file_name_info = utils.parse_file_name(file_name)
+    file_name_info.pop('seq_no', None)
+    file_name_info['width'] = 20
+    file_name_info['height'] = 10
+    assert(file_name_info == utils_file_name_info)
+
+    file_name = '1661_2_H_20_V_10'
+    utils_file_name_info = utils.parse_file_name(file_name)
+    file_name_info['seq_no'] = 2
+    file_name_info['width'] = 20
+    file_name_info['height'] = 10
+    assert(file_name_info == utils_file_name_info)
+
+
+def test_create_dom_name():
+    file_name_info = {}
+    file_name_info['bug_id'] = '1661'
+    file_name_info['height'] = '10'
+    file_name_info['width'] = '20'
+    file_name_info['browser'] = 'chrome'
+    file_name_info['folder'] = 'test'
+    assert(utils.create_dom_name(file_name_info) == 'test/dom_1661_chrome.txt')
+    file_name_info['seq_no'] = '2'
+    assert(utils.create_dom_name(file_name_info) == 'test/dom_1661_2_chrome.txt')

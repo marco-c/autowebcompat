@@ -27,6 +27,7 @@ elif sys.platform.startswith('win32'):
     chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
     nightly_bin = 'tools\\Nightly\\firefox.exe'
 
+
 utils.mkdir('data')
 
 bugs = utils.get_bugs()
@@ -198,7 +199,7 @@ def do_something(driver, elem_properties=None):
     return elem_properties
 
 
-def screenshot(driver, file_path):
+def screenshot(driver, file_name_info):
     WINDOW_HEIGHT = 732
     WINDOW_WIDTH = 412
     page_height = driver.execute_script('return document.body.scrollHeight;')
@@ -207,7 +208,9 @@ def screenshot(driver, file_path):
     while height < page_height:
         width = 0
         while width < page_width:
-            file_name = utils.create_screenshot_name(file_path, width, height)
+            file_name_info['width'] = str(width)
+            file_name_info['height'] = str(height)
+            file_name = utils.create_screenshot_name(file_name_info)
             driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
             driver.get_screenshot_as_file(file_name)
             image = Image.open(file_name)
@@ -216,15 +219,15 @@ def screenshot(driver, file_path):
         height += WINDOW_HEIGHT
 
 
-def get_domtree(driver, file_path):
-    with open(file_path, 'w', encoding='utf-8') as f:
+def get_domtree(driver, file_name_info):
+    with open(utils.create_dom_name(file_name_info), 'w', encoding='utf-8') as f:
         f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
 
-def get_screenshot_and_domtree(driver, file_name):
+def get_screenshot_and_domtree(driver, file_name_info):
     wait_loaded(driver)
-    screenshot(driver, 'data/' + file_name + '.png')
-    get_domtree(driver, 'data/' + 'dom_' + file_name + '.txt')
+    screenshot(driver, file_name_info)
+    get_domtree(driver, file_name_info)
 
 
 def run_test(bug, browser, driver, op_sequence=None):
@@ -237,7 +240,11 @@ def run_test(bug, browser, driver, op_sequence=None):
         traceback.print_exc()
         print('Continuing...')
 
-    get_screenshot_and_domtree(driver, '%d_%s' % (bug['id'], browser))
+    image_file_info = {}
+    image_file_info['folder'] = 'data'
+    image_file_info['bug_id'] = str(bug['id'])
+    image_file_info['browser'] = browser
+    get_screenshot_and_domtree(driver, image_file_info)
 
     saved_sequence = []
     try:
@@ -254,8 +261,8 @@ def run_test(bug, browser, driver, op_sequence=None):
                 do_something(driver, elem_properties)
 
             print('  - Using %s' % elem_properties)
-            image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-            get_screenshot_and_domtree(driver, image_file)
+            image_file_info['seq_no'] = str(i)
+            get_screenshot_and_domtree(driver, image_file_info)
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
