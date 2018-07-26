@@ -6,7 +6,7 @@ from autowebcompat import utils
 def _test_labels(labels):
     for label in labels:
         for browser in ['firefox', 'chrome']:
-            assert os.path.join('data', '{}_{}.png'.format(label, browser))
+            assert os.path.exists(os.path.join('data', '{}_{}.png'.format(label, browser)))
 
 
 def _test_validate_labels(labels):
