@@ -1,4 +1,6 @@
 import argparse
+from collections import OrderedDict
+import functools
 import random
 
 import cv2
@@ -19,8 +21,13 @@ bounding_boxes = utils.read_bounding_boxes(labels_directory + args.file_name + '
 if args.verify:
     images_to_show = [i for i in utils.get_images() if i in labels]
 else:
+    all_labels = utils.read_labels()
     images_to_show = [i for i in utils.get_images() if i not in labels]
-    random.shuffle(images_to_show)
+    images_in_all_labels = [i for i in images_to_show if i in all_labels]
+    images_not_in_all_labels = [i for i in images_to_show if i not in all_labels]
+    random.shuffle(images_not_in_all_labels)
+    random.shuffle(images_in_all_labels)
+    images_to_show = images_not_in_all_labels + images_in_all_labels
 
 image_index = 0
 drawing = False
@@ -359,8 +366,32 @@ def show_help():
     print('======================================================================================\n')
 
 
+def images_cmp(x, y):
+    img_list_x = x.split('_')
+    img_list_y = y.split('_')
+    if len(img_list_x) != len(img_list_y):
+        return len(img_list_x) - len(img_list_y)
+    for (f1, f2) in zip(img_list_x, img_list_y):
+        if f1 == f2:
+            continue
+        if f1.isdigit():
+            return int(f1) - int(f2)
+
+
+def group_images():
+    global images_to_show
+    sorted_images_to_show = sorted(images_to_show, key=functools.cmp_to_key(images_cmp))
+    if args.verify:
+        bug_ids = OrderedDict.fromkeys([utils.parse_file_name(file_name)['bug_id'] for file_name in images_to_show])
+    else:
+        bug_ids = OrderedDict.fromkeys([utils.parse_file_name(file_name)['bug_id'] for file_name in images_not_in_all_labels + images_in_all_labels])
+    images_to_show = [file_name for bug_id in bug_ids for file_name in sorted_images_to_show if bug_id == utils.parse_file_name(file_name)['bug_id']]
+
+
 def main():
     show_help()
+    group_images()
+
     while image_index != len(images_to_show):
         if get_new_image():
             break
