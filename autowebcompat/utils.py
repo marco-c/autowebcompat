@@ -189,7 +189,7 @@ def make_infinite(gen_func, elems):
 
 def read_labels(file_name='labels.csv'):
     try:
-        with open(file_name, 'r') as f:
+        with open(file_name, 'r', newline='') as f:
             next(f)
             reader = csv.reader(f)
             labels = {row[0]: row[1] for row in reader}
@@ -215,7 +215,7 @@ def to_categorical_label(label, classification_type):
 
 
 def write_labels(labels, file_name='labels.csv'):
-    with open(file_name, 'w') as f:
+    with open(file_name, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=',')
         writer.writerow(['Image Name', 'Label'])
         for key, values in sorted(labels.items()):
