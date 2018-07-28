@@ -7,15 +7,15 @@ import sys
 import time
 import traceback
 
+from lxml import etree
 from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import NoSuchElementException
 
 from autowebcompat import utils
-from lxml import etree
 
 MAX_THREADS = 5
 
