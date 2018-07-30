@@ -14,8 +14,9 @@ firefox_tree = None
 THRESHOLD_LEVEL = 0.75
 THRESHOLD_GLOBAL = 0.85
 folder = 'data'
-dom_files = [f for f in os.listdir(folder) if 'dom' in f and 'chrome' in f]
-
+dom_files_chrome = ['_'.join(f.split('_')[:-1]) for f in os.listdir(folder) if 'dom' in f and 'chrome' in f]
+dom_files_firefox = ['_'.join(f.split('_')[:-1]) for f in os.listdir(folder) if 'dom' in f and 'firefox' in f]
+dom_files = [f for f in dom_files_chrome if f in dom_files_firefox]
 
 def processAttributes(attrib):
     for key in ignoredAttrib:
@@ -147,8 +148,8 @@ results = []
 for dom_file in dom_files:
     matched21 = {}
     matched12 = {}
-    chrome_dom_file = os.path.join(folder, dom_file)
-    firefox_dom_file = os.path.join(folder, dom_file.replace('chrome', 'firefox'))
+    chrome_dom_file = os.path.join(folder, dom_file + '_chrome.txt')
+    firefox_dom_file = os.path.join(folder, dom_file + '_firefox.txt')
     print(chrome_dom_file)
     print(firefox_dom_file)
 
@@ -183,7 +184,7 @@ for dom_file in dom_files:
     do_match(chrome_etree, firefox_etree)
     print('Matched Nodes : %d\n\n' % len(matched21))
 
-    image_name = '_'.join(dom_file.split('_')[1:-1])
+    image_name = '_'.join(dom_file.split('_')[1:])
 
     if len(matched21) == min(len(chrome_nodes), len(firefox_nodes)):
         label = 'y'
