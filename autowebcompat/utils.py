@@ -189,7 +189,7 @@ def make_infinite(gen_func, elems):
 
 def read_labels(file_name='labels.csv'):
     try:
-        with open(file_name, 'r') as f:
+        with open(file_name, 'r', newline='') as f:
             next(f)
             reader = csv.reader(f)
             labels = {row[0]: row[1] for row in reader}
@@ -215,10 +215,10 @@ def to_categorical_label(label, classification_type):
 
 
 def write_labels(labels, file_name='labels.csv'):
-    with open(file_name, 'w') as f:
+    with open(file_name, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=',')
         writer.writerow(['Image Name', 'Label'])
-        for key, values in labels.items():
+        for key, values in sorted(labels.items()):
             writer.writerow([key, values])
 
 
@@ -293,3 +293,38 @@ def write_train_info(information, model, train_history, file_name=None):
             row = train_history_list[i]
             for col in row:
                 print('%f\t\t' % col, end=' ', file=f)
+
+
+def create_file_name(bug_id, browser, width=None, height=None, seq_no=None):
+    new_file_name_parts = []
+    new_file_name_parts.append(bug_id)
+
+    if seq_no is not None:
+        new_file_name_parts.append(seq_no)
+
+    if width is not None:
+        new_file_name_parts.append('H')
+        new_file_name_parts.append(width)
+
+    if height is not None:
+        new_file_name_parts.append('V')
+        new_file_name_parts.append(height)
+
+    new_file_name_parts.append(browser)
+    new_file_name = '_'.join(new_file_name_parts)
+    return new_file_name
+
+
+def parse_file_name(file_name):
+    file_name_parts = file_name.split('_')
+    file_info = {}
+    file_info['bug_id'] = int(file_name_parts[0])
+
+    shift = 0
+    if len(file_name_parts) >= 2 and file_name_parts[1].isdigit():
+        file_info['seq_no'] = int(file_name_parts[1])
+        shift = 1
+    if len(file_name_parts) > 2:
+        file_info['width'] = int(file_name_parts[shift + 2])
+        file_info['height'] = int(file_name_parts[shift + 4])
+    return file_info

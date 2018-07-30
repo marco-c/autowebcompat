@@ -8,8 +8,10 @@ import time
 import traceback
 
 from PIL import Image
+from lxml import etree
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 
@@ -32,6 +34,9 @@ utils.mkdir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
+
+with open('get_xpath.js', 'r') as f:
+    get_xpath_script = f.read()
 
 
 def set_timeouts(driver):
@@ -199,7 +204,7 @@ def do_something(driver, elem_properties=None):
     return elem_properties
 
 
-def screenshot(driver, file_path):
+def screenshot(driver, bug_id, browser, seq_no):
     WINDOW_HEIGHT = 732
     WINDOW_WIDTH = 412
     page_height = driver.execute_script('return document.body.scrollHeight;')
@@ -208,7 +213,8 @@ def screenshot(driver, file_path):
     while height < page_height:
         width = 0
         while width < page_width:
-            file_name = '_'.join(file_path.split('_')[:-1] + ['H', str(width), 'V', str(height)] + file_path.split('_')[-1:])
+            file_name = utils.create_file_name(bug_id=bug_id, browser=browser, width=str(width), height=str(height), seq_no=seq_no) + '.png'
+            file_name = os.path.join('data', file_name)
             driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
             driver.get_screenshot_as_file(file_name)
             image = Image.open(file_name)
@@ -217,15 +223,51 @@ def screenshot(driver, file_path):
         height += WINDOW_HEIGHT
 
 
-def get_domtree(driver, file_path):
-    with open(file_path, 'w', encoding='utf-8') as f:
+def get_domtree(driver, bug_id, browser, seq_no):
+    file_name = 'dom_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
+    file_name = os.path.join('data', file_name)
+    with open(file_name, 'w', encoding='utf-8') as f:
         f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
 
-def get_screenshot_and_domtree(driver, file_name):
+def get_coordinates(driver, bug_id, browser, seq_no):
+    dom_tree = etree.HTML(driver.execute_script('return document.documentElement.outerHTML'))
+    dom_element_tree = etree.ElementTree(dom_tree)
+    loc_dict = {}
+    dom_tree_elements = [elem for elem in dom_tree.iter(tag=etree.Element)]
+    web_elements = driver.find_elements_by_css_selector('*')
+    dom_xpaths = []
+
+    for element in dom_tree_elements:
+        dom_xpaths.append(dom_element_tree.getpath(element))
+
+    for element in web_elements:
+        xpath = driver.execute_script(get_xpath_script, element)
+
+        if xpath in dom_xpaths:
+            loc_dict[xpath] = element.size
+            loc_dict[xpath].update(element.location)
+            dom_xpaths.remove(xpath)
+
+    for xpath in dom_xpaths:
+        try:
+            element = driver.find_element_by_xpath(xpath)
+        except NoSuchElementException:
+            continue
+        loc_dict[xpath] = element.size
+        loc_dict[xpath].update(element.location)
+
+    file_name = 'loc_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
+    file_name = os.path.join('data', file_name)
+    with open(file_name, 'w') as f:
+        json.dump(loc_dict, f)
+
+
+def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
     wait_loaded(driver)
-    screenshot(driver, 'data/' + file_name + '.png')
-    get_domtree(driver, 'data/' + 'dom_' + file_name + '.txt')
+    screenshot(driver, bug_id, browser, seq_no)
+    get_domtree(driver, bug_id, browser, seq_no)
+    get_coordinates(driver, bug_id, browser, seq_no)
 
 
 def run_test(bug, browser, driver, op_sequence=None):
@@ -238,7 +280,7 @@ def run_test(bug, browser, driver, op_sequence=None):
         traceback.print_exc()
         print('Continuing...')
 
-    get_screenshot_and_domtree(driver, '%d_%s' % (bug['id'], browser))
+    get_screenshot_and_domtree(driver, str(bug['id']), browser)
 
     saved_sequence = []
     try:
@@ -255,8 +297,7 @@ def run_test(bug, browser, driver, op_sequence=None):
                 do_something(driver, elem_properties)
 
             print('  - Using %s' % elem_properties)
-            image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-            get_screenshot_and_domtree(driver, image_file)
+            get_screenshot_and_domtree(driver, str(bug['id']), browser, str(i))
 
     except TimeoutException as e:
         # Ignore timeouts, as they are too frequent.
