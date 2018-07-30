@@ -338,7 +338,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
     current_path = []
     while True:
         elem_properties = do_something(firefox_driver, visited_paths, current_path)
-        print(elem_properties)
+        print('  - Using %s' % elem_properties)
         if elem_properties is None:
             if not current_path:
                 print('============= Completed (%d) =============' % bug['id'])
