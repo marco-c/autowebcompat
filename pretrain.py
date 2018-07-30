@@ -1,20 +1,36 @@
+import argparse
 from functools import lru_cache
+import itertools
 import random
 from urllib.parse import urlparse
-import itertools
+
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
 
 from autowebcompat import network
 from autowebcompat import utils
 
+SAMPLE_SIZE = 3000
+BATCH_SIZE = 32
+EPOCHS = 50
+random.seed(42)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-n', '--network', type=str, choices=network.SUPPORTED_NETWORKS, help='Select the network to use for training')
+parser.add_argument('-o', '--optimizer', type=str, choices=network.SUPPORTED_OPTIMIZERS, help='Select the optimizer to use for training')
+parser.add_argument('-es', '--early_stopping', dest='early_stopping', action='store_true', help='Stop training training when validation accuracy has stopped improving.')
+args = parser.parse_args()
 
 bugs = utils.get_bugs()
 
 utils.prepare_images()
-all_images = utils.get_all_images()[:3000]  # 3000
+all_images = utils.get_all_images()[:SAMPLE_SIZE]
 image = utils.load_image(all_images[0])
 input_shape = image.shape
-BATCH_SIZE = 32
-EPOCHS = 50
+
+TRAIN_SAMPLE = 80 * (SAMPLE_SIZE // 100)
+VALIDATION_SAMPLE = 10 * (SAMPLE_SIZE // 100)
+TEST_SAMPLE = SAMPLE_SIZE - (TRAIN_SAMPLE + VALIDATION_SAMPLE)
 
 
 bugs_to_website = {}
@@ -32,8 +48,8 @@ def are_same_site(image1, image2):
     return site_for_image(image1) == site_for_image(image2)
 
 
-images_train = random.sample(all_images, int(len(all_images) * 0.9))
-images_test = [i for i in all_images if i not in set(images_train)]
+random.shuffle(all_images)
+images_train, images_validation, images_test = all_images[:TRAIN_SAMPLE], all_images[TRAIN_SAMPLE:VALIDATION_SAMPLE + TRAIN_SAMPLE], all_images[SAMPLE_SIZE - TEST_SAMPLE:]
 
 
 def couples_generator(images):
@@ -47,24 +63,28 @@ def gen_func(images):
 
 
 train_couples_len = sum(1 for e in gen_func(images_train))
+validation_couples_len = sum(1 for e in gen_func(images_validation))
 test_couples_len = sum(1 for e in gen_func(images_test))
 
 print('Training with %d couples.' % train_couples_len)
+print('Validation with %d couples.' % validation_couples_len)
 print('Testing with %d couples.' % test_couples_len)
 print(input_shape)
 
 data_gen = utils.get_ImageDataGenerator(all_images, input_shape)
 train_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_train), input_shape, data_gen, BATCH_SIZE)
+validation_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_validation), input_shape, data_gen, BATCH_SIZE)
 test_iterator = utils.CouplesIterator(utils.make_infinite(gen_func, images_test), input_shape, data_gen, BATCH_SIZE)
 
-model = network.create(input_shape)
-network.compile(model)
+model = network.create(input_shape, args.network)
+network.compile(model, args.optimizer)
 
-model.save('pretrain.h5')
+callbacks_list = [ModelCheckpoint('best_pretrain_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')]
 
-model.fit_generator(train_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, epochs=EPOCHS)
+if args.early_stopping:
+    callbacks_list.append(EarlyStopping(monitor='val_accuracy', patience=2))
 
-model.save('pretrain.h5')
+model.fit_generator(train_iterator, callbacks=callbacks_list, validation_data=validation_iterator, steps_per_epoch=train_couples_len / BATCH_SIZE, validation_steps=validation_couples_len / BATCH_SIZE, epochs=EPOCHS)
 
 score = model.evaluate_generator(test_iterator, steps=test_couples_len / BATCH_SIZE)
 print(score)

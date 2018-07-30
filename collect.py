@@ -1,27 +1,30 @@
 from concurrent.futures import ThreadPoolExecutor
+import glob
 import json
 import os
+import random
 import sys
 import time
-import random
 import traceback
-import glob
+
 from PIL import Image
 from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException, TimeoutException
+from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
 
 MAX_THREADS = 5
 MAX_INTERACTION_DEPTH = 7
 
-if sys.platform.startswith("linux"):
-    chrome_bin = "tools/chrome-linux/chrome"
+if sys.platform.startswith('linux'):
+    chrome_bin = 'tools/chrome-linux/chrome'
     nightly_bin = 'tools/nightly/firefox-bin'
-elif sys.platform.startswith("darwin"):
-    chrome_bin = "tools/chrome.app/Contents/MacOS/chrome"
+elif sys.platform.startswith('darwin'):
+    chrome_bin = 'tools/chrome.app/Contents/MacOS/chrome'
     nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
-elif sys.platform.startswith("win32"):
+elif sys.platform.startswith('win32'):
     chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
     nightly_bin = 'tools\\Nightly\\firefox.exe'
 
@@ -44,7 +47,7 @@ def wait_loaded(driver):
           let done = arguments[0];
 
           window.onload = done;
-          if (document.readyState === "complete") {
+          if (document.readyState === 'complete') {
             done();
           }
         """)
@@ -83,17 +86,31 @@ def close_all_windows_except_first(driver):
     driver.switch_to_window(windows[0])
 
 
-def get_all_attributes(driver, child):
-    child_attributes = driver.execute_script("""
-      let elem_attribute = {};
+def get_element_properties(driver, child):
+    child_properties = driver.execute_script("""
+      let elem_properties = {
+        tag: '',
+        attributes: {},
+      };
 
       for (let i = 0; i < arguments[0].attributes.length; i++) {
-        elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+        elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
-      return elem_attribute;
+      elem_properties.tag = arguments[0].tagName;
+
+      return elem_properties;
     """, child)
 
-    return child_attributes
+    return child_properties
+
+
+def get_elements_with_properties(driver, elem_properties, children):
+    elems_with_same_properties = []
+    for child in children:
+        child_properties = get_element_properties(driver, child)
+        if child_properties == elem_properties:
+            elems_with_same_properties.append(child)
+    return elems_with_same_properties
 
 
 def was_visited(current_path, visited_paths, elem_attributes):
@@ -112,21 +129,27 @@ def visit(current_path, visited_paths):
 
 def do_something(driver, visited_paths, current_path, elem_attributes=None):
     elem = None
-    if elem_attributes is None:
-        body = driver.find_elements_by_tag_name('body')
-        assert len(body) == 1
-        body = body[0]
 
-        buttons = body.find_elements_by_tag_name('button')
-        links = body.find_elements_by_tag_name('a')
-        inputs = body.find_elements_by_tag_name('input')
-        children = buttons + links + inputs
+    body = driver.find_elements_by_tag_name('body')
+    assert len(body) == 1
+    body = body[0]
 
+    buttons = body.find_elements_by_tag_name('button')
+    links = body.find_elements_by_tag_name('a')
+    inputs = body.find_elements_by_tag_name('input')
+    selects = body.find_elements_by_tag_name('select')
+    children = buttons + links + inputs + selects
+
+    if elem_properties is None:
         random.shuffle(children)
+        children_to_ignore = []  # list of elements with same properties to ignore
 
         for child in children:
-            # Get all the attributes of the child.
-            elem_attributes = get_all_attributes(driver, child)
+            if child in children_to_ignore:
+                continue
+
+            # Get all the properties of the child.
+            elem_properties = get_element_properties(driver, child)
 
             # we check if the path has been visited previously
             if was_visited(current_path, visited_paths, elem_attributes):
@@ -141,32 +164,27 @@ def do_something(driver, visited_paths, current_path, elem_attributes=None):
             elem = child
 
             # We mark the current path as visited
+            elems = get_elements_with_properties(driver, elem_properties, children)
+            if len(elems) == 1:
+                elem = child
+                break
+            else:
+                children_to_ignore.extend(elems)
             visit(current_path, visited_paths)
             break
     else:
-        if 'id' not in elem_attributes.keys():
-            body = driver.find_elements_by_tag_name('body')
-            assert len(body) == 1
-            body = body[0]
-
-            buttons = body.find_elements_by_tag_name('button')
-            links = body.find_elements_by_tag_name('a')
-            inputs = body.find_elements_by_tag_name('input')
-            children = buttons + links + inputs
-
-            for child in children:
-                # Get all the attributes of the child.
-                if elem_attributes == get_all_attributes(driver, child):
-                    elem = child
-                    break
+        if 'id' not in elem_properties['attributes'].keys():
+            elems = get_elements_with_properties(driver, elem_properties, children)
+            assert len(elems) == 1
+            elem = elems[0]
         else:
-            elem_id = elem_attributes['id']
+            elem_id = elem_properties['attributes']['id']
             elem = driver.find_element_by_id(elem_id)
 
     if elem is None:
         return None
 
-    driver.execute_script("arguments[0].scrollIntoView();", elem)
+    driver.execute_script('arguments[0].scrollIntoView();', elem)
 
     if elem.tag_name in ['button', 'a']:
         elem.click()
@@ -189,22 +207,53 @@ def do_something(driver, visited_paths, current_path, elem_attributes=None):
         elif input_type == 'search':
             elem.clear()
             elem.send_keys('quick search')
+        elif input_type == 'submit':
+            elem.click()
         elif input_type == 'color':
             driver.execute_script("arguments[0].value = '#ff0000'", elem)
         else:
             raise Exception('Unsupported input type: %s' % input_type)
+    elif elem.tag_name == 'select':
+        for option in elem.find_elements_by_tag_name('option'):
+            if option.text != '':
+                option.click()
+                break
 
     close_all_windows_except_first(driver)
 
-    return elem_attributes
+    return elem_properties
 
 
-def screenshot(driver, file_path):
+def screenshot(driver, bug_id, browser, seq_no):
+    WINDOW_HEIGHT = 732
+    WINDOW_WIDTH = 412
+    page_height = driver.execute_script('return document.body.scrollHeight;')
+    page_width = driver.execute_script('return document.body.scrollWidth;')
+    height = 0
+    while height < page_height:
+        width = 0
+        while width < page_width:
+            file_name = utils.create_file_name(bug_id=bug_id, browser=browser, width=str(width), height=str(height), seq_no=seq_no) + '.png'
+            file_name = os.path.join('data', file_name)
+            driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
+            driver.get_screenshot_as_file(file_name)
+            image = Image.open(file_name)
+            image.save(file_name)
+            width += WINDOW_WIDTH
+        height += WINDOW_HEIGHT
+
+
+def get_domtree(driver, bug_id, browser, seq_no):
+    file_name = 'dom_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
+    file_name = os.path.join('data', file_name)
+    with open(file_name, 'w', encoding='utf-8') as f:
+        f.write(driver.execute_script('return document.documentElement.outerHTML'))
+
+
+def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
     wait_loaded(driver)
-
-    driver.get_screenshot_as_file(file_path)
-    image = Image.open(file_path)
-    image.save(file_path)
+    screenshot(driver, bug_id, browser, seq_no)
+    get_domtree(driver, bug_id, browser, seq_no)
 
 
 def count_lines(bug_id):
@@ -234,7 +283,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         traceback.print_exc()
         print('Continuing...')
 
-    screenshot(firefox_driver, 'data/%d_%s.png' % (bug['id'], "firefox"))
+    get_screenshot_and_domtree(firefox_driver, str(bug['id']), "firefox")
     print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], "chrome"))
 
     try:
@@ -243,8 +292,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
-
-    screenshot(chrome_driver, 'data/%d_%s.png' % (bug['id'], "chrome"))
+    
+    get_screenshot_and_domtree(chrome_driver, str(bug['id']), "chrome")
 
     visited_paths = []
     current_path = []
@@ -267,10 +316,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
 
-        image_file = "data/%d_%d_firefox.png" % (bug['id'], line_number)
-        screenshot(firefox_driver, '%s' % (image_file))
-        image_file = "data/%d_%d_chrome.png" % (bug['id'], line_number)
-        screenshot(chrome_driver, '%s' % (image_file))
+        get_screenshot_and_domtree(firefox_driver, str(bug['id']), "firefox", line_number)
+        get_screenshot_and_domtree(chrome_driver, str(bug['id']), "chrome", line_number)
 
         if len(current_path) == MAX_INTERACTION_DEPTH:
             current_path.pop()
@@ -312,13 +359,18 @@ os.environ['MOZ_HEADLESS'] = '1'
 os.environ['MOZ_HEADLESS_WIDTH'] = '412'
 os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
 firefox_profile = webdriver.FirefoxProfile()
-firefox_profile.set_preference("general.useragent.override", "Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0")
+firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
+firefox_profile.set_preference('intl.accept_languages', 'it')
+firefox_profile.set_preference('media.volume_scale', '0.0')
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = chrome_bin
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--window-size=412,732")
-chrome_options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36")
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--hide-scrollbars')
+chrome_options.add_argument('--window-size=412,732')
+chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
+chrome_options.add_argument('--lang=it')
+chrome_options.add_argument('--mute-audio')
 
 
 def main(bugs):

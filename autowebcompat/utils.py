@@ -1,12 +1,19 @@
+import csv
+from datetime import datetime
 import json
 import os
 import random
+import subprocess
+import sys
 import threading
-import numpy as np
+
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-import csv
+from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing.image import img_to_array
+from keras.preprocessing.image import load_img
+import numpy as np
+from tensorflow.python.client import device_lib
 
 
 def get_bugs():
@@ -62,6 +69,8 @@ def prepare_images():
             else:
                 img = orig
 
+            if img.size[1] > 732:
+                img = img.crop((0, 0, img.size[0], 732))
             img = img.resize((192, 256), Image.LANCZOS)
             img.save(os.path.join('data_resized', f))
         except IOError as e:
@@ -85,13 +94,13 @@ def load_image(fname, parent_dir='data_resized'):
     return x
 
 
-def get_ImageDataGenerator(images, image_shape):
+def get_ImageDataGenerator(images, image_shape, parent_dir='data_resized'):
     data_gen = ImageDataGenerator(rescale=1. / 255)
 
     x = np.zeros((len(images),) + image_shape, dtype=keras.backend.floatx())
 
     for i, image in enumerate(images):
-        x[i] = load_image(image)
+        x[i] = load_image(image, parent_dir)
 
     data_gen.fit(x)
 
@@ -140,32 +149,36 @@ class CouplesIterator():
 
 
 def balance(it):
+    # Initialise last_label to None so that cur_label != last_label
+    # is always True for the first element in it.
     last_label = None
-    queue_1 = []
-    queue_0 = []
+
+    queue = {
+        0: [],
+        1: []
+    }
+
     for e in it:
-        label = e[1]
-        if label != last_label:
-            last_label = label
-            yield e
+        cur_label = e[1]
+
+        if cur_label != last_label:
+            # Maintain relative order.
+            # Append element and pop from front.
+            queue[cur_label].append(e)
+            element = queue[cur_label].pop(0)
+            last_label = cur_label
+            yield element
         else:
-            if label == 1:
-                queue_1.append(e)
-            else:
-                queue_0.append(e)
+            queue[cur_label].append(e)
 
-            while True:
-                if last_label == 1:
-                    if len(queue_0) == 0:
-                        break
-                    e = queue_0.pop()
-                else:
-                    if len(queue_1) == 0:
-                        break
-                    e = queue_1.pop()
-
-                last_label = e[1]
-                yield e
+    # After every element has been considered, some queue may still be
+    # non-empty. If so, and provided the non-empty queue has label other
+    # than last label, then take elements from there.
+    other_label = 1 if last_label == 0 else 0
+    while len(queue[other_label]) != 0:
+        element = queue[other_label].pop(0)
+        other_label = 1 if other_label == 0 else 0
+        yield element
 
 
 def make_infinite(gen_func, elems):
@@ -176,7 +189,7 @@ def make_infinite(gen_func, elems):
 
 def read_labels(file_name='labels.csv'):
     try:
-        with open(file_name, 'r') as f:
+        with open(file_name, 'r', newline='') as f:
             next(f)
             reader = csv.reader(f)
             labels = {row[0]: row[1] for row in reader}
@@ -185,9 +198,133 @@ def read_labels(file_name='labels.csv'):
     return labels
 
 
+CLASSIFICATION_TYPES = ['Y vs D + N', 'Y + D vs N']
+
+
+def to_categorical_label(label, classification_type):
+    if classification_type == 'Y vs D + N':
+        if label == 'y':
+            return 1
+        else:
+            return 0
+    elif classification_type == 'Y + D vs N':
+        if label == 'n':
+            return 0
+        else:
+            return 1
+
+
 def write_labels(labels, file_name='labels.csv'):
-    with open(file_name, 'w') as f:
+    with open(file_name, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=',')
-        writer.writerow(["Image Name", "Label"])
-        for key, values in labels.items():
+        writer.writerow(['Image Name', 'Label'])
+        for key, values in sorted(labels.items()):
             writer.writerow([key, values])
+
+
+def read_bounding_boxes(file_name):
+    try:
+        with open(file_name, 'r') as f:
+            bounding_boxes = json.load(f)
+    except FileNotFoundError:
+        bounding_boxes = {}
+    return bounding_boxes
+
+
+def write_bounding_boxes(bounding_boxes, file_name):
+    with open(file_name, 'w') as f:
+        print(json.dumps(bounding_boxes), file=f)
+
+
+def get_all_model_summary(model, model_summary):
+    line = []
+    model.summary(print_fn=lambda x: line.append(x + '\n'))
+    model_summary[model.get_config()['name']] = '\n' + ''.join(line)
+    for layer in model.layers:
+        if isinstance(layer, keras.engine.training.Model):
+            get_all_model_summary(layer, model_summary)
+
+
+def get_machine_info():
+    parameter_value_map = {}
+    operating_sys = sys.platform
+    parameter_value_map['Operating System'] = operating_sys
+    if 'linux' not in operating_sys:
+        return parameter_value_map
+
+    for i, device in enumerate(device_lib.list_local_devices()):
+        if device.device_type != 'GPU':
+            continue
+        parameter_value_map['GPU_{}_name'.format(i + 1)] = device.name
+        parameter_value_map['GPU_{}_memory_limit'.format(i + 1)] = device.memory_limit
+        parameter_value_map['GPU_{}_description'.format(i + 1)] = device.physical_device_desc
+    lscpu = subprocess.check_output('lscpu | grep \'^CPU(s):\|Core\|Thread\'', shell=True).strip().decode()
+    lscpu = lscpu.split('\n')
+    for row in lscpu:
+        row = row.split(':')
+        parameter_value_map[row[0]] = row[1].strip()
+    return parameter_value_map
+
+
+def write_train_info(information, model, train_history, file_name=None):
+    if file_name is None:
+        file_name = subprocess.check_output('uname -n', shell=True).strip().decode()
+        file_name += datetime.now().strftime('_%H_%M_%Y_%m_%d.txt')
+    machine_info = get_machine_info()
+    information.update(machine_info)
+    os.makedirs('train_info', exist_ok=True)
+    with open(os.path.join('train_info', file_name), 'w') as f:
+        for key, value in information.items():
+            print('%s : %s' % (key, value), file=f)
+        print('\n', file=f)
+        model_summary = {}
+        get_all_model_summary(model, model_summary)
+        for key, value in model_summary.items():
+            print('%s : %s' % (key, value), file=f)
+
+        print('Sr.No.\t\t', end=' ', file=f)
+        train_history_list = []
+        for key, value in train_history.items():
+            print('%s\t\t' % key, end=' ', file=f)
+            train_history_list.append(value)
+        train_history_list = np.transpose(np.array(train_history_list))
+        for i in range(len(train_history_list)):
+            print('\n%d\t\t' % (i + 1), end=' ', file=f)
+            row = train_history_list[i]
+            for col in row:
+                print('%f\t\t' % col, end=' ', file=f)
+
+
+def create_file_name(bug_id, browser, width=None, height=None, seq_no=None):
+    new_file_name_parts = []
+    new_file_name_parts.append(bug_id)
+
+    if seq_no is not None:
+        new_file_name_parts.append(seq_no)
+
+    if width is not None:
+        new_file_name_parts.append('H')
+        new_file_name_parts.append(width)
+
+    if height is not None:
+        new_file_name_parts.append('V')
+        new_file_name_parts.append(height)
+
+    new_file_name_parts.append(browser)
+    new_file_name = '_'.join(new_file_name_parts)
+    return new_file_name
+
+
+def parse_file_name(file_name):
+    file_name_parts = file_name.split('_')
+    file_info = {}
+    file_info['bug_id'] = int(file_name_parts[0])
+
+    shift = 0
+    if len(file_name_parts) >= 2 and file_name_parts[1].isdigit():
+        file_info['seq_no'] = int(file_name_parts[1])
+        shift = 1
+    if len(file_name_parts) > 2:
+        file_info['width'] = int(file_name_parts[shift + 2])
+        file_info['height'] = int(file_name_parts[shift + 4])
+    return file_info
