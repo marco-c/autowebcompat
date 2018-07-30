@@ -1,3 +1,4 @@
+import csv
 import difflib
 import os
 import re
@@ -8,8 +9,8 @@ ignoredAttrib = {'style', 'type'}
 matched21 = {}
 matched12 = {}
 nodes_info = {1: {}, 2: {}}
-tree1 = None
-tree2 = None
+chrome_tree = None
+firefox_tree = None
 THRESHOLD_LEVEL = 0.75
 THRESHOLD_GLOBAL = 0.85
 folder = 'data'
@@ -51,8 +52,8 @@ def getMapSimilarity(x, y):
 def calculateMatchIndex(x, y):
     XPATH = 0.75
     ATTRIB = 0.25
-    xPath1 = tree1.getpath(x)
-    xPath2 = tree2.getpath(y)
+    xPath1 = chrome_tree.getpath(x)
+    xPath2 = firefox_tree.getpath(y)
     if xPath1 == xPath2:
         xPathSim = 1
     else:
@@ -116,7 +117,7 @@ def do_match(root1, root2):
     # Assign Levels
     AssignLevelVisitor(root1, 1)
     levels2 = AssignLevelVisitor(root2, 2)
-    unmatched_nodes = [node for node in set(a.iter(tag=etree.Element)) - set(matched12.keys())]
+    unmatched_nodes = [node for node in set(chrome_etree.iter(tag=etree.Element)) - set(matched12.keys())]
     worklist = []
 
     # 2. level matching
@@ -142,36 +143,57 @@ def do_match(root1, root2):
     ApproxMatchVisitor(worklist, root2)
 
 
-for file in dom_files:
+results = []
+for dom_file in dom_files:
     matched21 = {}
     matched12 = {}
-    chrome_dom_file = os.path.join(folder, file)
-    firefox_dom_file = os.path.join(folder, file.replace('chrome', 'firefox'))
+    chrome_dom_file = os.path.join(folder, dom_file)
+    firefox_dom_file = os.path.join(folder, dom_file.replace('chrome', 'firefox'))
     print(chrome_dom_file)
     print(firefox_dom_file)
+
     with open(chrome_dom_file, 'r') as f:
         chrome_dom = f.read()
+
     with open(firefox_dom_file, 'r') as f:
         firefox_dom = f.read()
 
-    a = etree.HTML(chrome_dom)
-    b = etree.HTML(firefox_dom)
-    tree1 = etree.ElementTree(a)
-    tree2 = etree.ElementTree(b)
-    for node in a.iter(tag=etree.Element):
+    chrome_etree = etree.HTML(chrome_dom)
+    firefox_etree = etree.HTML(firefox_dom)
+    chrome_tree = etree.ElementTree(chrome_etree)
+    firefox_tree = etree.ElementTree(firefox_etree)
+
+    for node in chrome_etree.iter(tag=etree.Element):
         nodes_info[1][node] = {}
-    for node in b.iter(tag=etree.Element):
+
+    for node in firefox_etree.iter(tag=etree.Element):
         nodes_info[2][node] = {}
 
-    l1 = list(a.iter(tag=etree.Element))
-    l2 = list(b.iter(tag=etree.Element))
-    s1 = []
-    s2 = []
+    chrome_nodes = list(chrome_etree.iter(tag=etree.Element))
+    firefox_nodes = list(firefox_etree.iter(tag=etree.Element))
 
-    print('Chrome Nodes : %d' % len(list(a.iter(tag=etree.Element))))
-    print('Firefox Nodes : %d' % len(list(b.iter(tag=etree.Element))))
+    print('Chrome Nodes : %d' % len(chrome_nodes))
+    print('Firefox Nodes : %d' % len(firefox_nodes))
 
-    if len(list(a.iter(tag=etree.Element))) + len(list(b.iter(tag=etree.Element))) > 1700:
+    # Below condition is not implemented in xpert. Since algorithm is slow, this is just a check.
+    if len(chrome_nodes) + len(firefox_nodes) > 1700:
+        print('Large number of nodes to match -- skipping')
         continue
-    do_match(a, b)
+
+    do_match(chrome_etree, firefox_etree)
     print('Matched Nodes : %d\n\n' % len(matched21))
+
+    image_name = '_'.join(dom_file.split('_')[1:-1])
+
+    if len(matched21) == min(len(chrome_nodes), len(firefox_nodes)):
+        label = 'y'
+    else:
+        label = 'n'
+    results.append([image_name, label, len(matched21), len(chrome_nodes), len(firefox_nodes)])
+
+
+with open('dom_test_labels.csv', 'w', newline='') as f:
+    writer = csv.writer(f, delimiter=',')
+    writer.writerow(['Image Name', 'Label', 'Nodes Matched', 'Nodes Chrome', 'Nodes Firefox'])
+    for row in results:
+        writer.writerow(row)
