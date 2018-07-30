@@ -7,8 +7,8 @@ import sys
 import time
 import traceback
 
-from lxml import etree
 from PIL import Image
+from lxml import etree
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
@@ -34,8 +34,9 @@ utils.mkdir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
-get_xpath_script = ''.join(open('get_xpath.js', 'r').readlines()[1:])
 
+with open('get_xpath.js', 'r') as f:
+    get_xpath_script = f.read()
 
 def set_timeouts(driver):
     driver.set_script_timeout(30)
