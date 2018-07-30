@@ -113,8 +113,8 @@ def get_elements_with_properties(driver, elem_properties, children):
     return elems_with_same_properties
 
 
-def was_visited(current_path, visited_paths, elem_attributes):
-    current_path.append(elem_attributes)
+def was_visited(current_path, visited_paths, elem_properties):
+    current_path.append(elem_properties)
     if current_path in visited_paths:
         current_path.pop()
         return True
@@ -127,7 +127,7 @@ def visit(current_path, visited_paths):
     return
 
 
-def do_something(driver, visited_paths, current_path, elem_attributes=None):
+def do_something(driver, visited_paths, current_path, elem_properties=None):
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -152,7 +152,7 @@ def do_something(driver, visited_paths, current_path, elem_attributes=None):
             elem_properties = get_element_properties(driver, child)
 
             # we check if the path has been visited previously
-            if was_visited(current_path, visited_paths, elem_attributes):
+            if was_visited(current_path, visited_paths, elem_properties):
                 continue
 
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
@@ -268,13 +268,13 @@ def count_lines(bug_id):
 def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
     firefox_driver.get(bug['url'])
     chrome_driver.get(bug['url'])
-    for elem_attributes in current_path:
-        do_something(firefox_driver, visited_paths, current_path, elem_attributes)
-        do_something(chrome_driver, visited_paths, current_path, elem_attributes)
+    for elem_properties in current_path:
+        do_something(firefox_driver, visited_paths, current_path, elem_properties)
+        do_something(chrome_driver, visited_paths, current_path, elem_properties)
 
 
 def run_test_both(bug, firefox_driver, chrome_driver):
-    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], "firefox"))
+    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'firefox'))
 
     try:
         firefox_driver.get(bug['url'])
@@ -283,8 +283,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         traceback.print_exc()
         print('Continuing...')
 
-    get_screenshot_and_domtree(firefox_driver, str(bug['id']), "firefox")
-    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], "chrome"))
+    get_screenshot_and_domtree(firefox_driver, str(bug['id']), 'firefox')
+    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'chrome'))
 
     try:
         chrome_driver.get(bug['url'])
@@ -292,32 +292,32 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
-    
-    get_screenshot_and_domtree(chrome_driver, str(bug['id']), "chrome")
+
+    get_screenshot_and_domtree(chrome_driver, str(bug['id']), 'chrome')
 
     visited_paths = []
     current_path = []
     while True:
-        elem_attributes = do_something(firefox_driver, visited_paths, current_path)
-
-        if elem_attributes is None:
+        elem_properties = do_something(firefox_driver, visited_paths, current_path)
+        print(elem_properties)
+        if elem_properties is None:
             if not current_path:
-                print("============= Completed (%d) =============" % bug['id'])
+                print('============= Completed (%d) =============' % bug['id'])
                 break
             current_path.pop()
             jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
             continue
 
-        do_something(chrome_driver, visited_paths, current_path, elem_attributes)
-        with open("data/%d.txt" % bug['id'], 'a+') as f:
+        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        with open('data/%d.txt' % bug['id'], 'a+') as f:
             line_number = count_lines(bug['id'])
             f.seek(2, 0)
             for element in current_path:
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
 
-        get_screenshot_and_domtree(firefox_driver, str(bug['id']), "firefox", line_number)
-        get_screenshot_and_domtree(chrome_driver, str(bug['id']), "chrome", line_number)
+        get_screenshot_and_domtree(firefox_driver, str(bug['id']), 'firefox', str(line_number))
+        get_screenshot_and_domtree(chrome_driver, str(bug['id']), 'chrome', str(line_number))
 
         if len(current_path) == MAX_INTERACTION_DEPTH:
             current_path.pop()
