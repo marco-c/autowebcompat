@@ -18,6 +18,7 @@ from selenium.common.exceptions import TimeoutException
 from autowebcompat import utils
 
 MAX_THREADS = 5
+MAX_INTERACTION_DEPTH = 7
 
 if sys.platform.startswith('linux'):
     chrome_bin = 'tools/chrome-linux/chrome'
@@ -117,7 +118,21 @@ def get_elements_with_properties(driver, elem_properties, children):
     return elems_with_same_properties
 
 
-def do_something(driver, elem_properties=None):
+def was_visited(current_path, visited_paths, elem_properties):
+    current_path.append(elem_properties)
+    if current_path in visited_paths:
+        current_path.pop()
+        return True
+    else:
+        return False
+
+
+def visit(current_path, visited_paths):
+    visited_paths.append(current_path[:])
+    return
+
+
+def do_something(driver, visited_paths, current_path, elem_properties=None):
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -141,17 +156,27 @@ def do_something(driver, elem_properties=None):
             # Get all the properties of the child.
             elem_properties = get_element_properties(driver, child)
 
+            # we check if the path has been visited previously
+            if was_visited(current_path, visited_paths, elem_properties):
+                continue
+
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
+                current_path.pop()
                 continue
 
+            elem = child
+
+            # We mark the current path as visited
             elems = get_elements_with_properties(driver, elem_properties, children)
             if len(elems) == 1:
                 elem = child
                 break
             else:
                 children_to_ignore.extend(elems)
+            visit(current_path, visited_paths)
+            break
     else:
         if 'id' not in elem_properties['attributes'].keys():
             elems = get_elements_with_properties(driver, elem_properties, children)
@@ -270,49 +295,72 @@ def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
     get_coordinates(driver, bug_id, browser, seq_no)
 
 
-def run_test(bug, browser, driver, op_sequence=None):
-    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
-
-    try:
-        driver.get(bug['url'])
-    except TimeoutException as e:
-        # Ignore timeouts, as they are too frequent.
-        traceback.print_exc()
-        print('Continuing...')
-
-    get_screenshot_and_domtree(driver, str(bug['id']), browser)
-
-    saved_sequence = []
-    try:
-        max_iter = 7 if op_sequence is None else len(op_sequence)
-        for i in range(0, max_iter):
-            if op_sequence is None:
-                elem_properties = do_something(driver)
-                if elem_properties is None:
-                    print('Can\'t find any element to interact with on %s for bug %d' % (bug['url'], bug['id']))
-                    break
-                saved_sequence.append(elem_properties)
-            else:
-                elem_properties = op_sequence[i]
-                do_something(driver, elem_properties)
-
-            print('  - Using %s' % elem_properties)
-            get_screenshot_and_domtree(driver, str(bug['id']), browser, str(i))
-
-    except TimeoutException as e:
-        # Ignore timeouts, as they are too frequent.
-        traceback.print_exc()
-        print('Continuing...')
-
-    return saved_sequence
-
-
-def read_sequence(bug_id):
+def count_lines(bug_id):
     try:
         with open('data/%d.txt' % bug_id) as f:
-            return [json.loads(line) for line in f]
+            return sum(1 for line in f)
     except IOError:
-        return []
+        return 0
+
+
+# We restart from the start and follow the saved sequence
+def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
+    firefox_driver.get(bug['url'])
+    chrome_driver.get(bug['url'])
+    for elem_properties in current_path:
+        do_something(firefox_driver, visited_paths, current_path, elem_properties)
+        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+
+
+def run_test_both(bug, firefox_driver, chrome_driver):
+    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'firefox'))
+
+    try:
+        firefox_driver.get(bug['url'])
+    except TimeoutException as e:
+        # Ignore timeouts, as they are too frequent.
+        traceback.print_exc()
+        print('Continuing...')
+
+    get_screenshot_and_domtree(firefox_driver, str(bug['id']), 'firefox')
+    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'chrome'))
+
+    try:
+        chrome_driver.get(bug['url'])
+    except TimeoutException as e:
+        # Ignore timeouts, as they are too frequent.
+        traceback.print_exc()
+        print('Continuing...')
+
+    get_screenshot_and_domtree(chrome_driver, str(bug['id']), 'chrome')
+
+    visited_paths = []
+    current_path = []
+    while True:
+        elem_properties = do_something(firefox_driver, visited_paths, current_path)
+        print('  - Using %s' % elem_properties)
+        if elem_properties is None:
+            if not current_path:
+                print('============= Completed (%d) =============' % bug['id'])
+                break
+            current_path.pop()
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
+            continue
+
+        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        with open('data/%d.txt' % bug['id'], 'a+') as f:
+            line_number = count_lines(bug['id'])
+            f.seek(2, 0)
+            for element in current_path:
+                f.write(json.dumps(element) + '\n')
+            f.write('\n')
+
+        get_screenshot_and_domtree(firefox_driver, str(bug['id']), 'firefox', str(line_number))
+        get_screenshot_and_domtree(chrome_driver, str(bug['id']), 'chrome', str(line_number))
+
+        if len(current_path) == MAX_INTERACTION_DEPTH:
+            current_path.pop()
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
 
 
 def run_tests(firefox_driver, chrome_driver, bugs):
@@ -325,21 +373,16 @@ def run_tests(firefox_driver, chrome_driver, bugs):
             # a) we haven't generated the main screenshot for Firefox or Chrome, or
             # b) we haven't generated any item of the sequence for Firefox, or
             # c) there are items in the Firefox sequence that we haven't generated for Chrome.
-            sequence = read_sequence(bug['id'])
+            lines_written = count_lines(bug['id'])
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
             if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
                not os.path.exists('data/%d_chrome.png' % bug['id']) or \
-               len(sequence) == 0 or \
+               lines_written == 0 or \
                number_of_ff_scr != number_of_ch_scr:
-                for f in glob.iglob('data/%d_*' % bug['id']):
+                for f in glob.iglob('data/%d*' % bug['id']):
                     os.remove(f)
-                sequence = run_test(bug, 'firefox', firefox_driver)
-                run_test(bug, 'chrome', chrome_driver, sequence)
-
-                with open('data/%d.txt' % bug['id'], 'w') as f:
-                    for element in sequence:
-                        f.write(json.dumps(element) + '\n')
+                run_test_both(bug, firefox_driver, chrome_driver)
 
         except:  # noqa: E722
             traceback.print_exc()
