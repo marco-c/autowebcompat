@@ -38,6 +38,7 @@ print(len(bugs))
 with open('get_xpath.js', 'r') as f:
     get_xpath_script = f.read()
 
+
 def set_timeouts(driver):
     driver.set_script_timeout(30)
     driver.set_page_load_timeout(30)

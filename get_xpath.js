@@ -1,10 +1,10 @@
 // Taken with some modifications from - https://stackoverflow.com/questions/47069382/want-to-retrieve-xpath-of-given-webelement
 function absoluteXPath(element) {
-  var comp, comps = [];
-  var parent = null;
-  var xpath = '';
-  var getPos = function(element) {
-    var position = 0, curNode, prevNode, nextNode;
+  let comp, comps = [];
+  let parent = null;
+  let xpath = '';
+  let getPos = function(element) {
+    let position = 0, curNode, prevNode, nextNode;
     if (element.nodeType == Node.ATTRIBUTE_NODE) {
       return null;
     }
@@ -58,7 +58,7 @@ function absoluteXPath(element) {
     comp.position = getPos(element);
   }
 
-  for (var i = comps.length - 1; i >= 0; i--) {
+  for (let i = comps.length - 1; i >= 0; i--) {
     comp = comps[i];
     xpath += '/' + comp.name.toLowerCase();
     if (comp.position !== null && comp.position != '0') {
