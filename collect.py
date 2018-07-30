@@ -8,8 +8,10 @@ import time
 import traceback
 
 from PIL import Image
+from lxml import etree
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 
@@ -32,6 +34,9 @@ utils.mkdir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
+
+with open('get_xpath.js', 'r') as f:
+    get_xpath_script = f.read()
 
 
 def set_timeouts(driver):
@@ -225,10 +230,44 @@ def get_domtree(driver, bug_id, browser, seq_no):
         f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
 
+def get_coordinates(driver, bug_id, browser, seq_no):
+    dom_tree = etree.HTML(driver.execute_script('return document.documentElement.outerHTML'))
+    dom_element_tree = etree.ElementTree(dom_tree)
+    loc_dict = {}
+    dom_tree_elements = [elem for elem in dom_tree.iter(tag=etree.Element)]
+    web_elements = driver.find_elements_by_css_selector('*')
+    dom_xpaths = []
+
+    for element in dom_tree_elements:
+        dom_xpaths.append(dom_element_tree.getpath(element))
+
+    for element in web_elements:
+        xpath = driver.execute_script(get_xpath_script, element)
+
+        if xpath in dom_xpaths:
+            loc_dict[xpath] = element.size
+            loc_dict[xpath].update(element.location)
+            dom_xpaths.remove(xpath)
+
+    for xpath in dom_xpaths:
+        try:
+            element = driver.find_element_by_xpath(xpath)
+        except NoSuchElementException:
+            continue
+        loc_dict[xpath] = element.size
+        loc_dict[xpath].update(element.location)
+
+    file_name = 'loc_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
+    file_name = os.path.join('data', file_name)
+    with open(file_name, 'w') as f:
+        json.dump(loc_dict, f)
+
+
 def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
     wait_loaded(driver)
     screenshot(driver, bug_id, browser, seq_no)
     get_domtree(driver, bug_id, browser, seq_no)
+    get_coordinates(driver, bug_id, browser, seq_no)
 
 
 def run_test(bug, browser, driver, op_sequence=None):
