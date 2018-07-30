@@ -16,7 +16,8 @@ THRESHOLD_GLOBAL = 0.85
 folder = 'data'
 dom_files_chrome = ['_'.join(f.split('_')[:-1]) for f in os.listdir(folder) if 'dom' in f and 'chrome' in f]
 dom_files_firefox = ['_'.join(f.split('_')[:-1]) for f in os.listdir(folder) if 'dom' in f and 'firefox' in f]
-dom_files = [f for f in dom_files_chrome if f in dom_files_firefox]
+dom_files = list(set(dom_files_firefox) & set(dom_files_chrome))
+
 
 def processAttributes(attrib):
     for key in ignoredAttrib:
