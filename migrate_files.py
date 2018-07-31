@@ -2,6 +2,8 @@ import os
 
 from autowebcompat import utils
 
+LATEST_VERSION = 5
+
 
 def read_sequence(bug_id):
     with open('data/%d.txt' % bug_id) as f:
@@ -82,3 +84,12 @@ def migrate_v1_to_v2():
             key = utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no)
             new_bounding_boxes[key] = value
         utils.write_bounding_boxes(new_bounding_boxes, os.path.join('label_persons', f))
+
+
+with open(os.path.join('data', 'VERSION'), 'r') as f:
+    CURRENT_VERSION = int(f.read())
+
+while CURRENT_VERSION != LATEST_VERSION:
+    migrate_function = globals()['migrate_v%d_to_v%d' % (CURRENT_VERSION, CURRENT_VERSION + 1)]
+    migrate_function()
+    CURRENT_VERSION += 1
