@@ -132,7 +132,7 @@ def visit(current_path, visited_paths):
     return
 
 
-def do_something(driver, visited_paths, current_path, elem_properties=None):
+def do_something(driver, visited_paths, current_path, elem_properties=None, xpath=None):
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -145,7 +145,7 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
 
-    if elem_properties is None:
+    if elem_properties is None and xpath is None:
         random.shuffle(children)
         children_to_ignore = []  # list of elements with same properties to ignore
 
@@ -176,15 +176,20 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
             else:
                 children_to_ignore.extend(elems)
             visit(current_path, visited_paths)
+            xpath = driver.execute_script(get_xpath_script, elem)
             break
     else:
-        if 'id' not in elem_properties['attributes'].keys():
+        if 'id' in elem_properties['attributes'].keys():
+            elem_id = elem_properties['attributes']['id']
+            elem = driver.find_element_by_id(elem_id)
+            xpath = driver.execute_script(get_xpath_script, elem)
+        elif xpath is not None:
+            elem = driver.find_element_by_xpath(xpath)
+        else:
             elems = get_elements_with_properties(driver, elem_properties, children)
             assert len(elems) == 1
             elem = elems[0]
-        else:
-            elem_id = elem_properties['attributes']['id']
-            elem = driver.find_element_by_id(elem_id)
+            xpath = driver.execute_script(get_xpath_script, elem)
 
     if elem is None:
         return None
@@ -225,8 +230,7 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
                 break
 
     close_all_windows_except_first(driver)
-
-    return elem_properties
+    return elem_properties, xpath
 
 
 def screenshot(driver, bug_id, browser, seq_no):
@@ -304,12 +308,12 @@ def count_lines(bug_id):
 
 
 # We restart from the start and follow the saved sequence
-def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
+def jump_back(current_path, current_path_info, firefox_driver, chrome_driver, visited_paths, bug):
     firefox_driver.get(bug['url'])
     chrome_driver.get(bug['url'])
-    for elem_properties in current_path:
-        do_something(firefox_driver, visited_paths, current_path, elem_properties)
-        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+    for (elem_properties, firefox_xpath, chrome_xpath) in current_path_info:
+        do_something(firefox_driver, visited_paths, current_path, elem_properties, firefox_xpath)
+        do_something(chrome_driver, visited_paths, current_path, elem_properties, chrome_xpath)
 
 
 def run_test_both(bug, firefox_driver, chrome_driver):
@@ -336,18 +340,21 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
     visited_paths = []
     current_path = []
+    current_path_info = []
     while True:
-        elem_properties = do_something(firefox_driver, visited_paths, current_path)
+        elem_properties, firefox_xpath = do_something(firefox_driver, visited_paths, current_path)
         print('  - Using %s' % elem_properties)
         if elem_properties is None:
             if not current_path:
                 print('============= Completed (%d) =============' % bug['id'])
                 break
             current_path.pop()
+            current_path_info.pop()
             jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
             continue
 
-        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        _, chrome_xpath = do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        current_path_info.append((elem_properties, firefox_xpath, chrome_xpath))
         with open('data/%d.txt' % bug['id'], 'a+') as f:
             line_number = count_lines(bug['id'])
             f.seek(2, 0)
@@ -360,7 +367,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
         if len(current_path) == MAX_INTERACTION_DEPTH:
             current_path.pop()
-            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
+            current_path_info.pop()
+            jump_back(current_path, current_path_info, firefox_driver, chrome_driver, visited_paths, bug)
 
 
 def run_tests(firefox_driver, chrome_driver, bugs):
