@@ -119,17 +119,13 @@ def get_elements_with_properties(driver, elem_properties, children):
 
 
 def was_visited(current_path, visited_paths, elem_properties):
-    current_path.append(elem_properties)
-    if current_path in visited_paths:
-        current_path.pop()
+    current_path_elements = [element for (element, _, _) in current_path]
+    current_path_elements.append(elem_properties)
+    if current_path_elements in visited_paths:
         return True
     else:
+        visited_paths.append(current_path_elements[:])
         return False
-
-
-def visit(current_path, visited_paths):
-    visited_paths.append(current_path[:])
-    return
 
 
 def do_something(driver, visited_paths, current_path, elem_properties=None, xpath=None):
@@ -156,14 +152,13 @@ def do_something(driver, visited_paths, current_path, elem_properties=None, xpat
             # Get all the properties of the child.
             elem_properties = get_element_properties(driver, child)
 
-            # we check if the path has been visited previously
-            if was_visited(current_path, visited_paths, elem_properties):
-                continue
-
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
-                current_path.pop()
+                continue
+
+            # we check if the path has been visited previously else visit it
+            if was_visited(current_path, visited_paths, elem_properties):
                 continue
 
             elem = child
@@ -172,12 +167,10 @@ def do_something(driver, visited_paths, current_path, elem_properties=None, xpat
             elems = get_elements_with_properties(driver, elem_properties, children)
             if len(elems) == 1:
                 elem = child
+                xpath = driver.execute_script(get_xpath_script, elem)
                 break
             else:
                 children_to_ignore.extend(elems)
-            visit(current_path, visited_paths)
-            xpath = driver.execute_script(get_xpath_script, elem)
-            break
     else:
         if 'id' in elem_properties['attributes'].keys():
             elem_id = elem_properties['attributes']['id']
@@ -308,10 +301,10 @@ def count_lines(bug_id):
 
 
 # We restart from the start and follow the saved sequence
-def jump_back(current_path, current_path_info, firefox_driver, chrome_driver, visited_paths, bug):
+def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
     firefox_driver.get(bug['url'])
     chrome_driver.get(bug['url'])
-    for (elem_properties, firefox_xpath, chrome_xpath) in current_path_info:
+    for (elem_properties, firefox_xpath, chrome_xpath) in current_path:
         do_something(firefox_driver, visited_paths, current_path, elem_properties, firefox_xpath)
         do_something(chrome_driver, visited_paths, current_path, elem_properties, chrome_xpath)
 
@@ -340,7 +333,6 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
     visited_paths = []
     current_path = []
-    current_path_info = []
     while True:
         elem_properties, firefox_xpath = do_something(firefox_driver, visited_paths, current_path)
         print('  - Using %s' % elem_properties)
@@ -349,16 +341,16 @@ def run_test_both(bug, firefox_driver, chrome_driver):
                 print('============= Completed (%d) =============' % bug['id'])
                 break
             current_path.pop()
-            current_path_info.pop()
             jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
             continue
 
         _, chrome_xpath = do_something(chrome_driver, visited_paths, current_path, elem_properties)
-        current_path_info.append((elem_properties, firefox_xpath, chrome_xpath))
+        current_path.append((elem_properties, firefox_xpath, chrome_xpath))
+
         with open('data/%d.txt' % bug['id'], 'a+') as f:
             line_number = count_lines(bug['id'])
             f.seek(2, 0)
-            for element in current_path:
+            for (element, _, _) in current_path:
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
 
@@ -367,8 +359,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
         if len(current_path) == MAX_INTERACTION_DEPTH:
             current_path.pop()
-            current_path_info.pop()
-            jump_back(current_path, current_path_info, firefox_driver, chrome_driver, visited_paths, bug)
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
 
 
 def run_tests(firefox_driver, chrome_driver, bugs):
