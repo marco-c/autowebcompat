@@ -2,7 +2,7 @@ import os
 
 from autowebcompat import utils
 
-LATEST_VERSION = 5
+LATEST_VERSION = 2
 
 
 def read_sequence(bug_id):
@@ -93,3 +93,6 @@ while CURRENT_VERSION != LATEST_VERSION:
     migrate_function = globals()['migrate_v%d_to_v%d' % (CURRENT_VERSION, CURRENT_VERSION + 1)]
     migrate_function()
     CURRENT_VERSION += 1
+
+with open(os.path.join('data', 'VERSION'), 'w') as f:
+    f.write(str(LATEST_VERSION))
