@@ -214,9 +214,9 @@ def hasSignificantSizeDiff(p, c):
     return False
 
 
-def populate_alignments(parent, child, loc):
-    dH_delta = 5
-    dW_delta = 5
+def populate_contain_alignments(parent, child, loc):
+    deltaH = 5
+    deltaW = 5
     edge_info = {'SizeDiffX': False,
                  'hFill': False,
                  'LeftJustified': False,
@@ -256,7 +256,7 @@ def populate_alignments(parent, child, loc):
 
     if hasSignificantSizeDiff(pw, cw):
         edge_info['SizeDiffX'] = True
-        if abs(px - cx) <= dW_delta and abs(p_x1 - c_x1) <= dW_delta and abs(p_x2 - c_x2) <= dW_delta:
+        if abs(px - cx) <= deltaW and abs(p_x1 - c_x1) <= deltaW and abs(p_x2 - c_x2) <= deltaW:
             edge_info['hFill'] = True
         else:
             if abs(c_x1 - p_x1) <= dW:
@@ -268,7 +268,7 @@ def populate_alignments(parent, child, loc):
 
     if hasSignificantSizeDiff(ph, ch):
         edge_info['SizeDiffY'] = True
-        if abs(py - cy) <= dW_delta and abs(p_y1 - c_y1) <= dH_delta and abs(p_y2 - c_y2) <= dH_delta:
+        if abs(py - cy) <= deltaW and abs(p_y1 - c_y1) <= deltaH and abs(p_y2 - c_y2) <= deltaH:
             edge_info['hFill'] = True
         else:
             if abs(c_y1 - p_y1) <= dH:
@@ -296,8 +296,68 @@ def populate_parent_edges(nodes, loc, contains_edge_info):
             if parent not in cMap:
                 cMap[parent] = []
             cMap[parent].append(node)
-            contains_edge_info[(parent, node)] = populate_alignments(parent, node, loc)
+            contains_edge_info[(parent, node)] = populate_contain_alignments(parent, node, loc)
     return cMap
+
+
+def populate_sibling_properties(node1, node2, loc):
+    deltaH = 5
+    deltaW = 5
+    edge_info = {'LeftEdgeAligned': False,
+                 'RightEdgeAligned': False,
+                 'TopEdgeAligned': False,
+                 'BottomEdgeAligned': False,
+                 'LeftRight': False,
+                 'RightLeft': False,
+                 'TopBottom': False,
+                 'BottomTop': False
+                 }
+    node1_x1 = loc[node1]['x']
+    node1_x2 = loc[node1]['x'] + loc[node1]['width']
+    node1_y1 = loc[node1]['y']
+    node1_y2 = loc[node1]['y'] + loc[node1]['height']
+
+    node2_x1 = loc[node2]['x']
+    node2_x2 = loc[node2]['x'] + loc[node2]['width']
+    node2_y1 = loc[node2]['y']
+    node2_y2 = loc[node2]['y'] + loc[node2]['height']
+
+    if abs(node1_x1 - node2_x1) <= deltaW:
+        edge_info['LeftEdgeAligned'] = True
+
+    if abs(node1_x2 - node2_x2) <= deltaW:
+        edge_info['RightEdgeAligned'] = True
+
+    if abs(node1_y1 - node2_y1) <= deltaH:
+        edge_info['TopEdgeAligned'] = True
+
+    if abs(node1_y2 - node2_y2) <= deltaH:
+        edge_info['BottomEdgeAligned'] = True
+
+    if node1_x2 < node2_x1:
+        edge_info['LeftRight'] = True
+
+    if node2_x2 < node1_x1:
+        edge_info['RightLeft'] = True
+
+    if node1_y2 < node2_y1:
+        edge_info['TopBottom'] = True
+
+    if node2_y2 < node1_y1:
+        edge_info['BottomTop'] = True
+
+    return edge_info
+
+
+def populate_sibling_edges(cMap, loc, siblings_edge_info):
+    for value in cMap.values():
+        siblings = value[:]
+        while len(siblings) > 0:
+            node = siblings[0]
+            siblings.pop(0)
+
+            for n in siblings:
+                siblings_edge_info[(node, n)] = populate_sibling_properties(node, n, loc)
 
 
 # 1 -> chrome 2 -> firefox
@@ -378,9 +438,13 @@ for dom_file in dom_files:
     firefox_contains_edge_info = {}
     chrome_cMap = populate_parent_edges(vertices_chrome[:], chrome_loc, chrome_contains_edge_info)
     firefox_cMap = populate_parent_edges(vertices_firefox[:], firefox_loc, firefox_contains_edge_info)
-    # chrome_siblings = populate_sibling_edges(vertices_chrome[:], chrome_loc)
-    # firefox_siblings = populate_sibling_edges(vertices_firefox[:], firefox_loc)
-    # print(chrome_cMap)
+
+    chrome_siblings_edge_info = {}
+    firefox_siblings_edge_info = {}
+    populate_sibling_edges(chrome_cMap, chrome_loc, chrome_siblings_edge_info)
+    populate_sibling_edges(firefox_cMap, firefox_loc, firefox_siblings_edge_info)
+
+    print(chrome_siblings_edge_info)
     input()
 
 
