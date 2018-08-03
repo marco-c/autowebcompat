@@ -119,7 +119,7 @@ def get_elements_with_properties(driver, elem_properties, children):
 
 
 def was_visited(current_path, visited_paths, elem_properties):
-    current_path_elements = [element for (element, _, _) in current_path]
+    current_path_elements = [element for element, _, _ in current_path]
     current_path_elements.append(elem_properties)
     if current_path_elements in visited_paths:
         return True
@@ -157,7 +157,6 @@ def do_something(driver, visited_paths, current_path, elem_properties=None, xpat
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
-            # we check if the path has been visited previously else visit it
             if was_visited(current_path, visited_paths, elem_properties):
                 continue
 
@@ -175,9 +174,16 @@ def do_something(driver, visited_paths, current_path, elem_properties=None, xpat
         if 'id' in elem_properties['attributes'].keys():
             elem_id = elem_properties['attributes']['id']
             elem = driver.find_element_by_id(elem_id)
-            xpath = driver.execute_script(get_xpath_script, elem)
+            if xpath is None:
+                xpath = driver.execute_script(get_xpath_script, elem)
         elif xpath is not None:
-            elem = driver.find_element_by_xpath(xpath)
+            try:
+                elem = driver.find_element_by_xpath(xpath)
+            except NoSuchElementException:
+                elems = get_elements_with_properties(driver, elem_properties, children)
+                assert len(elems) == 1
+                elem = elems[0]
+                xpath = driver.execute_script(get_xpath_script, elem)
         else:
             elems = get_elements_with_properties(driver, elem_properties, children)
             assert len(elems) == 1
@@ -223,6 +229,7 @@ def do_something(driver, visited_paths, current_path, elem_properties=None, xpat
                 break
 
     close_all_windows_except_first(driver)
+
     return elem_properties, xpath
 
 
@@ -350,7 +357,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         with open('data/%d.txt' % bug['id'], 'a+') as f:
             line_number = count_lines(bug['id'])
             f.seek(2, 0)
-            for (element, _, _) in current_path:
+            for element, _, _ in current_path:
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
 
