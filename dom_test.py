@@ -10,6 +10,8 @@ from lxml import etree
 ignoredAttrib = {'style', 'type'}
 matched21 = {}
 matched12 = {}
+matched12_xpaths = {}
+
 nodes_info = {1: {}, 2: {}}
 chrome_tree = None
 firefox_tree = None
@@ -214,15 +216,21 @@ def hasSignificantSizeDiff(p, c):
     return False
 
 
+def calcError(a, b, delta):
+    return abs(a - b) / delta
+
+
 def populate_contain_alignments(parent, child, loc):
     deltaH = 5
     deltaW = 5
     edge_info = {'SizeDiffX': False,
+                 'xError': 0,
                  'hFill': False,
                  'LeftJustified': False,
                  'RightJustified': False,
                  'Centered': False,
                  'SizeDiffY': False,
+                 'yError': 0,
                  'vFill': False,
                  'TopAligned': False,
                  'BottomAligned': False,
@@ -261,10 +269,13 @@ def populate_contain_alignments(parent, child, loc):
         else:
             if abs(c_x1 - p_x1) <= dW:
                 edge_info['LeftJustified'] = True
-            elif abs(c_x2 - p_x2) <= dW:
+                edge_info['xError'] = calcError(c_x1, p_x1, dW)
+            elif abs(c_x2 - c_x2) <= dW:
                 edge_info['RightJustified'] = True
+                edge_info['xError'] = calcError(c_x2, c_x2, dW)
             elif abs(cx - px) <= dW:
                 edge_info['Centered'] = True
+                edge_info['xError'] = calcError(cx, px, dW)
 
     if hasSignificantSizeDiff(ph, ch):
         edge_info['SizeDiffY'] = True
@@ -273,10 +284,13 @@ def populate_contain_alignments(parent, child, loc):
         else:
             if abs(c_y1 - p_y1) <= dH:
                 edge_info['TopAligned'] = True
+                edge_info['yError'] = calcError(c_y1, p_y1, dH)
             elif abs(c_y2 - p_y2) <= dH:
                 edge_info['BottomAligned'] = True
+                edge_info['yError'] = calcError(c_y2, p_y2, dH)
             elif abs(cy - py) <= dH:
                 edge_info['Middle'] = True
+                edge_info['yError'] = calcError(cy, py, dH)
     return edge_info
 
 
@@ -310,7 +324,11 @@ def populate_sibling_properties(node1, node2, loc):
                  'LeftRight': False,
                  'RightLeft': False,
                  'TopBottom': False,
-                 'BottomTop': False
+                 'BottomTop': False,
+                 'TBDiff': 0,
+                 'BTDiff': 0,
+                 'RLDiff': 0,
+                 'LRDiff': 0
                  }
     node1_x1 = loc[node1]['x']
     node1_x2 = loc[node1]['x'] + loc[node1]['width']
@@ -321,6 +339,11 @@ def populate_sibling_properties(node1, node2, loc):
     node2_x2 = loc[node2]['x'] + loc[node2]['width']
     node2_y1 = loc[node2]['y']
     node2_y2 = loc[node2]['y'] + loc[node2]['height']
+
+    edge_info['TBDiff'] = abs(node1_y1 - node2_y2)
+    edge_info['BTDiff'] = abs(node1_y2 - node2_y1)
+    edge_info['LRDiff'] = abs(node1_x2 - node2_x1)
+    edge_info['RLDiff'] = abs(node1_x1 - node2_x2)
 
     if abs(node1_x1 - node2_x1) <= deltaW:
         edge_info['LeftEdgeAligned'] = True
@@ -358,15 +381,135 @@ def populate_sibling_edges(cMap, loc, siblings_edge_info):
 
             for n in siblings:
                 siblings_edge_info[(node, n)] = populate_sibling_properties(node, n, loc)
+                siblings_edge_info[(n, node)] = populate_sibling_properties(n, node, loc)
+
+
+def get_parent(c, cMap):
+    for parent, children in cMap.items():
+        for child in children:
+            if child == c:
+                return parent
+    return None
+
+
+def testSizeDiff(p1, p2, e1, e2):
+    if p1 ^ p2:
+        if p1 and e1 < 0.8:
+            return True
+        if p2 and e2 < 0.8:
+            return True
+    return False
+
+
+def isSignificantDiff(a, b):
+    diffThreshold = 5
+    if abs(a - b) > diffThreshold:
+        return True
+    return False
+
+
+def compare_parents(c1, c2, cMap1, cMap2, contains_edge_info1, contains_edge_info2):
+    issues = []
+    p1 = get_parent(c1, cMap1)
+    p2 = get_parent(c2, cMap2)
+    if p1 is None and p2 is None:
+        return issues
+    elif p1 is None and p2 is not None:
+        issues.append('MISSING-PARENT-1 %s %s' % (c1, c2))
+        return issues
+    elif p1 is not None and p2 is None:
+        issues.append('MISSING-PARENT-2 %s %s' % (c1, c2))
+        return issues
+
+    expected_p2 = matched12_xpaths[p1]
+    if expected_p2 != p2:
+        issues.append('PARENTS DIFFER (%s-%s) (%s-%s)' % (c1, c2, p2, expected_p2))
+        return issues
+
+    # matching SizeDiffY for both c1 and c2 as we are comparing y values in it. (different from xperts implementation)
+    if contains_edge_info1[(p1, c1)]['SizeDiffY'] and contains_edge_info2[(p2, c2)]['SizeDiffY']:
+        if testSizeDiff(contains_edge_info1[(p1, c1)]['TopAligned'], contains_edge_info2[(p2, c2)]['TopAligned'], contains_edge_info1[(p1, c1)]['yError'], contains_edge_info2[(p2, c2)]['yError']):
+            issues.append('TOP-ALIGNMENT %s %s' % (c1, c2))
+        if testSizeDiff(contains_edge_info1[(p1, c1)]['BottomAligned'], contains_edge_info2[(p2, c2)]['BottomAligned'], contains_edge_info1[(p1, c1)]['yError'], contains_edge_info2[(p2, c2)]['yError']):
+            issues.append('BOTTOM-ALIGNMENT %s %s' % (c1, c2))
+        if testSizeDiff(contains_edge_info1[(p1, c1)]['Middle'], contains_edge_info2[(p2, c2)]['Middle'], contains_edge_info1[(p1, c1)]['yError'], contains_edge_info2[(p2, c2)]['yError']):
+            issues.append('VMID-ALIGNMENT %s %s' % (c1, c2))
+        if contains_edge_info1[(p1, c1)]['vFill'] ^ contains_edge_info2[(p2, c2)]['vFill']:
+            issues.append('VFILL %s %s' % (c1, c2))
+
+    if contains_edge_info1[(p1, c1)]['SizeDiffX'] and contains_edge_info2[(p2, c2)]['SizeDiffX']:
+        if testSizeDiff(contains_edge_info1[(p1, c1)]['LeftJustified'], contains_edge_info2[(p2, c2)]['LeftJustified'], contains_edge_info1[(p1, c1)]['xError'], contains_edge_info2[(p2, c2)]['xError']):
+            issues.append('LEFT-JUSTIFICATION %s %s' % (c1, c2))
+        if testSizeDiff(contains_edge_info1[(p1, c1)]['RightJustified'], contains_edge_info2[(p2, c2)]['RightJustified'], contains_edge_info1[(p1, c1)]['xError'], contains_edge_info2[(p2, c2)]['xError']):
+            issues.append('RIGHT-JUSTIFICATION %s %s' % (c1, c2))
+        if testSizeDiff(contains_edge_info1[(p1, c1)]['Centered'], contains_edge_info2[(p2, c2)]['Centered'], contains_edge_info1[(p1, c1)]['xError'], contains_edge_info2[(p2, c2)]['xError']):
+            issues.append('CENTER-ALIGNMENT %s %s' % (c1, c2))
+        if contains_edge_info1[(p1, c1)]['hFill'] ^ contains_edge_info2[(p2, c2)]['hFill']:
+            issues.append('HFILL %s %s' % (c1, c2))
+
+    return issues
+
+
+def get_siblings(c, cMap):
+    for parent, children in cMap.items():
+        for child in children:
+            if child == c:
+                children.remove(child)
+                return children[:]
+    return []
+
+
+def compare_siblings(c1, c2, cMap1, cMap2, siblings_edge_info1, siblings_edge_info2):
+    issues = []
+    s_c1 = get_siblings(c1, cMap1)
+    s_c2 = get_siblings(c2, cMap2)
+    matched = {}
+    unmatch1 = []
+    unmatch2 = []
+    for s1 in s_c1:
+        match = False
+        for s2 in s_c2:
+            if matched12_xpaths[s1] == s2:
+                matched[s1] = s2
+                s_c2.remove(s2)
+                match = True
+                break
+        if match is False:
+            unmatch1.append(s1)
+    unmatch2 = s_c2
+    for sib in unmatch1:
+        issues.append('MISSING-SIBLING-1 - %s' % sib)
+    for sib in unmatch2:
+        issues.append('MISSING-SIBLING-2 - %s' % sib)
+    for x, y in matched.items():
+        if siblings_edge_info1[(c1, x)]['TopEdgeAligned'] ^ siblings_edge_info2[(c2, y)]['TopEdgeAligned']:
+            issues.append('TOP-EDGE-ALIGNMENT %s - %s' % (x, y))
+        if siblings_edge_info1[(c1, x)]['RightEdgeAligned'] ^ siblings_edge_info2[(c2, y)]['RightEdgeAligned']:
+            issues.append('RIGHT-EDGE-ALIGNMENT %s - %s' % (x, y))
+        if siblings_edge_info1[(c1, x)]['BottomEdgeAligned'] ^ siblings_edge_info2[(c2, y)]['BottomEdgeAligned']:
+            issues.append('BOTTOM-EDGE-ALIGNMENT %s - %s' % (x, y))
+        if siblings_edge_info1[(c1, x)]['LeftEdgeAligned'] ^ siblings_edge_info2[(c2, y)]['LeftEdgeAligned']:
+            issues.append('LEFT-EDGE-ALIGNMENT %s - %s' % (x, y))
+
+        if siblings_edge_info1[(c1, x)]['TopBottom'] ^ siblings_edge_info2[(c2, y)]['TopBottom'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['TBDiff'], siblings_edge_info2[(c2, y)]['TBDiff']):
+            issues.append('TOP-BOTTOM" %s - %s' % (x, y))
+        if siblings_edge_info1[(c1, x)]['BottomTop'] ^ siblings_edge_info2[(c2, y)]['BottomTop'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['BTDiff'], siblings_edge_info2[(c2, y)]['BTDiff']):
+            issues.append('BOTTOM-TOP %s - %s' % (x, y))
+        if siblings_edge_info1[(c1, x)]['LeftRight'] ^ siblings_edge_info2[(c2, y)]['LeftRight'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['LRDiff'], siblings_edge_info2[(c2, y)]['LRDiff']):
+            issues.append('LEFT-RIGHT %s - %s' % (x, y))
+        if siblings_edge_info1[(c1, x)]['RightLeft'] ^ siblings_edge_info2[(c2, y)]['RightLeft'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['RLDiff'], siblings_edge_info2[(c2, y)]['RLDiff']):
+            issues.append('RIGHT-LEFT %s - %s' % (x, y))
+    return issues
 
 
 # 1 -> chrome 2 -> firefox
 results = []
 for dom_file in dom_files:
-    if '768' not in dom_file:
-        continue
+    # if '768' not in dom_file:
+    #     continue
     matched21 = {}
     matched12 = {}
+    matched12_xpaths = {}
     chrome_dom_file = os.path.join(folder, dom_file + '_chrome.txt')
     firefox_dom_file = os.path.join(folder, dom_file + '_firefox.txt')
     chrome_loc_file = os.path.join(folder, dom_file.replace('dom', 'loc') + '_chrome.txt')
@@ -409,7 +552,7 @@ for dom_file in dom_files:
         continue
 
     do_match(chrome_etree, firefox_etree)
-    print('Matched Nodes : %d\n\n' % len(matched21))
+    print('Matched Nodes : %d' % len(matched21))
 
     image_name = '_'.join(dom_file.split('_')[1:])
 
@@ -424,7 +567,7 @@ for dom_file in dom_files:
     for chrome_node, firefox_node in matched12.items():
         chrome_xpath = chrome_tree.getpath(chrome_node)
         firefox_xpath = firefox_tree.getpath(firefox_node)
-
+        matched12_xpaths[chrome_xpath] = firefox_xpath
         if isLayoutNode(chrome_node, chrome_xpath, chrome_loc):
             vertices_chrome.append(chrome_xpath)
 
@@ -443,8 +586,16 @@ for dom_file in dom_files:
     firefox_siblings_edge_info = {}
     populate_sibling_edges(chrome_cMap, chrome_loc, chrome_siblings_edge_info)
     populate_sibling_edges(firefox_cMap, firefox_loc, firefox_siblings_edge_info)
-
-    print(chrome_siblings_edge_info)
+    issues = []
+    cnt = 0
+    for chrome_xpath, firefox_xpath in matched12_xpaths.items():
+        parent_issues = compare_parents(chrome_xpath, firefox_xpath, chrome_cMap, firefox_cMap, chrome_contains_edge_info, firefox_contains_edge_info)
+        sibling_issues = compare_siblings(chrome_xpath, firefox_xpath, chrome_cMap, firefox_cMap, chrome_siblings_edge_info, firefox_siblings_edge_info)
+        if len(sibling_issues):
+            cnt += 1
+        issues.extend(parent_issues)
+        issues.extend(sibling_issues)
+    print('Nodes mismatched (exc parent) %d\n\n' % cnt)
     input()
 
 
