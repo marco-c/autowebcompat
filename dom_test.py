@@ -20,15 +20,15 @@ folder = 'data'
 dom_files_chrome = ['_'.join(f.split('_')[:-1]) for f in os.listdir(folder) if 'dom' in f and 'chrome' in f]
 dom_files_firefox = ['_'.join(f.split('_')[:-1]) for f in os.listdir(folder) if 'dom' in f and 'firefox' in f]
 dom_files = list(set(dom_files_firefox) & set(dom_files_chrome))
-tagsIgnore = {"A", "AREA", "B", "BLOCKQUOTE",
-              "BR", "CANVAS", "CENTER", "CSACTIONDICT", "CSSCRIPTDICT", "CUFON",
-              "CUFONTEXT", "DD", "EM", "EMBED", "FIELDSET", "FONT", "FORM",
-              "HEAD", "HR", "I", "LABEL", "LEGEND", "LINK", "MAP", "MENUMACHINE",
-              "META", "NOFRAMES", "NOSCRIPT", "OBJECT", "OPTGROUP", "OPTION",
-              "PARAM", "S", "SCRIPT", "SMALL", "SPAN", "STRIKE", "STRONG",
-              "STYLE", "TBODY", "TITLE", "TR", "TT", "U", "UL"}
-tagsContainer = {"DD", "DIV", "DT", "P",
-                 "TD", "TR"}
+tagsIgnore = {'A', 'AREA', 'B', 'BLOCKQUOTE',
+              'BR', 'CANVAS', 'CENTER', 'CSACTIONDICT', 'CSSCRIPTDICT', 'CUFON',
+              'CUFONTEXT', 'DD', 'EM', 'EMBED', 'FIELDSET', 'FONT', 'FORM',
+              'HEAD', 'HR', 'I', 'LABEL', 'LEGEND', 'LINK', 'MAP', 'MENUMACHINE',
+              'META', 'NOFRAMES', 'NOSCRIPT', 'OBJECT', 'OPTGROUP', 'OPTION',
+              'PARAM', 'S', 'SCRIPT', 'SMALL', 'SPAN', 'STRIKE', 'STRONG',
+              'STYLE', 'TBODY', 'TITLE', 'TR', 'TT', 'U', 'UL'}
+tagsContainer = {'DD', 'DIV', 'DT', 'P',
+                 'TD', 'TR'}
 SIZE_DIFF_THRESH = 0.7
 SIZE_DIFF_IGNORE = 0.1
 
@@ -495,7 +495,7 @@ def compare_siblings(c1, c2, cMap1, cMap2, siblings_edge_info1, siblings_edge_in
             issues.append('LEFT-EDGE-ALIGNMENT %s - %s' % (x, y))
 
         if siblings_edge_info1[(c1, x)]['TopBottom'] ^ siblings_edge_info2[(c2, y)]['TopBottom'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['TBDiff'], siblings_edge_info2[(c2, y)]['TBDiff']):
-            issues.append('TOP-BOTTOM" %s - %s' % (x, y))
+            issues.append('TOP-BOTTOM %s - %s' % (x, y))
         if siblings_edge_info1[(c1, x)]['BottomTop'] ^ siblings_edge_info2[(c2, y)]['BottomTop'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['BTDiff'], siblings_edge_info2[(c2, y)]['BTDiff']):
             issues.append('BOTTOM-TOP %s - %s' % (x, y))
         if siblings_edge_info1[(c1, x)]['LeftRight'] ^ siblings_edge_info2[(c2, y)]['LeftRight'] and isSignificantDiff(siblings_edge_info1[(c1, x)]['LRDiff'], siblings_edge_info2[(c2, y)]['LRDiff']):
