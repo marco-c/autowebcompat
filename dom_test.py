@@ -1,6 +1,5 @@
 import csv
 import difflib
-import functools
 import json
 import os
 import re
@@ -466,6 +465,7 @@ def compare_siblings(c1, c2, cMap1, cMap2, siblings_edge_info1, siblings_edge_in
     matched = {}
     unmatch1 = []
     unmatch2 = []
+
     for s1 in s_c1:
         match = False
         for s2 in s_c2:
@@ -477,10 +477,13 @@ def compare_siblings(c1, c2, cMap1, cMap2, siblings_edge_info1, siblings_edge_in
         if match is False:
             unmatch1.append(s1)
     unmatch2 = s_c2
+
     for sib in unmatch1:
         issues.append('MISSING-SIBLING-1 - %s' % sib)
+
     for sib in unmatch2:
         issues.append('MISSING-SIBLING-2 - %s' % sib)
+
     for x, y in matched.items():
         if siblings_edge_info1[(c1, x)]['TopEdgeAligned'] ^ siblings_edge_info2[(c2, y)]['TopEdgeAligned']:
             issues.append('TOP-EDGE-ALIGNMENT %s - %s' % (x, y))
@@ -505,8 +508,6 @@ def compare_siblings(c1, c2, cMap1, cMap2, siblings_edge_info1, siblings_edge_in
 # 1 -> chrome 2 -> firefox
 results = []
 for dom_file in dom_files:
-    # if '768' not in dom_file:
-    #     continue
     matched21 = {}
     matched12 = {}
     matched12_xpaths = {}
@@ -548,19 +549,11 @@ for dom_file in dom_files:
 
     # Below condition is not implemented in xpert. Since algorithm is slow, this is just a check.
     if len(chrome_nodes) + len(firefox_nodes) > 1700:
-        print('Large number of nodes to match -- skipping')
+        print('Large number of nodes to match -- skipping\n\n')
         continue
 
     do_match(chrome_etree, firefox_etree)
-    print('Matched Nodes : %d' % len(matched21))
-
-    image_name = '_'.join(dom_file.split('_')[1:])
-
-    if len(matched21) == min(len(chrome_nodes), len(firefox_nodes)):
-        label = 'y'
-    else:
-        label = 'n'
-    results.append([image_name, label, len(matched21), len(chrome_nodes), len(firefox_nodes)])
+    print('Matched Nodes (without alignment): %d' % len(matched21))
 
     vertices_chrome = []
     vertices_firefox = []
@@ -568,6 +561,7 @@ for dom_file in dom_files:
         chrome_xpath = chrome_tree.getpath(chrome_node)
         firefox_xpath = firefox_tree.getpath(firefox_node)
         matched12_xpaths[chrome_xpath] = firefox_xpath
+
         if isLayoutNode(chrome_node, chrome_xpath, chrome_loc):
             vertices_chrome.append(chrome_xpath)
 
@@ -586,21 +580,31 @@ for dom_file in dom_files:
     firefox_siblings_edge_info = {}
     populate_sibling_edges(chrome_cMap, chrome_loc, chrome_siblings_edge_info)
     populate_sibling_edges(firefox_cMap, firefox_loc, firefox_siblings_edge_info)
+
     issues = []
-    cnt = 0
+    total_matched_nodes = len(matched21)
+
     for chrome_xpath, firefox_xpath in matched12_xpaths.items():
         parent_issues = compare_parents(chrome_xpath, firefox_xpath, chrome_cMap, firefox_cMap, chrome_contains_edge_info, firefox_contains_edge_info)
         sibling_issues = compare_siblings(chrome_xpath, firefox_xpath, chrome_cMap, firefox_cMap, chrome_siblings_edge_info, firefox_siblings_edge_info)
-        if len(sibling_issues):
-            cnt += 1
+
+        if len(parent_issues) or len(sibling_issues):
+            total_matched_nodes -= 1
         issues.extend(parent_issues)
         issues.extend(sibling_issues)
-    print('Nodes mismatched (exc parent) %d\n\n' % cnt)
-    input()
+
+    print('Matched Nodes (with alignment): %d\n\n' % total_matched_nodes)
+    image_name = '_'.join(dom_file.split('_')[1:])
+
+    if total_matched_nodes == min(len(chrome_nodes), len(firefox_nodes)):
+        label = 'y'
+    else:
+        label = 'n'
+    results.append([image_name, label, total_matched_nodes, len(chrome_nodes), len(firefox_nodes)])
 
 
 with open('dom_test_labels.csv', 'w', newline='') as f:
     writer = csv.writer(f, delimiter=',')
-    writer.writerow(['Image Name', 'Label', 'Nodes Matched', 'Nodes Chrome', 'Nodes Firefox'])
+    writer.writerow(['Image Name', 'Label', 'Matched Nodes', 'Chrome Nodes', 'Firefox Nodes'])
     for row in results:
         writer.writerow(row)
