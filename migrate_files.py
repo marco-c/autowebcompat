@@ -5,20 +5,19 @@ from autowebcompat import utils
 LATEST_VERSION = 2
 
 
-def read_sequence(bug_id):
-    with open('data/%d.txt' % bug_id) as f:
-        return f.readlines()
-
-
-def write_sequence(bug_id, data):
-    with open('./data/%d.txt' % bug_id, 'w') as f:
-        for i in range(len(data)):
-            for j in range(i + 1):
-                f.write(data[j])
-            f.write('\n')
-
-
 def migrate_v1_to_v2():
+
+    def read_sequence(bug_id):
+        with open('data/%d.txt' % bug_id) as f:
+            return f.readlines()
+
+    def write_sequence(bug_id, data):
+        with open('./data/%d.txt' % bug_id, 'w') as f:
+            for i in range(len(data)):
+                for j in range(i + 1):
+                    f.write(data[j])
+                f.write('\n')
+
     all_data_files = os.listdir('data')
     label_files = os.listdir('label_persons')
     map_names = {}
@@ -87,12 +86,12 @@ def migrate_v1_to_v2():
 
 
 with open(os.path.join('data', 'VERSION'), 'r') as f:
-    CURRENT_VERSION = int(f.read())
+    current_version = int(f.read())
 
-while CURRENT_VERSION != LATEST_VERSION:
-    migrate_function = globals()['migrate_v%d_to_v%d' % (CURRENT_VERSION, CURRENT_VERSION + 1)]
+while current_version != LATEST_VERSION:
+    migrate_function = globals()['migrate_v%d_to_v%d' % (current_version, current_version + 1)]
     migrate_function()
-    CURRENT_VERSION += 1
+    current_version += 1
 
 with open(os.path.join('data', 'VERSION'), 'w') as f:
     f.write(str(LATEST_VERSION))
