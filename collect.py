@@ -10,12 +10,18 @@ import traceback
 from PIL import Image
 from lxml import etree
 from selenium import webdriver
+from selenium.common.exceptions import ElementNotInteractableException
+from selenium.common.exceptions import InvalidSelectorException
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import WebDriverException
 
 from autowebcompat import utils
+
+already_clicked_elems = set()
 
 MAX_THREADS = 5
 MAX_INTERACTION_DEPTH = 7
@@ -129,108 +135,124 @@ def was_visited(current_path, visited_paths, elem_properties):
 
 
 def do_something(driver, visited_paths, current_path, elem_properties=None, xpath=None):
-    elem = None
+    not_clickable_elems = set()
+    while True:
+        elem = None
 
-    body = driver.find_elements_by_tag_name('body')
-    assert len(body) == 1
-    body = body[0]
+        body = driver.find_elements_by_tag_name('body')
+        assert len(body) == 1
+        body = body[0]
 
-    buttons = body.find_elements_by_tag_name('button')
-    links = body.find_elements_by_tag_name('a')
-    inputs = body.find_elements_by_tag_name('input')
-    selects = body.find_elements_by_tag_name('select')
-    children = buttons + links + inputs + selects
+        buttons = body.find_elements_by_tag_name('button')
+        links = body.find_elements_by_tag_name('a')
+        inputs = body.find_elements_by_tag_name('input')
+        selects = body.find_elements_by_tag_name('select')
+        children = buttons + links + inputs + selects
 
-    if elem_properties is None and xpath is None:
-        random.shuffle(children)
-        children_to_ignore = []  # list of elements with same properties to ignore
+        if elem_properties is None and xpath is None:
+            random.shuffle(children)
+            children_to_ignore = []  # list of elements with same properties to ignore
 
-        for child in children:
-            if child in children_to_ignore:
-                continue
-
-            # Get all the properties of the child.
-            elem_properties = get_element_properties(driver, child)
-
-            # If the element is not displayed or is disabled, the user can't interact with it. Skip
-            # non-displayed/disabled elements, since we're trying to mimic a real user.
-            if not child.is_displayed() or not child.is_enabled():
-                continue
-
-            if was_visited(current_path, visited_paths, elem_properties):
-                continue
-
-            elem = child
-
-            # We mark the current path as visited
-            elems = get_elements_with_properties(driver, elem_properties, children)
-            if len(elems) == 1:
-                elem = child
-                xpath = driver.execute_script(get_xpath_script, elem)
-                break
-            else:
-                children_to_ignore.extend(elems)
-    else:
-        if 'id' in elem_properties['attributes'].keys():
-            elem_id = elem_properties['attributes']['id']
-            elem = driver.find_element_by_id(elem_id)
-            if xpath is None:
-                xpath = driver.execute_script(get_xpath_script, elem)
-        elif xpath is not None:
             try:
-                elem = driver.find_element_by_xpath(xpath)
-            except NoSuchElementException:
-                elems = get_elements_with_properties(driver, elem_properties, children)
-                assert len(elems) == 1
-                elem = elems[0]
-                xpath = driver.execute_script(get_xpath_script, elem)
-        else:
-            elems = get_elements_with_properties(driver, elem_properties, children)
-            assert len(elems) == 1
-            elem = elems[0]
-            xpath = driver.execute_script(get_xpath_script, elem)
+                if set(children) - already_clicked_elems > not_clickable_elems:
+                    children = list(set(children) - already_clicked_elems)
+                for child in children:
+                    if child in children_to_ignore or child in not_clickable_elems:
+                        continue
 
-    if elem is None:
-        return None
+                    # Get all the properties of the child.
+                    elem_properties = get_element_properties(driver, child)
 
-    driver.execute_script('arguments[0].scrollIntoView();', elem)
+                    # If the element is not displayed or is disabled, the user can't interact with it. Skip
+                    # non-displayed/disabled elements, since we're trying to mimic a real user.
+                    if not child.is_displayed() or not child.is_enabled():
+                        continue
 
-    if elem.tag_name in ['button', 'a']:
-        elem.click()
-    elif elem.tag_name == 'input':
-        input_type = elem.get_attribute('type')
-        if input_type == 'url':
-            elem.send_keys('http://www.mozilla.org/')
-        elif input_type == 'text':
-            elem.send_keys('marco')
-        elif input_type == 'email':
-            elem.send_keys('prova@email.it')
-        elif input_type == 'password':
-            elem.send_keys('aMildlyComplexPasswordIn2017')
-        elif input_type == 'checkbox':
-            elem.click()
-        elif input_type == 'number':
-            elem.send_keys('3')
-        elif input_type == 'radio':
-            elem.click()
-        elif input_type == 'search':
-            elem.clear()
-            elem.send_keys('quick search')
-        elif input_type == 'submit':
-            elem.click()
-        elif input_type == 'color':
-            driver.execute_script("arguments[0].value = '#ff0000'", elem)
-        else:
-            raise Exception('Unsupported input type: %s' % input_type)
-    elif elem.tag_name == 'select':
-        for option in elem.find_elements_by_tag_name('option'):
-            if option.text != '':
-                option.click()
-                break
+                    if was_visited(current_path, visited_paths, elem_properties):
+                        continue
 
-    close_all_windows_except_first(driver)
+                    elem = child
 
-    return elem_properties, xpath
+                    # We mark the current path as visited
+                    elems = get_elements_with_properties(driver, elem_properties, children)
+                    if len(elems) == 1:
+                        elem = child
+                        xpath = driver.execute_script(get_xpath_script, elem)
+                        break
+                    else:
+                        children_to_ignore.extend(elems)
+                else:
+                    if 'id' in elem_properties['attributes'].keys():
+                        elem_id = elem_properties['attributes']['id']
+                        elem = driver.find_element_by_id(elem_id)
+                        if xpath is None:
+                            xpath = driver.execute_script(get_xpath_script, elem)
+                    elif xpath is not None:
+                        try:
+                            elem = driver.find_element_by_xpath(xpath)
+                        except NoSuchElementException:
+                            elems = get_elements_with_properties(driver, elem_properties, children)
+                            assert len(elems) == 1
+                            elem = elems[0]
+                            xpath = driver.execute_script(get_xpath_script, elem)
+                    else:
+                        elems = get_elements_with_properties(driver, elem_properties, children)
+                        assert len(elems) == 1
+                        elem = elems[0]
+                        xpath = driver.execute_script(get_xpath_script, elem)
+
+                if elem is None:
+                    return None
+
+                driver.execute_script('arguments[0].scrollIntoView();', elem)
+
+                if elem.tag_name in ['button', 'a']:
+                    elem.click()
+                elif elem.tag_name == 'input':
+                    input_type = elem.get_attribute('type')
+                    if input_type == 'url':
+                        elem.send_keys('http://www.mozilla.org/')
+                    elif input_type == 'text':
+                        elem.send_keys('marco')
+                    elif input_type == 'email':
+                        elem.send_keys('prova@email.it')
+                    elif input_type == 'password':
+                        elem.send_keys('aMildlyComplexPasswordIn2017')
+                    elif input_type == 'checkbox':
+                        elem.click()
+                    elif input_type == 'number':
+                        elem.send_keys('3')
+                    elif input_type == 'radio':
+                        elem.click()
+                    elif input_type == 'tel':
+                        elem.send_keys('1234567890')
+                    elif input_type == 'date':
+                        elem.send_keys('20000101')
+                    elif input_type == 'search':
+                        elem.clear()
+                        elem.send_keys('quick search')
+                    elif input_type in ['submit', 'reset', 'button']:
+                        elem.click()
+                    elif input_type == 'color':
+                        driver.execute_script("arguments[0].value = '#ff0000'", elem)
+                    else:
+                        raise Exception('Unsupported input type: %s' % input_type)
+                elif elem.tag_name == 'select':
+                    for option in elem.find_elements_by_tag_name('option'):
+                        if option.text != '':
+                            option.click()
+                            break
+
+                already_clicked_elems.add(elem)
+
+                close_all_windows_except_first(driver)
+
+                return elem_properties, xpath
+
+            except(ElementNotInteractableException, StaleElementReferenceException, InvalidSelectorException, WebDriverException):
+                traceback.print_exc()
+                not_clickable_elems.add(elem)
+                close_all_windows_except_first(driver)
 
 
 def screenshot(driver, bug_id, browser, seq_no):
@@ -421,6 +443,7 @@ chrome_options.add_argument('--mute-audio')
 def main(bugs):
     firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
     chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
+    already_clicked_elems.clear()
     run_tests(firefox_driver, chrome_driver, bugs)
 
 
