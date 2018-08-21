@@ -119,20 +119,16 @@ def get_elements_with_properties(driver, elem_properties, children):
 
 
 def was_visited(current_path, visited_paths, elem_properties):
-    current_path.append(elem_properties)
-    if current_path in visited_paths:
-        current_path.pop()
+    current_path_elements = [element for element, _, _ in current_path]
+    current_path_elements.append(elem_properties)
+    if current_path_elements in visited_paths:
         return True
     else:
+        visited_paths.append(current_path_elements[:])
         return False
 
 
-def visit(current_path, visited_paths):
-    visited_paths.append(current_path[:])
-    return
-
-
-def do_something(driver, visited_paths, current_path, elem_properties=None):
+def do_something(driver, visited_paths, current_path, elem_properties=None, xpath=None):
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -145,7 +141,7 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
 
-    if elem_properties is None:
+    if elem_properties is None and xpath is None:
         random.shuffle(children)
         children_to_ignore = []  # list of elements with same properties to ignore
 
@@ -156,14 +152,12 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
             # Get all the properties of the child.
             elem_properties = get_element_properties(driver, child)
 
-            # we check if the path has been visited previously
-            if was_visited(current_path, visited_paths, elem_properties):
-                continue
-
             # If the element is not displayed or is disabled, the user can't interact with it. Skip
             # non-displayed/disabled elements, since we're trying to mimic a real user.
             if not child.is_displayed() or not child.is_enabled():
-                current_path.pop()
+                continue
+
+            if was_visited(current_path, visited_paths, elem_properties):
                 continue
 
             elem = child
@@ -172,19 +166,29 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
             elems = get_elements_with_properties(driver, elem_properties, children)
             if len(elems) == 1:
                 elem = child
+                xpath = driver.execute_script(get_xpath_script, elem)
                 break
             else:
                 children_to_ignore.extend(elems)
-            visit(current_path, visited_paths)
-            break
     else:
-        if 'id' not in elem_properties['attributes'].keys():
+        if 'id' in elem_properties['attributes'].keys():
+            elem_id = elem_properties['attributes']['id']
+            elem = driver.find_element_by_id(elem_id)
+            if xpath is None:
+                xpath = driver.execute_script(get_xpath_script, elem)
+        elif xpath is not None:
+            try:
+                elem = driver.find_element_by_xpath(xpath)
+            except NoSuchElementException:
+                elems = get_elements_with_properties(driver, elem_properties, children)
+                assert len(elems) == 1
+                elem = elems[0]
+                xpath = driver.execute_script(get_xpath_script, elem)
+        else:
             elems = get_elements_with_properties(driver, elem_properties, children)
             assert len(elems) == 1
             elem = elems[0]
-        else:
-            elem_id = elem_properties['attributes']['id']
-            elem = driver.find_element_by_id(elem_id)
+            xpath = driver.execute_script(get_xpath_script, elem)
 
     if elem is None:
         return None
@@ -226,7 +230,7 @@ def do_something(driver, visited_paths, current_path, elem_properties=None):
 
     close_all_windows_except_first(driver)
 
-    return elem_properties
+    return elem_properties, xpath
 
 
 def screenshot(driver, bug_id, browser, seq_no):
@@ -307,9 +311,9 @@ def count_lines(bug_id):
 def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
     firefox_driver.get(bug['url'])
     chrome_driver.get(bug['url'])
-    for elem_properties in current_path:
-        do_something(firefox_driver, visited_paths, current_path, elem_properties)
-        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+    for (elem_properties, firefox_xpath, chrome_xpath) in current_path:
+        do_something(firefox_driver, visited_paths, current_path, elem_properties, firefox_xpath)
+        do_something(chrome_driver, visited_paths, current_path, elem_properties, chrome_xpath)
 
 
 def run_test_both(bug, firefox_driver, chrome_driver):
@@ -337,7 +341,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
     visited_paths = []
     current_path = []
     while True:
-        elem_properties = do_something(firefox_driver, visited_paths, current_path)
+        elem_properties, firefox_xpath = do_something(firefox_driver, visited_paths, current_path)
         print('  - Using %s' % elem_properties)
         if elem_properties is None:
             if not current_path:
@@ -347,11 +351,13 @@ def run_test_both(bug, firefox_driver, chrome_driver):
             jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
             continue
 
-        do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        _, chrome_xpath = do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        current_path.append((elem_properties, firefox_xpath, chrome_xpath))
+
         with open('data/%d.txt' % bug['id'], 'a+') as f:
             line_number = count_lines(bug['id'])
             f.seek(2, 0)
-            for element in current_path:
+            for element, _, _ in current_path:
                 f.write(json.dumps(element) + '\n')
             f.write('\n')
 
