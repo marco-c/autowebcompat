@@ -2,7 +2,8 @@ import os
 
 from PIL import Image
 import keras
-from keras.preprocessing.image import ImageDataGenerator, img_to_array
+from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing.image import img_to_array
 import numpy as np
 import pytest
 
@@ -142,3 +143,37 @@ def test_get_browser_bin():
     assert isinstance(nightly_bin, str)
     assert os.path.exists(os.path.abspath('./') + '/' + chrome_bin)
     assert os.path.exists(os.path.abspath('./') + '/' + nightly_bin)
+    
+
+def test_create_file_name():
+    assert(utils.create_file_name(bug_id='1661', browser='chrome', seq_no=None) == '1661_chrome')
+    assert(utils.create_file_name(bug_id='1661', browser='chrome', width='20', height='10', seq_no=None) == '1661_H_20_V_10_chrome')
+    assert(utils.create_file_name(bug_id='1661', browser='chrome', width='20', height='10', seq_no='2') == '1661_2_H_20_V_10_chrome')
+
+
+def test_parse_file_name():
+    info = {
+        'bug_id': 1661
+    }
+    assert info == utils.parse_file_name('1661')
+
+    info = {
+        'bug_id': 1661,
+        'seq_no': 2
+    }
+    assert info == utils.parse_file_name('1661_2')
+
+    info = {
+        'bug_id': 1661,
+        'width': 20,
+        'height': 10
+    }
+    assert info == utils.parse_file_name('1661_H_20_V_10')
+
+    info = {
+        'bug_id': 1661,
+        'seq_no': 2,
+        'width': 20,
+        'height': 10
+    }
+    assert info == utils.parse_file_name('1661_2_H_20_V_10')

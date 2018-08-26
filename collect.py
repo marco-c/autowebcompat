@@ -7,6 +7,11 @@ import time
 import traceback
 
 from PIL import Image
+from lxml import etree
+from selenium import webdriver
+from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
@@ -15,6 +20,7 @@ from autowebcompat.driver import Driver
 from autowebcompat.utils import get_browser_bin
 
 MAX_THREADS = 5
+MAX_INTERACTION_DEPTH = 7
 
 chrome_bin, nightly_bin = get_browser_bin()
 
@@ -22,6 +28,9 @@ utils.mkdir('data')
 
 bugs = utils.get_bugs()
 print(len(bugs))
+
+with open('get_xpath.js', 'r') as f:
+    get_xpath_script = f.read()
 
 
 def set_timeouts(driver):
@@ -89,7 +98,17 @@ def get_elements_with_properties(driver, elem_properties, children):
     return elems_with_same_properties
 
 
-def do_something(driver, elem_properties=None):
+def was_visited(current_path, visited_paths, elem_properties):
+    current_path_elements = [element for element, _, _ in current_path]
+    current_path_elements.append(elem_properties)
+    if current_path_elements in visited_paths:
+        return True
+    else:
+        visited_paths.append(current_path_elements[:])
+        return False
+
+
+def do_something(driver, visited_paths, current_path, elem_properties=None, xpath=None):
     elem = None
 
     body = driver.find_elements_by_tag_name('body')
@@ -102,7 +121,7 @@ def do_something(driver, elem_properties=None):
     selects = body.find_elements_by_tag_name('select')
     children = buttons + links + inputs + selects
 
-    if elem_properties is None:
+    if elem_properties is None and xpath is None:
         random.shuffle(children)
         children_to_ignore = []  # list of elements with same properties to ignore
 
@@ -118,20 +137,38 @@ def do_something(driver, elem_properties=None):
             if not child.is_displayed() or not child.is_enabled():
                 continue
 
+            if was_visited(current_path, visited_paths, elem_properties):
+                continue
+
+            elem = child
+
+            # We mark the current path as visited
             elems = get_elements_with_properties(driver, elem_properties, children)
             if len(elems) == 1:
                 elem = child
+                xpath = driver.execute_script(get_xpath_script, elem)
                 break
             else:
                 children_to_ignore.extend(elems)
     else:
-        if 'id' not in elem_properties['attributes'].keys():
+        if 'id' in elem_properties['attributes'].keys():
+            elem_id = elem_properties['attributes']['id']
+            elem = driver.find_element_by_id(elem_id)
+            if xpath is None:
+                xpath = driver.execute_script(get_xpath_script, elem)
+        elif xpath is not None:
+            try:
+                elem = driver.find_element_by_xpath(xpath)
+            except NoSuchElementException:
+                elems = get_elements_with_properties(driver, elem_properties, children)
+                assert len(elems) == 1
+                elem = elems[0]
+                xpath = driver.execute_script(get_xpath_script, elem)
+        else:
             elems = get_elements_with_properties(driver, elem_properties, children)
             assert len(elems) == 1
             elem = elems[0]
-        else:
-            elem_id = elem_properties['attributes']['id']
-            elem = driver.find_element_by_id(elem_id)
+            xpath = driver.execute_script(get_xpath_script, elem)
 
     if elem is None:
         return None
@@ -173,70 +210,143 @@ def do_something(driver, elem_properties=None):
 
     close_all_windows_except_first(driver)
 
-    return elem_properties
+    return elem_properties, xpath
 
 
-def screenshot(driver, file_path):
-    driver.get_screenshot_as_file(file_path)
-    image = Image.open(file_path)
-    image.save(file_path)
+def screenshot(driver, bug_id, browser, seq_no):
+    WINDOW_HEIGHT = 732
+    WINDOW_WIDTH = 412
+    page_height = driver.execute_script('return document.body.scrollHeight;')
+    page_width = driver.execute_script('return document.body.scrollWidth;')
+    height = 0
+    while height < page_height:
+        width = 0
+        while width < page_width:
+            file_name = utils.create_file_name(bug_id=bug_id, browser=browser, width=str(width), height=str(height), seq_no=seq_no) + '.png'
+            file_name = os.path.join('data', file_name)
+            driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
+            driver.get_screenshot_as_file(file_name)
+            image = Image.open(file_name)
+            image.save(file_name)
+            width += WINDOW_WIDTH
+        height += WINDOW_HEIGHT
 
 
-def get_domtree(driver, file_path):
-    with open(file_path, 'w', encoding='utf-8') as f:
+def get_domtree(driver, bug_id, browser, seq_no):
+    file_name = 'dom_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
+    file_name = os.path.join('data', file_name)
+    with open(file_name, 'w', encoding='utf-8') as f:
         f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
 
-def get_screenshot_and_domtree(driver, file_name):
+def get_coordinates(driver, bug_id, browser, seq_no):
+    dom_tree = etree.HTML(driver.execute_script('return document.documentElement.outerHTML'))
+    dom_element_tree = etree.ElementTree(dom_tree)
+    loc_dict = {}
+    dom_tree_elements = [elem for elem in dom_tree.iter(tag=etree.Element)]
+    web_elements = driver.find_elements_by_css_selector('*')
+    dom_xpaths = []
+
+    for element in dom_tree_elements:
+        dom_xpaths.append(dom_element_tree.getpath(element))
+
+    for element in web_elements:
+        xpath = driver.execute_script(get_xpath_script, element)
+
+        if xpath in dom_xpaths:
+            loc_dict[xpath] = element.size
+            loc_dict[xpath].update(element.location)
+            dom_xpaths.remove(xpath)
+
+    for xpath in dom_xpaths:
+        try:
+            element = driver.find_element_by_xpath(xpath)
+        except NoSuchElementException:
+            continue
+        loc_dict[xpath] = element.size
+        loc_dict[xpath].update(element.location)
+
+    file_name = 'loc_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
+    file_name = os.path.join('data', file_name)
+    with open(file_name, 'w') as f:
+        json.dump(loc_dict, f)
+
+
+def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
     wait_loaded(driver)
-    screenshot(driver, 'data/' + file_name + '.png')
-    get_domtree(driver, 'data/' + 'dom_' + file_name + '.txt')
+    screenshot(driver, bug_id, browser, seq_no)
+    get_domtree(driver, bug_id, browser, seq_no)
+    get_coordinates(driver, bug_id, browser, seq_no)
 
 
-def run_test(bug, browser, driver, op_sequence=None):
-    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], browser))
-
-    try:
-        driver.get(bug['url'])
-    except TimeoutException as e:
-        # Ignore timeouts, as they are too frequent.
-        traceback.print_exc()
-        print('Continuing...')
-
-    get_screenshot_and_domtree(driver, '%d_%s' % (bug['id'], browser))
-
-    saved_sequence = []
-    try:
-        max_iter = 7 if op_sequence is None else len(op_sequence)
-        for i in range(0, max_iter):
-            if op_sequence is None:
-                elem_properties = do_something(driver)
-                if elem_properties is None:
-                    print('Can\'t find any element to interact with on %s for bug %d' % (bug['url'], bug['id']))
-                    break
-                saved_sequence.append(elem_properties)
-            else:
-                elem_properties = op_sequence[i]
-                do_something(driver, elem_properties)
-
-            print('  - Using %s' % elem_properties)
-            image_file = str(bug['id']) + '_' + str(i) + '_' + browser
-            get_screenshot_and_domtree(driver, image_file)
-
-    except TimeoutException as e:
-        # Ignore timeouts, as they are too frequent.
-        traceback.print_exc()
-        print('Continuing...')
-
-    return saved_sequence
-
-
-def read_sequence(bug_id):
+def count_lines(bug_id):
     try:
         with open('data/%d.txt' % bug_id) as f:
-            return [json.loads(line) for line in f]
+            return sum(1 for line in f)
     except IOError:
-        return []
+        return 0
+
+
+# We restart from the start and follow the saved sequence
+def jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug):
+    firefox_driver.get(bug['url'])
+    chrome_driver.get(bug['url'])
+    for (elem_properties, firefox_xpath, chrome_xpath) in current_path:
+        do_something(firefox_driver, visited_paths, current_path, elem_properties, firefox_xpath)
+        do_something(chrome_driver, visited_paths, current_path, elem_properties, chrome_xpath)
+
+
+def run_test_both(bug, firefox_driver, chrome_driver):
+    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'firefox'))
+
+    try:
+        firefox_driver.get(bug['url'])
+    except TimeoutException as e:
+        # Ignore timeouts, as they are too frequent.
+        traceback.print_exc()
+        print('Continuing...')
+
+    get_screenshot_and_domtree(firefox_driver, str(bug['id']), 'firefox')
+    print('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'chrome'))
+
+    try:
+        chrome_driver.get(bug['url'])
+    except TimeoutException as e:
+        # Ignore timeouts, as they are too frequent.
+        traceback.print_exc()
+        print('Continuing...')
+
+    get_screenshot_and_domtree(chrome_driver, str(bug['id']), 'chrome')
+
+    visited_paths = []
+    current_path = []
+    while True:
+        elem_properties, firefox_xpath = do_something(firefox_driver, visited_paths, current_path)
+        print('  - Using %s' % elem_properties)
+        if elem_properties is None:
+            if not current_path:
+                print('============= Completed (%d) =============' % bug['id'])
+                break
+            current_path.pop()
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
+            continue
+
+        _, chrome_xpath = do_something(chrome_driver, visited_paths, current_path, elem_properties)
+        current_path.append((elem_properties, firefox_xpath, chrome_xpath))
+
+        with open('data/%d.txt' % bug['id'], 'a+') as f:
+            line_number = count_lines(bug['id'])
+            f.seek(2, 0)
+            for element, _, _ in current_path:
+                f.write(json.dumps(element) + '\n')
+            f.write('\n')
+
+        get_screenshot_and_domtree(firefox_driver, str(bug['id']), 'firefox', str(line_number))
+        get_screenshot_and_domtree(chrome_driver, str(bug['id']), 'chrome', str(line_number))
+
+        if len(current_path) == MAX_INTERACTION_DEPTH:
+            current_path.pop()
+            jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
 
 
 def run_tests(firefox_driver, chrome_driver, bugs):
@@ -249,21 +359,16 @@ def run_tests(firefox_driver, chrome_driver, bugs):
             # a) we haven't generated the main screenshot for Firefox or Chrome, or
             # b) we haven't generated any item of the sequence for Firefox, or
             # c) there are items in the Firefox sequence that we haven't generated for Chrome.
-            sequence = read_sequence(bug['id'])
+            lines_written = count_lines(bug['id'])
             number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
             number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
             if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
                not os.path.exists('data/%d_chrome.png' % bug['id']) or \
-               len(sequence) == 0 or \
+               lines_written == 0 or \
                number_of_ff_scr != number_of_ch_scr:
-                for f in glob.iglob('data/%d_*' % bug['id']):
+                for f in glob.iglob('data/%d*' % bug['id']):
                     os.remove(f)
-                sequence = run_test(bug, 'firefox', firefox_driver)
-                run_test(bug, 'chrome', chrome_driver, sequence)
-
-                with open('data/%d.txt' % bug['id'], 'w') as f:
-                    for element in sequence:
-                        f.write(json.dumps(element) + '\n')
+                run_test_both(bug, firefox_driver, chrome_driver)
 
         except:  # noqa: E722
             traceback.print_exc()
@@ -273,6 +378,7 @@ def run_tests(firefox_driver, chrome_driver, bugs):
     firefox_driver.quit()
     chrome_driver.quit()
 
+dd_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
 
 def main(bugs):
     driver = Driver()

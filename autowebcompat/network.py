@@ -1,15 +1,31 @@
 from keras import backend as K
-from keras.layers import ActivityRegularization, Conv2D, Dense, Dropout, Flatten, Input, Lambda, MaxPooling2D, concatenate
+from keras.applications.resnet50 import ResNet50
+from keras.applications.vgg16 import VGG16
+from keras.applications.vgg19 import VGG19
+from keras.layers import ActivityRegularization
+from keras.layers import Conv2D
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers import Flatten
+from keras.layers import Input
+from keras.layers import Lambda
+from keras.layers import MaxPooling2D
+from keras.layers import concatenate
 from keras.models import Model
-from keras.optimizers import SGD, Adam, Nadam, RMSprop
+from keras.optimizers import SGD
+from keras.optimizers import Adam
+from keras.optimizers import Nadam
+from keras.optimizers import RMSprop
 
-SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike']
+SUPPORTED_NETWORKS = ['inception', 'vgglike', 'vgg16', 'vgg19', 'simnet', 'simnetlike', 'resnet50']
 SUPPORTED_OPTIMIZERS = {
     'sgd': SGD(lr=0.0003, decay=1e-6, momentum=0.9, nesterov=True),
     'adam': Adam(),
     'nadam': Nadam(),
     'rms': RMSprop()
 }
+SUPPORTED_WEIGHTS = ['imagenet']
+SUPPORTED_NETWORKS_WITH_WEIGHTS = ['vgg16', 'vgg19', 'resnet50']
 
 
 def euclidean_distance(vects):
@@ -22,7 +38,7 @@ def eucl_dist_output_shape(shapes):
     return (shape1[0], 1)
 
 
-def create_mlp(input_shape):
+def create_mlp(input_shape, weights):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     x = Dense(128, activation='relu')(x)
@@ -33,88 +49,17 @@ def create_mlp(input_shape):
     return Model(input, x)
 
 
-def create_vgg16_network(input_shape):
-    input = Input(shape=input_shape)
-
-    # Block 1
-    x = Conv2D(64, (3, 3), padding='same', activation='relu')(input)
-    x = Conv2D(64, (3, 3), padding='same', activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 2
-    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 3
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 4
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 5
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    x = Flatten()(x)
-    x = Dense(4096, activation='relu')(x)
-    x = Dropout(0.5)(x)
-    x = Dense(4096, activation='relu')(x)
-    # Softmax layer Not Necessary
-    return Model(input, x)
+def create_vgg16_network(input_shape, weights):
+    base_model = VGG16(input_shape=input_shape, weights=weights)
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('fc2').output)
 
 
-def create_vgg19_network(input_shape):
-    input = Input(shape=input_shape)
-
-    # Block 1
-    x = Conv2D(64, (3, 3), padding='same', activation='relu')(input)
-    x = Conv2D(64, (3, 3), padding='same', activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 2
-    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(128, (3, 3), activation='relu', padding='same',)(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 3
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 4
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    # Block 5
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
-
-    x = Flatten()(x)
-    x = Dense(4096, activation='relu')(x)
-    x = Dropout(0.5)(x)
-    x = Dense(4096, activation='relu')(x)
-    # Softmax layer Not Necessary
-    return Model(input, x)
+def create_vgg19_network(input_shape, weights):
+    base_model = VGG19(input_shape=input_shape, weights=weights)
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('fc2').output)
 
 
-def create_vgglike_network(input_shape):
+def create_vgglike_network(input_shape, weights):
     input = Input(shape=input_shape)
 
     # input: 192x256 images with 3 channels -> (192, 256, 3) tensors.
@@ -138,13 +83,13 @@ def create_vgglike_network(input_shape):
     return Model(input, x)
 
 
-def create_simnet_network(input_shape):
+def create_simnet_network(input_shape, weights):
     L2_REGULARIZATION = 0.001
 
     input = Input(shape=input_shape)
 
     # CNN 1
-    vgg16 = create_vgg16_network(input_shape)
+    vgg16 = create_vgg16_network(input_shape, weights)
     cnn_1 = vgg16(input)
 
     # CNN 2
@@ -176,13 +121,13 @@ def create_simnet_network(input_shape):
     return Model(input, output)
 
 
-def create_simnetlike_network(input_shape):
+def create_simnetlike_network(input_shape, weights):
     L2_REGULARIZATION = 0.005
 
     input = Input(shape=input_shape)
 
     # CNN 1
-    vgg16 = create_vgglike_network(input_shape)
+    vgg16 = create_vgglike_network(input_shape, weights)
     cnn_1 = vgg16(input)
 
     # CNN 2
@@ -214,7 +159,7 @@ def create_simnetlike_network(input_shape):
     return Model(input, output)
 
 
-def create_inception_network(input_shape):
+def create_inception_network(input_shape, weights):
     """
        Simple architecture with one layer of inception model
 
@@ -242,10 +187,20 @@ def create_inception_network(input_shape):
     return Model(input, x)
 
 
-def create(input_shape, network='vgglike', weights=None):
+def create_resnet50_network(input_shape, weights):
+    base_model = ResNet50(input_shape=input_shape, weights=weights)
+    return Model(inputs=base_model.input, outputs=base_model.get_layer('flatten_1').output)
+
+
+def create(input_shape, network='vgglike', weights=None, builtin_weights=None):
     assert network in SUPPORTED_NETWORKS, '%s is an invalid network' % network
+    assert weights is None or builtin_weights is None, 'only one type of weights are allowed at once'
+
+    if builtin_weights:
+        assert network in SUPPORTED_NETWORKS_WITH_WEIGHTS, '%s does not have weights for %s ' % (network, builtin_weights)
+
     network_func = globals()['create_%s_network' % network]
-    base_network = network_func(input_shape)
+    base_network = network_func(input_shape, builtin_weights)
 
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
