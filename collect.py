@@ -8,10 +8,7 @@ import traceback
 
 from PIL import Image
 from lxml import etree
-from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
@@ -96,6 +93,22 @@ def get_elements_with_properties(driver, elem_properties, children):
         if child_properties == elem_properties:
             elems_with_same_properties.append(child)
     return elems_with_same_properties
+
+
+def get_element_properties(driver, child):
+    child_properties = driver.execute_script("""
+      let elem_properties = {
+        tag: '',
+        attributes: {},
+      };
+      for (let i = 0; i < arguments[0].attributes.length; i++) {
+        elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+      }
+      elem_properties.tag = arguments[0].tagName;
+      return elem_properties;
+    """, child)
+
+    return child_properties
 
 
 def was_visited(current_path, visited_paths, elem_properties):
@@ -378,7 +391,6 @@ def run_tests(firefox_driver, chrome_driver, bugs):
     firefox_driver.quit()
     chrome_driver.quit()
 
-dd_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
 
 def main(bugs):
     driver = Driver()

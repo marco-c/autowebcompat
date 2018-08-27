@@ -6,16 +6,14 @@ import random
 import subprocess
 import sys
 import threading
-import sys
 
-import numpy as np
-from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
-import numpy as np
 from tensorflow.python.client import device_lib
+from PIL import Image
+import numpy as np
 
 
 def get_bugs():
@@ -252,6 +250,7 @@ def get_browser_bin():
     else:
         chrome_bin = nightly_bin = None
     return chrome_bin, nightly_bin
+
 
 def get_all_model_summary(model, model_summary):
     line = []

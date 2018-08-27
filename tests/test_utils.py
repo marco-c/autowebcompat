@@ -143,7 +143,7 @@ def test_get_browser_bin():
     assert isinstance(nightly_bin, str)
     assert os.path.exists(os.path.abspath('./') + '/' + chrome_bin)
     assert os.path.exists(os.path.abspath('./') + '/' + nightly_bin)
-    
+
 
 def test_create_file_name():
     assert(utils.create_file_name(bug_id='1661', browser='chrome', seq_no=None) == '1661_chrome')
