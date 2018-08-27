@@ -21,8 +21,6 @@ from selenium.common.exceptions import WebDriverException
 
 from autowebcompat import utils
 
-already_clicked_elems = set()
-
 MAX_THREADS = 5
 MAX_INTERACTION_DEPTH = 7
 
@@ -135,6 +133,7 @@ def was_visited(current_path, visited_paths, elem_properties):
 
 
 def do_something(driver, visited_paths, current_path, elem_properties=None, xpath=None):
+    already_clicked_elems = set()
     not_clickable_elems = set()
     while True:
         elem = None
@@ -181,78 +180,84 @@ def do_something(driver, visited_paths, current_path, elem_properties=None, xpat
                         break
                     else:
                         children_to_ignore.extend(elems)
-                else:
-                    if 'id' in elem_properties['attributes'].keys():
-                        elem_id = elem_properties['attributes']['id']
-                        elem = driver.find_element_by_id(elem_id)
-                        if xpath is None:
-                            xpath = driver.execute_script(get_xpath_script, elem)
-                    elif xpath is not None:
-                        try:
-                            elem = driver.find_element_by_xpath(xpath)
-                        except NoSuchElementException:
-                            elems = get_elements_with_properties(driver, elem_properties, children)
-                            assert len(elems) == 1
-                            elem = elems[0]
-                            xpath = driver.execute_script(get_xpath_script, elem)
-                    else:
+            except (ElementNotInteractableException, StaleElementReferenceException, InvalidSelectorException, WebDriverException):
+                # Ignore frequent exceptions.
+                traceback.print_exc()
+                not_clickable_elems.add(elem)
+                close_all_windows_except_first(driver)
+        else:
+            try:
+                if 'id' in elem_properties['attributes'].keys():
+                    elem_id = elem_properties['attributes']['id']
+                    elem = driver.find_element_by_id(elem_id)
+                    if xpath is None:
+                        xpath = driver.execute_script(get_xpath_script, elem)
+                elif xpath is not None:
+                    try:
+                        elem = driver.find_element_by_xpath(xpath)
+                    except NoSuchElementException:
                         elems = get_elements_with_properties(driver, elem_properties, children)
                         assert len(elems) == 1
                         elem = elems[0]
                         xpath = driver.execute_script(get_xpath_script, elem)
-
-                if elem is None:
-                    return None
-
-                driver.execute_script('arguments[0].scrollIntoView();', elem)
-
-                if elem.tag_name in ['button', 'a']:
-                    elem.click()
-                elif elem.tag_name == 'input':
-                    input_type = elem.get_attribute('type')
-                    if input_type == 'url':
-                        elem.send_keys('http://www.mozilla.org/')
-                    elif input_type == 'text':
-                        elem.send_keys('marco')
-                    elif input_type == 'email':
-                        elem.send_keys('prova@email.it')
-                    elif input_type == 'password':
-                        elem.send_keys('aMildlyComplexPasswordIn2017')
-                    elif input_type == 'checkbox':
-                        elem.click()
-                    elif input_type == 'number':
-                        elem.send_keys('3')
-                    elif input_type == 'radio':
-                        elem.click()
-                    elif input_type == 'tel':
-                        elem.send_keys('1234567890')
-                    elif input_type == 'date':
-                        elem.send_keys('20000101')
-                    elif input_type == 'search':
-                        elem.clear()
-                        elem.send_keys('quick search')
-                    elif input_type in ['submit', 'reset', 'button']:
-                        elem.click()
-                    elif input_type == 'color':
-                        driver.execute_script("arguments[0].value = '#ff0000'", elem)
-                    else:
-                        raise Exception('Unsupported input type: %s' % input_type)
-                elif elem.tag_name == 'select':
-                    for option in elem.find_elements_by_tag_name('option'):
-                        if option.text != '':
-                            option.click()
-                            break
-
-                already_clicked_elems.add(elem)
-
-                close_all_windows_except_first(driver)
-
-                return elem_properties, xpath
-
-            except(ElementNotInteractableException, StaleElementReferenceException, InvalidSelectorException, WebDriverException):
+                else:
+                    elems = get_elements_with_properties(driver, elem_properties, children)
+                    assert len(elems) == 1
+                    elem = elems[0]
+                    xpath = driver.execute_script(get_xpath_script, elem)
+            except (ElementNotInteractableException, StaleElementReferenceException, InvalidSelectorException, WebDriverException):
+                # Ignore frequent exceptions.
                 traceback.print_exc()
                 not_clickable_elems.add(elem)
                 close_all_windows_except_first(driver)
+
+        if elem is None:
+            return None
+
+        driver.execute_script('arguments[0].scrollIntoView();', elem)
+
+        if elem.tag_name in ['button', 'a']:
+            elem.click()
+        elif elem.tag_name == 'input':
+            input_type = elem.get_attribute('type')
+            if input_type == 'url':
+                elem.send_keys('http://www.mozilla.org/')
+            elif input_type == 'text':
+                elem.send_keys('marco')
+            elif input_type == 'email':
+                elem.send_keys('prova@email.it')
+            elif input_type == 'password':
+                elem.send_keys('aMildlyComplexPasswordIn2017')
+            elif input_type == 'checkbox':
+                elem.click()
+            elif input_type == 'number':
+                elem.send_keys('3')
+            elif input_type == 'radio':
+                elem.click()
+            elif input_type == 'tel':
+                elem.send_keys('1234567890')
+            elif input_type == 'date':
+                elem.send_keys('20000101')
+            elif input_type == 'search':
+                elem.clear()
+                elem.send_keys('quick search')
+            elif input_type in ['submit', 'reset', 'button']:
+                elem.click()
+            elif input_type == 'color':
+                driver.execute_script("arguments[0].value = '#ff0000'", elem)
+            else:
+                raise Exception('Unsupported input type: %s' % input_type)
+        elif elem.tag_name == 'select':
+            for option in elem.find_elements_by_tag_name('option'):
+                if option.text != '':
+                    option.click()
+                    break
+
+        already_clicked_elems.add(elem)
+
+        close_all_windows_except_first(driver)
+
+        return elem_properties, xpath
 
 
 def screenshot(driver, bug_id, browser, seq_no):
@@ -443,7 +448,6 @@ chrome_options.add_argument('--mute-audio')
 def main(bugs):
     firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
     chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
-    already_clicked_elems.clear()
     run_tests(firefox_driver, chrome_driver, bugs)
 
 
