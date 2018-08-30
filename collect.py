@@ -64,26 +64,22 @@ def wait_loaded(driver):
         print('Continuing...')
 
 
-def get_all_attributes(driver, child):
-    child_attributes = driver.execute_script("""
-      let elem_attribute = {};
+def get_element_properties(driver, child):
+    child_properties = driver.execute_script("""
+      let elem_properties = {
+        tag: '',
+        attributes: {},
+      };
 
       for (let i = 0; i < arguments[0].attributes.length; i++) {
-        elem_attribute[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
+        elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
       }
-      return elem_attribute;
+      elem_properties.tag = arguments[0].tagName;
+
+      return elem_properties;
     """, child)
 
-    return child_attributes
-
-
-def get_elements_with_attributes(driver, elem_attributes, children):
-    elems_with_same_attributes = []
-    for child in children:
-        child_attributes = get_all_attributes(driver, child)
-        if child_attributes == elem_attributes:
-            elems_with_same_attributes.append(child)
-    return elems_with_same_attributes
+    return child_properties
 
 
 def get_elements_with_properties(driver, elem_properties, children):
@@ -93,22 +89,6 @@ def get_elements_with_properties(driver, elem_properties, children):
         if child_properties == elem_properties:
             elems_with_same_properties.append(child)
     return elems_with_same_properties
-
-
-def get_element_properties(driver, child):
-    child_properties = driver.execute_script("""
-      let elem_properties = {
-        tag: '',
-        attributes: {},
-      };
-      for (let i = 0; i < arguments[0].attributes.length; i++) {
-        elem_properties.attributes[arguments[0].attributes[i].name] = arguments[0].attributes[i].value;
-      }
-      elem_properties.tag = arguments[0].tagName;
-      return elem_properties;
-    """, child)
-
-    return child_properties
 
 
 def was_visited(current_path, visited_paths, elem_properties):

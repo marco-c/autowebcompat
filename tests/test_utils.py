@@ -141,8 +141,8 @@ def test_get_browser_bin():
     chrome_bin, nightly_bin = utils.get_browser_bin()
     assert isinstance(chrome_bin, str)
     assert isinstance(nightly_bin, str)
-    assert os.path.exists(os.path.abspath('./') + '/' + chrome_bin)
-    assert os.path.exists(os.path.abspath('./') + '/' + nightly_bin)
+    assert os.path.exists(os.path.join(os.path.abspath('./'), chrome_bin))
+    assert os.path.exists(os.path.join(os.path.abspath('./'), nightly_bin))
 
 
 def test_create_file_name():

@@ -1,4 +1,5 @@
-from selenium.common.exceptions import NoAlertPresentException, NoSuchWindowException
+from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchWindowException
 
 
 def close_all_windows_except_first(driver):

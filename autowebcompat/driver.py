@@ -8,7 +8,6 @@ from autowebcompat.utils import get_browser_bin
 class Driver:
 
     def __init__(self):
-
         chrome_bin, nightly_bin = get_browser_bin()
 
         os.environ['PATH'] += os.pathsep + os.path.abspath('tools')

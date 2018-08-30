@@ -7,13 +7,13 @@ import subprocess
 import sys
 import threading
 
+from PIL import Image
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
-from tensorflow.python.client import device_lib
-from PIL import Image
 import numpy as np
+from tensorflow.python.client import device_lib
 
 
 def get_bugs():
@@ -237,7 +237,6 @@ def write_bounding_boxes(bounding_boxes, file_name):
 
 
 def get_browser_bin():
-
     if sys.platform.startswith('linux'):
         chrome_bin = 'tools/chrome-linux/chrome'
         nightly_bin = 'tools/nightly/firefox-bin'

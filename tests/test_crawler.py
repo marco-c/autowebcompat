@@ -1,4 +1,4 @@
-from autowebcompat.crawler import close_all_windows_except_first
+from autowebcompat import crawler
 from autowebcompat.driver import Driver
 
 
@@ -17,8 +17,8 @@ class TestCrawler:
         self.driver.chrome.execute_script("window.open('https://google.com')")
         assert len(self.driver.firefox.window_handles) == 3, 'More than 3 windows are open'
 
-        close_all_windows_except_first(self.driver.firefox)
-        close_all_windows_except_first(self.driver.chrome)
+        crawler.close_all_windows_except_first(self.driver.firefox)
+        crawler.close_all_windows_except_first(self.driver.chrome)
 
         assert len(self.driver.firefox.window_handles) == 1
         assert len(self.driver.chrome.window_handles) == 1
