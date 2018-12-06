@@ -56,17 +56,13 @@ VALIDATION_SAMPLE = 10 * (SAMPLE_SIZE // 100)
 TEST_SAMPLE = SAMPLE_SIZE - (TRAIN_SAMPLE + VALIDATION_SAMPLE)
 
 
-def load_pair(fname):
-    return [fname + '_firefox.png', fname + '_chrome.png']
-
-
 random.shuffle(all_image_names)
 images_train, images_validation, images_test = all_image_names[:TRAIN_SAMPLE], all_image_names[TRAIN_SAMPLE:VALIDATION_SAMPLE + TRAIN_SAMPLE], all_image_names[SAMPLE_SIZE - TEST_SAMPLE:]
 
 
 def couples_generator(images):
     for i in images:
-        yield load_pair(i), utils.to_categorical_label(labels[i], args.classification_type)
+        yield utils.load_pair(i), utils.to_categorical_label(labels[i], args.classification_type)
 
 
 def gen_func(images):

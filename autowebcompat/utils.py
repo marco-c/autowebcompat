@@ -80,6 +80,10 @@ def prepare_images():
 images = {}
 
 
+def load_pair(fname):
+    return [fname + '_firefox.png', fname + '_chrome.png']
+
+
 def load_image(fname, parent_dir='data_resized'):
     global images
 

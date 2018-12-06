@@ -4,15 +4,18 @@ import functools
 import random
 
 import cv2
+from keras.models import load_model
+import keras.backend
 import numpy as np
 
-from autowebcompat import utils
+from autowebcompat import utils, network
 
 labels_directory = 'label_persons/'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file_name', action='store', help='Filename to open and save your labels')
 parser.add_argument('--verify', dest='verify', default=False, action='store_true', help='To verify and edit previous labels')
+parser.add_argument('--model', dest='model', default=None, help='Load and run a trained model on each displayed screenshot pair')
 args = parser.parse_args()
 
 labels = utils.read_labels(labels_directory + args.file_name + '.csv')
@@ -28,6 +31,32 @@ else:
     random.shuffle(images_not_in_all_labels)
     random.shuffle(images_in_all_labels)
     images_to_show = images_not_in_all_labels + images_in_all_labels
+
+if args.model:
+    utils.prepare_images()
+    model = load_model(args.model, custom_objects={'contrastive_loss': network.contrastive_loss})
+    all_images = sum([utils.load_pair(i) for i in images_to_show], [])
+    shape = utils.load_image(all_images[0]).shape
+    data_gen = utils.get_ImageDataGenerator(all_images, shape)
+
+
+def evaluate_model():
+    global images_to_show, image_index, data_gen, model
+    x1, x2 = [utils.load_image(i) for i in utils.load_pair(images_to_show[image_index])]
+    x = [
+        np.zeros((1,) + x1.shape, dtype=keras.backend.floatx()),
+        np.zeros((1,) + x1.shape, dtype=keras.backend.floatx()),
+    ]
+    x1 = data_gen.random_transform(x1.astype(keras.backend.floatx()))
+    x1 = data_gen.standardize(x1)
+    x2 = data_gen.random_transform(x2.astype(keras.backend.floatx()))
+    x2 = data_gen.standardize(x2)
+    x[0][0] = x1
+    x[1][0] = x2
+    print(model.predict(x))
+    print()
+
+
 
 image_index = 0
 drawing = False
@@ -279,6 +308,8 @@ def get_new_image():
     cv2.moveWindow('firefox', 20, 0)
     cv2.moveWindow('chrome', 20 + firefox_screenshot.shape[1], 0)
     cv2.moveWindow('firefox_chrome_overlay', 20 + firefox_screenshot.shape[1] + chrome_screenshot.shape[1], 0)
+    if args.model:
+        evaluate_model()
 
     drawing_area_firefox = reset_bounding_boxes(firefox_screenshot.shape)
     drawing_area_chrome = reset_bounding_boxes(chrome_screenshot.shape)
