@@ -188,13 +188,13 @@ def make_infinite(gen_func, elems):
 
 
 def read_labels(file_name='labels.csv'):
-    try:
+    if os.stat(file_name).st_size == 0:
+        raise Exception('labels file is empty')
+    else:
         with open(file_name, 'r', newline='') as f:
             next(f)
             reader = csv.reader(f)
             labels = {row[0]: row[1] for row in reader}
-    except FileNotFoundError:
-        labels = {}
     return labels
 
 
