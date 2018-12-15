@@ -86,7 +86,7 @@ def load_image(fname, parent_dir='data_resized'):
     if fname in images:
         return images[fname]
 
-    img = load_img(os.path.join(parent_dir, fname), target_size=(32, 24))
+    img = load_img(os.path.join(parent_dir, fname), target_size=(224, 224))
     x = img_to_array(img, data_format=keras.backend.image_data_format())
 
     images[fname] = x
