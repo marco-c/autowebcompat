@@ -241,4 +241,4 @@ def compile(model, optimizer='sgd', learning_rate=0.001, loss_func=contrastive_l
     assert optimizer in SUPPORTED_OPTIMIZERS, '%s is an invalid optimizer' % optimizer
     opt = SUPPORTED_OPTIMIZERS[optimizer]
 
-    model.compile(loss=loss_func, optimizer=opt, lr=lr, metrics=[accuracy])
+    model.compile(loss=loss_func, optimizer=opt, lr=learning_rate, metrics=[accuracy])
