@@ -237,8 +237,8 @@ def accuracy(y_true, y_pred):
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 
 
-def compile(model, optimizer='sgd', learning_rate=0.001, loss_func=contrastive_loss):
+def compile(model, optimizer='sgd', loss_func=contrastive_loss):
     assert optimizer in SUPPORTED_OPTIMIZERS, '%s is an invalid optimizer' % optimizer
     opt = SUPPORTED_OPTIMIZERS[optimizer]
 
-    model.compile(loss=loss_func, optimizer=opt, lr=learning_rate, metrics=[accuracy])
+    model.compile(loss=loss_func, optimizer=opt, metrics=[accuracy])
