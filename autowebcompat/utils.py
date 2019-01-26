@@ -81,20 +81,12 @@ images = {}
 
 
 def load_image(fname, parent_dir='data_resized'):
-    img = load_img(os.path.join(parent_dir, fname), target_size=(32, 24))
+    img = load_img(os.path.join(parent_dir, fname), target_size=(224, 224))
     return img_to_array(img, data_format=keras.backend.image_data_format())
 
 
 def get_ImageDataGenerator(images, image_shape, parent_dir='data_resized'):
     data_gen = ImageDataGenerator(rescale=1. / 255)
-
-    x = np.zeros((len(images),) + image_shape, dtype=keras.backend.floatx())
-
-    for i, image in enumerate(images):
-        x[i] = load_image(image, parent_dir)
-
-    data_gen.fit(x)
-
     return data_gen
 
 
