@@ -2,8 +2,9 @@
 
 [![Build Status](https://travis-ci.org/marco-c/autowebcompat.svg?branch=master)](https://travis-ci.org/marco-c/autowebcompat)
 
-The aim of this project is creating a tool to automatically detect [web compatibility issues](https://wiki.mozilla.org/Compatibility#What_is_Web_Compatibility) without human intervention.
+The aim of this project is creating a tool to automatically detect [web compatibility issues][] without human intervention.
 
+[web compatibility issues]: https://wiki.mozilla.org/Compatibility#What_is_Web_Compatibility
 
 ### Collecting screenshots
 
@@ -32,13 +33,7 @@ For the unsupervised training, we are using a related problem for which we alrea
 
 ## Structure of the project
 
-- The **autowebcompat/utils.py** module contains some utility functions;
-- The **autowebcompat/network.py** module contains neural network definition, optimizers definition, along with the loss and accuracy;
-- The **collect.py** script is the crawler that collects screenshots of web pages in different browsers;
-- The **label.py** script is a utility that helps labelling couples of screenshots (are they the same in the two browsers or are there differences?);
-- The **pretrain.py** script trains a neural network on the website screenshots for a slightly different problem (for which we know the solution), so that we can reuse the network weights for the training on the actual problem;
-- The **train.py** script trains the neural network on the website screenshots to detect compat issues;
-- The **data_inconsistencies.py** script checks the generated screenshots and takes note of any data inconsistency (e.g. screenshots that were taken in Firefox but not in Chrome).
+TODO
 
 ## Setup
 
@@ -46,22 +41,12 @@ For the unsupervised training, we are using a related problem for which we alrea
 
 - Install [Git Large File Storage](https://git-lfs.github.com/), either manually or through a package like `git-lfs` if available on your system (in case of using [PackageCloud](https://github.com/git-lfs/git-lfs/blob/master/INSTALLING.md)).
 - Clone the repository with submodules: `git lfs clone --recurse-submodules REPO_URL`
-- Install the dependencies in requirements.txt: `pip install -r requirements.txt`.
-- Install the dependencies in test-requirements.txt: `pip install -r test-requirements.txt`.
+- Set up Nomad, Consul and Vault clusters with the following Nomad node meta tags:
+  - `storage_path` on the node(s) that shuold run data store services (databases, object store)
+  - `code_path` on the node(s) that have the project source code
+  - `crawler`, to be set to `true` on machines that should run browsers
 
-## Training the network
-- The **pretrain.py** or **train.py** script can be run to train the neural network, with the following options:
-
-    ```
-    -network                  To select which network architecture to use
-
-    -optimizer                To select the optimizer to use   
-
-    -classification_type      Either Y vs N + D or Y + N vs D
-
-    --early_stoppping	      (Optional) To stop training when validation accuracy has stopped improving
-    ```
-
+TODO
 
 ## Communication
 

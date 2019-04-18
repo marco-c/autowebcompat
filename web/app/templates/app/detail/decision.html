@@ -1,0 +1,77 @@
+{% extends "app/detail.html" %}
+
+{% if item.label_set.filter(user=request.user).exists() %}
+{% set user_label = item.label_set.filter(user=request.user).get().label %}
+{% else %}
+{% set user_label = '' %}
+{% endif %}
+
+
+{% block detail %}
+
+<h1>{{title}}</h1>
+
+<div class="row well text-center">
+  <div class="img col-md-3">
+    <h3>{{item.pic_left.browser_name}}</h3>
+    <img class="p-1 border border-dark" src="{{item.pic_left.get_image_url()}}" width="100%" />
+  </div>
+
+  <div class="img col-md-3">
+    <h3>{{item.pic_right.browser_name}}</h3>
+    <img class="p-1 border border-dark" src="{{item.pic_right.get_image_url()}}" width="100%" />
+  </div>
+
+  <div class="img col-md-3">
+    <h3>superposition</h3>
+    <img class="p-1 border border-dark" src="{{item.get_superposition_url()}}" width="100%" />
+  </div>
+
+  <div class="img col-md-3">
+    <h3>difference</h3>
+    <img class="p-1 border border-dark" src="{{item.get_difference_url()}}" width="100%" />
+  </div>
+</div>
+
+<div class="row">
+
+ {% if item.label_set.exists() %}
+   <p>
+     This decision has been labeled {{item.label_set.count()}} times.
+   </p>
+ {% else %}
+   <p>
+     This decision has not been labeled yet.
+   </p>
+ {% endif %}
+
+</div>
+<div class="row">
+
+ {% if request.user.is_authenticated %}
+   <form action="{{url('app:submit_label')}}" method="post">
+     <div class="form-group">
+       <p>Your label: {{user_label}} </p>
+       {% for value, name in LABEL_CHOICES %}
+       <div class="form-check">
+         <input class="form-check-input" type="radio" name="label" id="label-{{value}}" value="{{value}}" {{ 'checked' if user_label == value else ''}}>
+           <label class="form-check-label" for="label-{{value}}">
+           {{name}}
+         </label>
+       </div>
+       {% endfor %}
+     </div>
+     <input type="hidden" id="decision_id" name="decision_id" value="{{item.id}}">
+     {{ csrf_input }}
+     <input type="submit" value="Submit">
+   </form>
+ {% else %}
+   <p>
+     You need to log in to submit a label.
+   </p>
+ {% endif %}
+
+</div>
+
+
+{% endblock %}

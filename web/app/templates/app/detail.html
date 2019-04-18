@@ -1,0 +1,29 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+{% block detail %}
+<div class="row">
+  <h2>{{title}}</h2>
+</div>
+{% endblock detail %}
+
+
+{% for table in tables %}
+<div class="row mt-3">
+<div class="col-md-12">
+
+  <h3>{{table.title}}</h3>
+
+  {% if table.count > 0 %}
+    <p>Showing {{table.count}} {{table.model_name}} instances.</p>
+    {{ table.table.as_html(request) }}
+  {% else %}
+    <p>There are no {{table.model_name}} instances for this {{model_name}}.</p>
+  {% endif %}
+
+</div>
+</div>
+{% endfor %}
+
+{% endblock %}

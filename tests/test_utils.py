@@ -11,7 +11,8 @@ from autowebcompat import utils
 
 
 def test_get_bugs():
-    bugs = utils.get_bugs()
+    bugs_file_path = os.path.join('testdata', 'webcompatdata-bzlike.json')
+    bugs = utils.get_bugs(bugs_file_path)
     assert(isinstance(bugs, list))
 
 
@@ -46,7 +47,8 @@ def test_make_infinite():
 
 
 def test_read_labels():
-    labels = utils.read_labels(file_name='labels.csv')
+    labels_path = os.path.join('testdata', 'labels.csv')
+    labels = utils.read_labels(file_name=labels_path)
     assert(isinstance(labels, dict))
 
 

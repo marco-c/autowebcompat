@@ -1,0 +1,56 @@
+{
+    "bugs": [
+        {
+            "status": "OPEN", 
+            "body": "<!-- @browser: Firefox Mobile 58.0 -->\n<!-- @ua_header: Mozilla/5.0 (Android 6.0.1; Mobile; rv:58.0) Gecko/58.0 Firefox/58.0 -->\n<!-- @reported_with: mobile-reporter -->\n\n**URL**: https://m.facebook.com/checkpoint/?refid=8\n\n**Browser / Version**: Firefox Mobile 58.0\n**Operating System**: Android 6.0.1\n**Tested Another Browser**: No\n\n**Problem type**: Something else\n**Description**: androidsymbol pops up on address bar\n**Steps to Reproduce**:\n\r\n[![Screenshot Description](https://webcompat.com/uploads/2017/9/d3c1443e-110b-4f69-99a3-1443f33d9351-thumb.jpg)](https://webcompat.com/uploads/2017/9/d3c1443e-110b-4f69-99a3-1443f33d9351.jpg)\n\n\n\n_From [webcompat.com](https://webcompat.com/) with \u2764\ufe0f_", 
+            "creation_time": "2017-09-26T22:53:04Z", 
+            "cf_last_resolved": null, 
+            "summary": "m.facebook.com - see bug description", 
+            "id": 10406, 
+            "url": "https://m.facebook.com/checkpoint/?refid=8", 
+            "whiteboard": "", 
+            "last_change_time": "2017-09-26T22:53:04Z", 
+            "resolution": "", 
+            "op_sys": "Gonk (Firefox OS)"
+        }, 
+        {
+            "status": "RESOLVED", 
+            "body": "<!-- @browser: Firefox 58.0 -->\n<!-- @ua_header: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0) Gecko/20100101 Firefox/58.0 -->\n<!-- @reported_with: web -->\n\n**URL**: http://www.ltn.com.tw/\n\n**Browser / Version**: Firefox 58.0\n**Operating System**: Windows 10\n**Tested Another Browser**: Unknown\n\n**Problem type**: Something else\n**Description**: connection is not security\n**Steps to Reproduce**:\n\r\n[![Screenshot Description](https://webcompat.com/uploads/2017/9/c876d7b9-9116-4067-9ff2-a234f9ef6df9-thumb.jpg)](https://webcompat.com/uploads/2017/9/c876d7b9-9116-4067-9ff2-a234f9ef6df9.jpg)\n\n\n\n_From [webcompat.com](https://webcompat.com/) with \u2764\ufe0f_", 
+            "creation_time": "2017-09-24T08:15:29Z", 
+            "cf_last_resolved": "2017-09-24T18:00:01Z", 
+            "summary": "www.ltn.com.tw - see bug description", 
+            "id": 10299, 
+            "url": "http://www.ltn.com.tw/", 
+            "whiteboard": "", 
+            "last_change_time": "2017-09-24T18:00:57Z", 
+            "resolution": "", 
+            "op_sys": ""
+        }, 
+        {
+            "status": "RESOLVED", 
+            "body": "**URL**: https://console.aws.amazon.com/cloudfront/home\n**Browser**: Firefox\n**Version**: 30.0a2\n**Problem type**: Looks like the website has a bug.\n**Site owner**: No\n\n**Steps to Reproduce**\nHopefully this short video explains it well enough\nhttp://people.mozilla.org/~pbengtsson/Screencast_2014_03_31_11_20_29.mov\n", 
+            "creation_time": "2014-03-31T18:25:01Z", 
+            "cf_last_resolved": "2014-12-28T17:53:12Z", 
+            "summary": "Some nasty redirect in a client-side script", 
+            "id": 2, 
+            "url": "https://console.aws.amazon.com/cloudfront/home", 
+            "whiteboard": "", 
+            "last_change_time": "2016-12-22T05:31:36Z", 
+            "resolution": "", 
+            "op_sys": ""
+        }, 
+        {
+            "status": "RESOLVED", 
+            "body": "**URL**: http://shinydemos.com/border-salon/\n**Browser**: Firefox \n**Version**: 31 (Nightly)\n**Problem type**: Looks like the website has a bug.\n**Site owner**: No\n\n**Steps to Reproduce**\n1) Navigate to http://shinydemos.com/border-salon/\n2) That's it. \n\nExpected behavior: The images have \"frames\" just like in Chrome.\nActual behavior: The frames are missing.\n", 
+            "creation_time": "2014-03-31T14:14:46Z", 
+            "cf_last_resolved": "2016-01-27T08:58:36Z", 
+            "summary": "art images missing border image", 
+            "id": 1, 
+            "url": "http://shinydemos.com/border-salon/", 
+            "whiteboard": "", 
+            "last_change_time": "2016-01-27T08:58:36Z", 
+            "resolution": "", 
+            "op_sys": ""
+        }
+    ]
+}

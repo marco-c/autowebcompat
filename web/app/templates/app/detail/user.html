@@ -1,0 +1,11 @@
+{% extends "app/detail.html" %}
+
+{% block detail %}
+
+<h1>{{title}}</h1>
+
+<p>
+  View this user on <a href="https://github.com/{{item.get_username()}}">GitHub</a>.
+</p>
+
+{% endblock %}

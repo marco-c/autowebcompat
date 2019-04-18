@@ -16,9 +16,9 @@ import numpy as np
 from tensorflow.python.client import device_lib
 
 
-def get_bugs():
+def get_bugs(filename):
     # TODO: Get data from webcompat using issue_parser (https://github.com/webcompat/issue_parser) if the file doesn't exist.
-    with open('webcompatdata-bzlike.json', 'r') as f:
+    with open(filename, 'r') as f:
         return json.load(f)['bugs']
 
 
@@ -241,7 +241,7 @@ def get_machine_info():
         parameter_value_map['GPU_{}_name'.format(i + 1)] = device.name
         parameter_value_map['GPU_{}_memory_limit'.format(i + 1)] = device.memory_limit
         parameter_value_map['GPU_{}_description'.format(i + 1)] = device.physical_device_desc
-    lscpu = subprocess.check_output('lscpu | grep \'^CPU(s):\|Core\|Thread\'', shell=True).strip().decode()
+    lscpu = subprocess.check_output("lscpu | grep '^CPU(s):\\|Core\\|Thread'", shell=True).strip().decode()
     lscpu = lscpu.split('\n')
     for row in lscpu:
         row = row.split(':')

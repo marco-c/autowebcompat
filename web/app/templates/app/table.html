@@ -1,0 +1,10 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+<h2>{{title}}</h1>
+
+<p>Showing {{count}} {{model_name}} instances.</p>
+{{ table.as_html(request) }}
+
+{% endblock %}

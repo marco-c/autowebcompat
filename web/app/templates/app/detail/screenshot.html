@@ -1,0 +1,25 @@
+{% extends "app/detail.html" %}
+
+{% block detail %}
+
+<h1>{{title}}</h1>
+
+<div class="row">
+  <div class="col-md-6">
+    <p>
+    This screenshot is part of <a href="{{item.sequence.get_absolute_url()}}">{{item.sequence}}</a>.
+    </p>
+    <p>
+    That sequence is a part of <a href="{{item.sequence.dataset.get_absolute_url()}}">{{item.sequence.dataset}}</a>.
+    </p>
+    File name: <pre>{{item.filename}}</pre>
+    Browser name: <pre>{{item.browser_name}}</pre>
+    Browser info:
+    <pre>{{item.browser_info}}</pre>
+  </div>
+  <div class="col-md-6">
+    <img class="p-1 border border-dark" src="{{item.get_image_url()}}" width="100%" />
+  </div>
+</div>
+
+{% endblock %}

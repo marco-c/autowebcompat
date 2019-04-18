@@ -1,0 +1,9 @@
+{% extends "app/detail.html" %}
+
+{% block detail %}
+
+<h1>{{title}}</h1>
+
+This sequence is a part of dataset <a href="{{item.dataset.get_absolute_url()}}">{{item.dataset}}</a>.
+
+{% endblock %}

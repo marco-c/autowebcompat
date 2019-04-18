@@ -1,12 +1,13 @@
-from concurrent.futures import ThreadPoolExecutor
 import glob
 import json
+import multiprocessing
 import os
 import random
 import sys
 import time
 import traceback
 
+# from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from PIL import Image
 from lxml import etree
 from selenium import webdriver
@@ -17,26 +18,18 @@ from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
 
-MAX_THREADS = 5
+MAX_THREADS = 18
 MAX_INTERACTION_DEPTH = 7
 
-if sys.platform.startswith('linux'):
-    chrome_bin = 'tools/chrome-linux/chrome'
-    nightly_bin = 'tools/nightly/firefox-bin'
-elif sys.platform.startswith('darwin'):
-    chrome_bin = 'tools/chrome.app/Contents/MacOS/chrome'
-    nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
-elif sys.platform.startswith('win32'):
-    chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
-    nightly_bin = 'tools\\Nightly\\firefox.exe'
+ROOT = os.path.dirname(__file__)
+DATA_DIR = os.path.realpath(os.getenv('DATA_DIR', '/local/data'))
+BUGS_PATH = os.path.realpath(os.getenv('BUGS_PATH', os.path.join(ROOT, 'webcompatdata-bzlike.json')))
 
+utils.mkdir(DATA_DIR)
+bugs = utils.get_bugs(BUGS_PATH)
+print('read', len(bugs), 'bugs')
 
-utils.mkdir('data')
-
-bugs = utils.get_bugs()
-print(len(bugs))
-
-with open('get_xpath.js', 'r') as f:
+with open(os.path.join(ROOT, 'get_xpath.js'), 'r') as f:
     get_xpath_script = f.read()
 
 
@@ -243,7 +236,7 @@ def screenshot(driver, bug_id, browser, seq_no):
         width = 0
         while width < page_width:
             file_name = utils.create_file_name(bug_id=bug_id, browser=browser, width=str(width), height=str(height), seq_no=seq_no) + '.png'
-            file_name = os.path.join('data', file_name)
+            file_name = os.path.join(DATA_DIR, file_name)
             driver.execute_script('window.scrollTo(arguments[0], arguments[1]);', width, height)
             driver.get_screenshot_as_file(file_name)
             image = Image.open(file_name)
@@ -254,7 +247,7 @@ def screenshot(driver, bug_id, browser, seq_no):
 
 def get_domtree(driver, bug_id, browser, seq_no):
     file_name = 'dom_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
-    file_name = os.path.join('data', file_name)
+    file_name = os.path.join(DATA_DIR, file_name)
     with open(file_name, 'w', encoding='utf-8') as f:
         f.write(driver.execute_script('return document.documentElement.outerHTML'))
 
@@ -287,7 +280,7 @@ def get_coordinates(driver, bug_id, browser, seq_no):
         loc_dict[xpath].update(element.location)
 
     file_name = 'loc_' + utils.create_file_name(bug_id=bug_id, browser=browser, seq_no=seq_no) + '.txt'
-    file_name = os.path.join('data', file_name)
+    file_name = os.path.join(DATA_DIR, file_name)
     with open(file_name, 'w') as f:
         json.dump(loc_dict, f)
 
@@ -301,7 +294,7 @@ def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
 
 def count_lines(bug_id):
     try:
-        with open('data/%d.txt' % bug_id) as f:
+        with open(os.path.join(DATA_DIR, '%d.txt' % bug_id)) as f:
             return sum(1 for line in f)
     except IOError:
         return 0
@@ -321,7 +314,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
     try:
         firefox_driver.get(bug['url'])
-    except TimeoutException as e:
+    except TimeoutException:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
@@ -331,7 +324,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
     try:
         chrome_driver.get(bug['url'])
-    except TimeoutException as e:
+    except TimeoutException:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
@@ -354,7 +347,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
         _, chrome_xpath = do_something(chrome_driver, visited_paths, current_path, elem_properties)
         current_path.append((elem_properties, firefox_xpath, chrome_xpath))
 
-        with open('data/%d.txt' % bug['id'], 'a+') as f:
+        with open(os.path.join(DATA_DIR, '%d.txt' % bug['id']), 'a+') as f:
             line_number = count_lines(bug['id'])
             f.seek(2, 0)
             for element, _, _ in current_path:
@@ -369,63 +362,67 @@ def run_test_both(bug, firefox_driver, chrome_driver):
             jump_back(current_path, firefox_driver, chrome_driver, visited_paths, bug)
 
 
-def run_tests(firefox_driver, chrome_driver, bugs):
+def run_test(firefox_driver, chrome_driver, bug):
     set_timeouts(firefox_driver)
     set_timeouts(chrome_driver)
 
-    for bug in bugs:
-        try:
-            # We attempt to regenerate everything when either
-            # a) we haven't generated the main screenshot for Firefox or Chrome, or
-            # b) we haven't generated any item of the sequence for Firefox, or
-            # c) there are items in the Firefox sequence that we haven't generated for Chrome.
-            lines_written = count_lines(bug['id'])
-            number_of_ff_scr = len(glob.glob('data/%d_*_firefox.png' % bug['id']))
-            number_of_ch_scr = len(glob.glob('data/%d_*_chrome.png' % bug['id']))
-            if not os.path.exists('data/%d_firefox.png' % bug['id']) or \
-               not os.path.exists('data/%d_chrome.png' % bug['id']) or \
-               lines_written == 0 or \
-               number_of_ff_scr != number_of_ch_scr:
-                for f in glob.iglob('data/%d*' % bug['id']):
-                    os.remove(f)
-                run_test_both(bug, firefox_driver, chrome_driver)
+    try:
+        # We attempt to regenerate everything when either
+        # a) we haven't generated the main screenshot for Firefox or Chrome, or
+        # b) we haven't generated any item of the sequence for Firefox, or
+        # c) there are items in the Firefox sequence that we haven't generated for Chrome.
+        lines_written = count_lines(bug['id'])
+        number_of_ff_scr = len(glob.glob(os.path.join(DATA_DIR, '%d_*_firefox.png' % bug['id'])))
+        number_of_ch_scr = len(glob.glob(os.path.join(DATA_DIR, '%d_*_chrome.png' % bug['id'])))
+        if not os.path.exists(os.path.join(DATA_DIR, '%d_firefox.png' % bug['id'])) or \
+           not os.path.exists(os.path.join(DATA_DIR, '%d_chrome.png' % bug['id'])) or \
+           lines_written == 0 or \
+           number_of_ff_scr != number_of_ch_scr:
+            for f in glob.iglob(os.path.join(DATA_DIR, '%d*' % bug['id'])):
+                os.remove(f)
+            run_test_both(bug, firefox_driver, chrome_driver)
 
-        except:  # noqa: E722
-            traceback.print_exc()
-            close_all_windows_except_first(firefox_driver)
-            close_all_windows_except_first(chrome_driver)
-
-    firefox_driver.quit()
-    chrome_driver.quit()
-
-
-os.environ['PATH'] += os.pathsep + os.path.abspath('tools')
-os.environ['MOZ_HEADLESS'] = '1'
-os.environ['MOZ_HEADLESS_WIDTH'] = '412'
-os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
-firefox_profile = webdriver.FirefoxProfile()
-firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
-firefox_profile.set_preference('intl.accept_languages', 'it')
-firefox_profile.set_preference('media.volume_scale', '0.0')
-chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = chrome_bin
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--hide-scrollbars')
-chrome_options.add_argument('--window-size=412,732')
-chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
-chrome_options.add_argument('--lang=it')
-chrome_options.add_argument('--mute-audio')
+    except:  # noqa: E722
+        traceback.print_exc()
+        close_all_windows_except_first(firefox_driver)
+        close_all_windows_except_first(chrome_driver)
 
 
 def main(bugs):
-    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
-    chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
-    run_tests(firefox_driver, chrome_driver, bugs)
+    HUB_HOST = os.environ['HUB_HOST']
+    HUB_PORT = os.environ['HUB_PORT']
+    HUB_URL = 'http://%s:%s/wd/hub' % (HUB_HOST, HUB_PORT)
+
+    firefox_options = webdriver.FirefoxOptions()
+    firefox_options.headless = True
+    firefox_options.profile = webdriver.FirefoxProfile(os.path.join(ROOT, 'firefox_profile'))
+    firefox_options.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
+    firefox_options.set_preference('intl.accept_languages', 'it')
+    firefox_options.set_preference('media.volume_scale', '0.0')
+
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--hide-scrollbars')
+    chrome_options.add_argument('--window-size=412,732')
+    chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
+    chrome_options.add_argument('--lang=it')
+    chrome_options.add_argument('--mute-audio')
+
+    ff_cap = firefox_options.to_capabilities()
+    ch_cap = chrome_options.to_capabilities()
+
+    for bug in bugs:
+        print('requesting browsers for bug', bug['id'])
+        with webdriver.Remote(command_executor=HUB_URL, desired_capabilities=ff_cap) as firefox_driver, \
+                webdriver.Remote(command_executor=HUB_URL, desired_capabilities=ch_cap) as chrome_driver:
+            firefox_driver.set_window_size(412, 806)
+            sys.stdout.flush()
+            run_test(firefox_driver, chrome_driver, bug)
+        sys.stdout.flush()
 
 
 if __name__ == '__main__':
     random.shuffle(bugs)
-    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
-        for i in range(MAX_THREADS):
-            executor.submit(main, bugs[i::MAX_THREADS])
+    with multiprocessing.Pool(MAX_THREADS) as pool:
+        pool.map(main, [bugs[i::MAX_THREADS] for i in range(MAX_THREADS)])
