@@ -9,4 +9,5 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 ADD . ./
 
+ENV PYTHONUNBUFFERED=yes
 ENV PYTHONPATH "${PYTHONPATH}:/autowebcompat"

@@ -244,8 +244,8 @@ job "autowebcompat-services" {
       template {
         data = <<-EOF
           {{- range service "postgres" }}
-            POSTGRES_HOST = {{ .Address }}
-            POSTGRES_PORT = {{ .Port }}
+            POSTGRES_HOST = {{ .Address | toJSON}}
+            POSTGRES_PORT = {{ .Port | toJSON}}
           {{- end }}
 
           {{- with secret "autowebcompat/web/postgres_password" }}
@@ -319,6 +319,9 @@ job "autowebcompat-services" {
         port_map {
           http = 4444
         }
+        volumes = [
+          "/dev/shm:/dev/shm",
+        ]
       }
       resources {
         memory = 500

@@ -1,7 +1,4 @@
 browser {
-  margin-right: -17px !important;
-  margin-bottom: -17px !important;
-  overflow-y: hidden;
-  overflow-x: hidden;
+  scrollbar-width: none !important;
 }
 

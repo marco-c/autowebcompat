@@ -21,13 +21,19 @@ job "autowebcompat-import" {
         ]
       }
       env {
+        POSTGRES_USER = "user1"
+        POSTGRES_DB = "autowebcompat"
+        SECRET_KEY = "fake"
         TIMESTAMP = "${meta.timestamp}"
       }
       template {
-        data = <<EOF
+        data = <<-EOF
           {{- range service "postgres" }}
-            PG_IP = {{ .Address }}
-            PG_PORT = {{ .Port }}
+            POSTGRES_HOST = {{ .Address | toJSON}}
+            POSTGRES_PORT = {{ .Port | toJSON}}
+          {{- end }}
+          {{- with secret "autowebcompat/web/postgres_password" }}
+            POSTGRES_PASSWORD = {{.Data.val | toJSON}}
           {{- end }}
         EOF
         destination = "local/generated.env"

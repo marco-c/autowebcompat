@@ -18,6 +18,8 @@ CONFIG_INI = os.getenv('CONFIG_INI', str(root / 'config.ini'))
 SERVICE_JOBS = [
     'services.nomad',
     'browsers.nomad',
+    'import.nomad',
+    'scrape.nomad',
 ]
 VAULT_MOUNT = 'autowebcompat'
 GENERATED_VAULT_SECRETS = ['web/django_secret_key', 'web/postgres_password']
@@ -118,15 +120,22 @@ def get_job(template, config):
     log.debug('Parsing "%s"', template)
     hcl = jinja_env.get_template(template).render(config)
     nomad = get_client('nomad', config)
-    try:
-        return nomad.jobs.parse(hcl)
-    except BadRequestNomadException as err:
-        log.error('Failed to parse %s!', template)
-        log.error(err.nomad_resp.reason)
-        log.error(err.nomad_resp.text)
-        raise
+    return nomad.jobs.parse(hcl)
 
 
+def log_nomad_errors(fn):
+    def decorated(*args, **kw):
+        try:
+            return fn(*args, **kw)
+        except BadRequestNomadException as err:
+            log.error(err.nomad_resp.reason)
+            log.error(err.nomad_resp.text)
+            raise
+
+    return decorated
+
+
+@log_nomad_errors
 def run_services():
     config = load_config()
     ensure_secrets(config)
@@ -139,19 +148,18 @@ def run_services():
         nomad.job.register_job(job['Name'], {'Job': job})
 
 
+@log_nomad_errors
 def dispatch_job(template, meta):
     config = load_config()
     job = get_job(template, config)
 
     nomad = get_client('nomad', config)
-    log.info("Registering job %s", job['Name'])
-    nomad.job.register_job(job['Name'], {'Job': job})
     log.info("Dispatching job %s: %s", job['Name'], str(meta))
     return nomad.job.dispatch_job(job['Name'], meta=meta)
 
 
 def run_scrape(path):
-    return dispatch_job('import.nomad', {'dataset_path': path})
+    return dispatch_job('scrape.nomad', {'dataset_path': path})
 
 
 def run_import(path, slug):

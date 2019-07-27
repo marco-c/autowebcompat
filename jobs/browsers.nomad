@@ -9,27 +9,27 @@ job "autowebcompat-browsers" {
       attribute = "${meta.crawler}"
       value = "true"
     }
-
     task "chrome" {
       driver = "docker"
       config {
         image = "selenium/node-chrome:3.141.59-neon"
-        volumes = [
-        #  "/dev/shm:/dev/shm",
-        ]
+        #shm_size = %{1024 * 1024 * 1024 * 2}
         port_map {
           node = 5555
         }
+        volumes = [
+          "/dev/shm:/dev/shm",
+        ]
+      }
+      env {
+        REMOTE_HOST = "http://${NOMAD_ADDR_node}"
       }
       template {
         data = <<EOF
           {{- range service "selenium-hub" }}
-            HUB_HOST = {{ .Address }}
-            HUB_PORT = {{ .Port }}
+            HUB_HOST = {{ .Address | toJSON}}
+            HUB_PORT = {{ .Port | toJSON}}
           {{- end }}
-          REMOTE_HOST = "http://${NOMAD_ADDR_node}"
-          SCREEN_HEIGHT = 900
-          SCREEN_WIDTH = 500
           NODE_MAX_SESSION = 3
           NODE_MAX_INSTANCES = 3
         EOF
@@ -57,22 +57,23 @@ job "autowebcompat-browsers" {
       driver = "docker"
       config {
         image = "selenium/node-firefox:3.141.59-neon"
-        volumes = [
-        #  "/dev/shm:/dev/shm",
-        ]
+        #shm_size = %{1024 * 1024 * 1024 * 2}
         port_map {
           node = 5555
         }
+        volumes = [
+          "/dev/shm:/dev/shm",
+        ]
+      }
+      env {
+        REMOTE_HOST = "http://${NOMAD_ADDR_node}"
       }
       template {
         data = <<EOF
           {{- range service "selenium-hub" }}
-            HUB_HOST = {{ .Address }}
-            HUB_PORT = {{ .Port }}
+            HUB_HOST = {{ .Address | toJSON}}
+            HUB_PORT = {{ .Port | toJSON}}
           {{- end }}
-          REMOTE_HOST = "http://${NOMAD_ADDR_node}"
-          SCREEN_HEIGHT = 900
-          SCREEN_WIDTH = 500
           NODE_MAX_SESSION = 3
           NODE_MAX_INSTANCES = 3
         EOF

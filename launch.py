@@ -48,6 +48,7 @@ def scrape(path):
 
     path = pathlib.Path(path).resolve()
     path.mkdir(exist_ok=True)
+    path = str(path)
 
     log.info("Launching scrape job")
     run_scrape(path)
