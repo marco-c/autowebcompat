@@ -25,13 +25,13 @@
     {% if request.user.is_authenticated %}
       <a href="{{url('app:user', args=[request.user.get_username()])}}" class="btn btn-outline-primary my-2 my-sm-0">{{ request.user.get_full_name() }}</a>
     {% endif %}
-    {% if request.user.is_superuser %}
+    {% if request.user.is_staff %}
       <a href="/admin" class="btn btn-outline-danger my-2 my-sm-0">Admin</a>
     {% endif %}
     {% if request.user.is_anonymous %}
-      <a href="/login/github" class="btn btn-outline-success my-2 my-sm-0">Log In</a>
+      <a href="/login/github?next={{request.get_full_path() | urlencode}}" class="btn btn-outline-success my-2 my-sm-0">Log In</a>
     {% else %}
-      <a href="/logout" class="btn btn-outline-dark my-2 my-sm-0">Log Out</a>
+      <a href="/logout?next={{request.get_full_path() | urlencode}}" class="btn btn-outline-dark my-2 my-sm-0">Log Out</a>
     {% endif %}
   </div>
 </nav>

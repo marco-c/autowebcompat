@@ -1,6 +1,6 @@
 {% extends "app/detail.html" %}
 
-{% if item.label_set.filter(user=request.user).exists() %}
+{% if request.user.is_authenticated and item.label_set.filter(user=request.user).exists() %}
 {% set user_label = item.label_set.filter(user=request.user).get().label %}
 {% else %}
 {% set user_label = '' %}
