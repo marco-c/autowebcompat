@@ -20,6 +20,7 @@ import json
 import re
 import socket
 import sys
+import time
 from urllib.request import Request
 from urllib.request import urlopen
 
@@ -32,14 +33,19 @@ socket.setdefaulttimeout(240)
 
 
 def get_remote_file(url, req_json=False):
-    print('Getting ' + url)
-    req = Request(url)
-    req.add_header('User-agent', 'AreWeCompatibleYetBot')
-    if req_json:
-        req.add_header('Accept', 'application/vnd.github.v3+json')
-    bzresponse = urlopen(req, timeout=240)
-    return {"headers": bzresponse.info(),
-            "data": json.loads(bzresponse.read().decode('utf8'))}
+    while True:
+        try:
+            print('Getting ' + url)
+            req = Request(url)
+            req.add_header('User-agent', 'AreWeCompatibleYetBot')
+            if req_json:
+                req.add_header('Accept', 'application/vnd.github.v3+json')
+            bzresponse = urlopen(req, timeout=240)
+            return {"headers": bzresponse.info(),
+                    "data": json.loads(bzresponse.read().decode('utf8'))}
+        except:
+            print('Wait ten minutes before next request...')
+            time.sleep(600)
 
 
 def extract_url(issue_body):
