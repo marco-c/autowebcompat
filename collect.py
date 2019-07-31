@@ -321,7 +321,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
     try:
         firefox_driver.get(bug['url'])
-    except TimeoutException as e:
+    except TimeoutException:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
@@ -331,7 +331,7 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
     try:
         chrome_driver.get(bug['url'])
-    except TimeoutException as e:
+    except TimeoutException:
         # Ignore timeouts, as they are too frequent.
         traceback.print_exc()
         print('Continuing...')
