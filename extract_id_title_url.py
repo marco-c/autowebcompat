@@ -145,7 +145,7 @@ def get_webcompat_data(url_repo=URL_REPO):
 
     Start with the first page and follow hypermedia links to explore the rest.
     '''
-    next_link = '%s/issues?per_page=100&page=1' % (url_repo)
+    next_link = '%s/issues?per_page=100&page=1&filter=all&state=all' % (url_repo)
     results = []
     bzresults = []
 
