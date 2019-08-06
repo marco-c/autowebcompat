@@ -3,9 +3,11 @@ FROM python:3.7-buster
 RUN mkdir /autowebcompat
 WORKDIR /autowebcompat
 
-ADD Pipfile Pipfile.lock ./
-RUN pip install pipenv
-RUN pipenv install --system --deploy --ignore-pipfile
+ADD pip.conf Pipfile Pipfile.lock ./
+ENV PYTHONUNBUFFERED=yes PIP_CONFIG_FILE=/autowebcompat/pip.conf
+RUN pip install pipenv \
+ && pipenv install --system --deploy --ignore-pipfile \
+ && pip uninstall --yes pipenv
 
 ADD . ./
 
