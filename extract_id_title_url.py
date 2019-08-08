@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 # encoding: utf-8
+# Originally from: https://github.com/webcompat/issue_parser/blob/master/extract_id_title_url.py
 '''
 extract_id_title.py
 

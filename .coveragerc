@@ -11,3 +11,4 @@ omit =
     data_resized/*
     tools/*
     label_persons/*
+    extract_id_title_url.py  # vendored
