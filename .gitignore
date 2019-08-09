@@ -8,3 +8,4 @@ geckodriver.log
 .coverage
 .pytest_cache
 .idea
+webcompatdata.csv
