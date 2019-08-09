@@ -241,7 +241,7 @@ def get_machine_info():
         parameter_value_map['GPU_{}_name'.format(i + 1)] = device.name
         parameter_value_map['GPU_{}_memory_limit'.format(i + 1)] = device.memory_limit
         parameter_value_map['GPU_{}_description'.format(i + 1)] = device.physical_device_desc
-    lscpu = subprocess.check_output('lscpu | grep \'^CPU(s):\|Core\|Thread\'', shell=True).strip().decode()
+    lscpu = subprocess.check_output("lscpu | grep '^CPU(s):\\|Core\\|Thread'", shell=True).strip().decode()
     lscpu = lscpu.split('\n')
     for row in lscpu:
         row = row.split(':')

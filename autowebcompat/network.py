@@ -227,8 +227,7 @@ def contrastive_loss(y_true, y_pred):
     http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
     """
     margin = 1
-    return K.mean(y_true * K.square(y_pred) +
-                  (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
+    return K.mean(y_true * K.square(y_pred) + (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
 
 
 def accuracy(y_true, y_pred):

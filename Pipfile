@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "*"
+flake8-isort = "*"
+flake8-quotes = "*"
+pytest = "*"
+pytest-cov = "*"
+
+[packages]
+# ml, imgproc
+Keras = "*"
+Pillow = "*"
+opencv-python = "*"
+scikit-learn = "*"
+tensorflow = "*"
+
+# scraping
+h5py = "*"
+selenium = "*"
+lxml = "*"
+
+[requires]
+python_version = "3.7"

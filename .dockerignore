@@ -1,0 +1,15 @@
+**/*.pyc
+
+data/
+data_resized/
+inconsistencies.csv
+
+geckodriver.log
+**/.DS_Store
+.coverage
+.pytest_cache
+.idea
+
+.git
+.gitignore
+.travis.yml

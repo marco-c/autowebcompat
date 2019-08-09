@@ -1,9 +1,14 @@
+dist: xenial
 language: python
 python:
-  - "3.6"
+  - "3.7"
+services:
+  - docker
+
 install:
-  - pip install -r requirements.txt
-  - pip install -r test-requirements.txt
+  - pip install pipenv
+  - pipenv install --dev --ignore-pipfile --deploy --system
+  - docker build . --tag test-autowebcompat
 script:
   - flake8 .
   - pytest ./tests/test_*.py --cov=./
