@@ -219,6 +219,21 @@ def write_bounding_boxes(bounding_boxes, file_name):
         print(json.dumps(bounding_boxes), file=f)
 
 
+def get_browser_bin():
+    if sys.platform.startswith('linux'):
+        chrome_bin = 'tools/chrome-linux/chrome'
+        nightly_bin = 'tools/nightly/firefox-bin'
+    elif sys.platform.startswith('darwin'):
+        chrome_bin = 'tools/chrome.app/Contents/MacOS/chrome'
+        nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
+    elif sys.platform.startswith('win32'):
+        chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
+        nightly_bin = 'tools\\Nightly\\firefox.exe'
+    else:
+        chrome_bin = nightly_bin = None
+    return chrome_bin, nightly_bin
+
+
 def get_all_model_summary(model, model_summary):
     line = []
     model.summary(print_fn=lambda x: line.append(x + '\n'))

@@ -3,33 +3,23 @@ import glob
 import json
 import os
 import random
-import sys
 import time
 import traceback
 
 from PIL import Image
 from lxml import etree
-from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoSuchWindowException
 from selenium.common.exceptions import TimeoutException
 
 from autowebcompat import utils
+from autowebcompat.crawler import close_all_windows_except_first
+from autowebcompat.driver import Driver
+from autowebcompat.utils import get_browser_bin
 
 MAX_THREADS = 5
 MAX_INTERACTION_DEPTH = 7
 
-if sys.platform.startswith('linux'):
-    chrome_bin = 'tools/chrome-linux/chrome'
-    nightly_bin = 'tools/nightly/firefox-bin'
-elif sys.platform.startswith('darwin'):
-    chrome_bin = 'tools/chrome.app/Contents/MacOS/chrome'
-    nightly_bin = 'tools/Nightly.app/Contents/MacOS/firefox'
-elif sys.platform.startswith('win32'):
-    chrome_bin = 'tools\\Google\\Chrome\\Application\\chrome.exe'
-    nightly_bin = 'tools\\Nightly\\firefox.exe'
-
+chrome_bin, nightly_bin = get_browser_bin()
 
 utils.mkdir('data')
 
@@ -72,23 +62,6 @@ def wait_loaded(driver):
     except:  # noqa: E722
         traceback.print_exc()
         print('Continuing...')
-
-
-def close_all_windows_except_first(driver):
-    windows = driver.window_handles
-
-    for window in windows[1:]:
-        driver.switch_to_window(window)
-        driver.close()
-
-    while True:
-        try:
-            alert = driver.switch_to_alert()
-            alert.dismiss()
-        except (NoAlertPresentException, NoSuchWindowException):
-            break
-
-    driver.switch_to_window(windows[0])
 
 
 def get_element_properties(driver, child):
@@ -399,29 +372,9 @@ def run_tests(firefox_driver, chrome_driver, bugs):
     chrome_driver.quit()
 
 
-os.environ['PATH'] += os.pathsep + os.path.abspath('tools')
-os.environ['MOZ_HEADLESS'] = '1'
-os.environ['MOZ_HEADLESS_WIDTH'] = '412'
-os.environ['MOZ_HEADLESS_HEIGHT'] = '808'
-firefox_profile = webdriver.FirefoxProfile()
-firefox_profile.set_preference('general.useragent.override', 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0')
-firefox_profile.set_preference('intl.accept_languages', 'it')
-firefox_profile.set_preference('media.volume_scale', '0.0')
-chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = chrome_bin
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--hide-scrollbars')
-chrome_options.add_argument('--window-size=412,732')
-chrome_options.add_argument('--user-agent=Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/M4B30Z) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36')
-chrome_options.add_argument('--lang=it')
-chrome_options.add_argument('--mute-audio')
-
-
 def main(bugs):
-    firefox_driver = webdriver.Firefox(firefox_profile=firefox_profile, firefox_binary=nightly_bin)
-    chrome_driver = webdriver.Chrome(chrome_options=chrome_options)
-    run_tests(firefox_driver, chrome_driver, bugs)
+    driver = Driver()
+    run_tests(driver.firefox, driver.chrome, bugs)
 
 
 if __name__ == '__main__':
